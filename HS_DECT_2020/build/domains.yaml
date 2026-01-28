@@ -1,0 +1,7 @@
+default: HS_DECT_2020
+build_dir: /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build
+domains:
+  - name: HS_DECT_2020
+    build_dir: /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020
+flash_order:
+  - HS_DECT_2020

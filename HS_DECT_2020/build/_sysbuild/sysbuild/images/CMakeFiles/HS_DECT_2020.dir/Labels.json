@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020-complete.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-build.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-configure.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-download.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-install.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-mkdir.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-patch.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"HS_DECT_2020"
+		],
+		"name" : "HS_DECT_2020"
+	}
+}

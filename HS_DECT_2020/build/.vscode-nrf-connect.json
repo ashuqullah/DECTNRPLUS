@@ -1,0 +1,18 @@
+{
+  "toolchainPath": "/home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d",
+  "sdkPath": "/home/ashuqullah-alizai/ncs/v3.1.1",
+  "board": "nrf9161dk/nrf9161/ns",
+  "boardDir": "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/boards/nordic/nrf9161dk",
+  "boardDirs": [
+    "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/boards/nordic/nrf9161dk"
+  ],
+  "boardRevision": "0.9.0",
+  "optimizations": "none",
+  "cmakeArgs": [],
+  "confFiles": [],
+  "buildDirectory": "build",
+  "kconfigFragments": [],
+  "snippets": [],
+  "dtcOverlays": [],
+  "extraDtcOverlays": []
+}
