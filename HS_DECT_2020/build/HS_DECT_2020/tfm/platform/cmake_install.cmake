@@ -2,7 +2,7 @@
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/tfm/api_ns")
+  set(CMAKE_INSTALL_PREFIX "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/tfm/api_ns")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -39,6 +39,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/tfm/platform/target/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/tfm/platform/target/cmake_install.cmake")
 endif()
 

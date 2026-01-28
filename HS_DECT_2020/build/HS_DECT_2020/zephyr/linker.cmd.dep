@@ -1,12 +1,12 @@
 linker.cmd: \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/arch/arm/cortex_m/scripts/linker.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/zephyr/autoconf.h \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/zephyr/autoconf.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/sections.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/section_tags.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/toolchain.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/toolchain/gcc.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/devicetree.h \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/zephyr/devicetree_generated.h \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/zephyr/devicetree_generated.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/irq_multilevel.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_macro.h \
@@ -35,15 +35,15 @@ linker.cmd: \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/devicetree_regions.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/linker-defs.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/toolchain/common.h \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/zephyr/offsets.h \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/zephyr/offsets.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/linker-tool.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/linker-tool-gcc.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/kernel/mm.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/kernel/internal/mm.h \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/pm_config.h \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/pm_config.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/linker-devnull.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/rel-sections.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-rom-start.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-rom-start.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/../arch/common/rom_start_address.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/../arch/common/fill_with_zeros.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/../arch/common/rom_start_offset.ld \
@@ -55,7 +55,7 @@ linker.cmd: \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-rom/common-rom-kernel-devices.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/iterable_sections.h \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/device-deps.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/device-api-sections.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/device-api-sections.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-rom/common-rom-ztest.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-rom/common-rom-init.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-rom/common-rom-net.ld \
@@ -64,27 +64,27 @@ linker.cmd: \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-rom/common-rom-debug.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-rom/common-rom-interrupt-controllers.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-rom/common-rom-misc.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-rom-sections.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-rom-sections.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/thread-local-storage.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-rodata.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-rodata.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/../../nrf/lib/nrf_modem_lib/cfun_hooks.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/../../nrf/lib/nrf_modem_lib/nrf_modem_lib.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/../arch/arm/core/swi_tables.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/kobject-rom.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/cplusplus-rom.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-ram-sections.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-ram-sections.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/../arch/common/ramfunc.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-ramfunc-section.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-rwdata.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-ramfunc-section.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-rwdata.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-ram.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/kobject-data.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/cplusplus-ram.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-data-sections.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-sections.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-data-sections.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-sections.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/../soc/nordic/common/platform_init.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/intlist.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/debug-sections.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/common-noinit.ld \
- /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-noinit.ld \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/include/generated/snippets-noinit.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/kobject-priv-stacks.ld \
  /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/linker/ram-end.ld

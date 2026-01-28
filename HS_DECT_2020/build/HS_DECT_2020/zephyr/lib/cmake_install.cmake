@@ -39,46 +39,46 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/crc/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/crc/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/libc/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/libc/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/posix/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/posix/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/hash/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/hash/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/heap/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/heap/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/mem_blocks/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/mem_blocks/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/os/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/os/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/utils/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/utils/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/uuid/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/lib/uuid/cmake_install.cmake")
 endif()
 

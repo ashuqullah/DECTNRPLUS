@@ -39,36 +39,36 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/ext/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/ext/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/lib/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/lib/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/samples/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/samples/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/subsys/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/subsys/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/modules/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/modules/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/drivers/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/drivers/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/tests/cmake_install.cmake")
+  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/nrf/tests/cmake_install.cmake")
 endif()
 

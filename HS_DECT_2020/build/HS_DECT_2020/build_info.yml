@@ -1,7 +1,7 @@
 cmake:
   application:
-    configuration-dir: '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020'
-    source-dir: '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020'
+    configuration-dir: '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020'
+    source-dir: '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020'
   board:
     name: 'nrf9161dk'
     path:
@@ -42,11 +42,11 @@ cmake:
   kconfig:
     files:
      - '/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/boards/nordic/nrf9161dk/nrf9161dk_nrf9161_ns_defconfig'
-     - '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/prj.conf'
-     - '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/misc/generated/extra_kconfig_options.conf'
-     - '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/zephyr/.config.sysbuild'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/prj.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/misc/generated/extra_kconfig_options.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/zephyr/.config.sysbuild'
     user-files:
-     - '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/prj.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/prj.conf'
   toolchain:
     name: 'zephyr'
     path: '/home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/opt/zephyr-sdk'

@@ -1,13 +1,13 @@
 # Target labels
  HS_DECT_2020
 # Source files and their labels
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020.rule
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020-complete.rule
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-build.rule
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-configure.rule
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-download.rule
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-install.rule
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-mkdir.rule
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-patch.rule
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-update.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_2020-complete.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-build.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-configure.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-download.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-install.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-mkdir.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-patch.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/sysbuild/images/HS_DECT_2020-prefix/src/HS_DECT_2020-stamp/HS_DECT_2020-update.rule

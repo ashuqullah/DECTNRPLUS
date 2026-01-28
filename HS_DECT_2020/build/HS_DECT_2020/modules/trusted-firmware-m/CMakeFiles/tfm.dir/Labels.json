@@ -2,34 +2,34 @@
 	"sources" : 
 	[
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/CMakeFiles/tfm"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/CMakeFiles/tfm"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/CMakeFiles/tfm.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/CMakeFiles/tfm.rule"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/CMakeFiles/tfm-complete.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/CMakeFiles/tfm-complete.rule"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-build.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-build.rule"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-configure.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-configure.rule"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-download.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-download.rule"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-install.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-install.rule"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-mkdir.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-mkdir.rule"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-patch.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-patch.rule"
 		},
 		{
-			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-update.rule"
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020/modules/trusted-firmware-m/tfm-prefix/src/tfm-stamp/tfm-update.rule"
 		}
 	],
 	"target" : 

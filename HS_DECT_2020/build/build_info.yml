@@ -9,18 +9,18 @@ cmake:
     revision: '0.9.0'
   images:
    - name: 'HS_DECT_2020'
-     source-dir: '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020'
+     source-dir: '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020'
      type: 'MAIN'
   kconfig:
     files:
-     - '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/empty.conf'
-     - '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/empty.conf'
-     - '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/empty.conf'
     user-files:
-     - '/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/_sysbuild/empty.conf'
   sysbuild: 'true'
 version: '0.1.0'
 west:
-  command: '/home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020 --pristine --board nrf9161dk@0.9.0/nrf9161/ns -- -DCONFIG_DEBUG_THREAD_INFO=y'
+  command: '/home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020 --pristine --board nrf9161dk@0.9.0/nrf9161/ns -- -DDEBUG_THREAD_INFO=On -DCONFIG_DEBUG_THREAD_INFO=y -DHS_DECT_2020_DEBUG_THREAD_INFO=On'
   topdir: '/home/ashuqullah-alizai/ncs/v3.1.1'
   version: '1.4.0'

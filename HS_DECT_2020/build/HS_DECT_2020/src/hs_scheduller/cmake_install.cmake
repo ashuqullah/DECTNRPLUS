@@ -1,4 +1,4 @@
-# Install script for directory: /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/src/hs_scheduller
+# Install script for directory: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/src/hs_scheduller
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

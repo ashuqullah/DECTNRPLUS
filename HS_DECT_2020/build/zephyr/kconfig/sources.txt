@@ -1,8 +1,8 @@
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/Kconfig/Kconfig.sysbuild.modules
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/Kconfig/boards/Kconfig.nrf9161dk
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/Kconfig/boards/Kconfig.sysbuild
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/Kconfig/soc/Kconfig.soc
-/home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/Kconfig/soc/Kconfig.sysbuild
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/Kconfig/Kconfig.sysbuild.modules
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/Kconfig/boards/Kconfig.nrf9161dk
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/Kconfig/boards/Kconfig.sysbuild
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/Kconfig/soc/Kconfig.soc
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/Kconfig/soc/Kconfig.sysbuild
 /home/ashuqullah-alizai/ncs/v3.1.1/nrf/soc/nordic/Kconfig.soc
 /home/ashuqullah-alizai/ncs/v3.1.1/nrf/soc/nordic/Kconfig.sysbuild
 /home/ashuqullah-alizai/ncs/v3.1.1/nrf/soc/nordic/common/vpr/Kconfig.sysbuild

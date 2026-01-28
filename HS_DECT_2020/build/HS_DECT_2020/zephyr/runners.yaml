@@ -15,7 +15,7 @@ config:
   board_dir: /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/boards/nordic/nrf9161dk
   # Build outputs:
   elf_file: zephyr.elf
-  hex_file: /home/ashuqullah-alizai/Documents/dect_phy/HS_DECT_2020/build/merged.hex
+  hex_file: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/merged.hex
   bin_file: zephyr.bin
   # Host tools:
   gdb: /home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb
