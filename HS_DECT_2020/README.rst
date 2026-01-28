@@ -1,3 +1,137 @@
+
+HSDECT Project
+############
+
+The **HSDECT Project (HS-DECT-2020)** is a research-oriented implementation framework for **DECT-2020 NR** on the Nordic **nRF91x1** platform.
+It is developed at **Hochschule Aalen** and is intended to support **experimental MAC-layer research**, performance evaluation, and cross-layer optimization on top of the Nordic DECT NR+ PHY.
+
+The project deliberately avoids implementing a full ETSI-compliant DECT NR+ protocol stack.
+Instead, it exposes the PHY capabilities provided by Nordic’s modem firmware and builds a **custom, modular MAC layer** on the application processor.
+This design allows controlled experimentation with scheduling, medium access, reliability mechanisms, and multi-UE behavior.
+
+Motivation
+**********
+
+DECT-2020 NR is positioned as a low-complexity, icense-exempt spectrum alternative for private wireless networks.
+However, most available implementations tightly couple PHY and MAC behavior, limiting research flexibility.
+
+The HDECT Project addresses this gap by:
+
+* Treating the DECT NR+ PHY as a **black-box radio service**
+* Implementing MAC functionality entirely in application software
+* Providing runtime control via a shell interface
+* Enabling repeatable measurements and experiments
+
+This approach allows direct comparison with MAC concepts known from **private 5G**, **Wi-Fi**, and other cellular systems.
+
+Design Goals
+************
+
+The main design goals of the HDECT Project are:
+
+* **Modularity**  
+  Clear separation between PHY access, MAC logic, scheduling, measurement, and control
+
+* **Research flexibility**  
+  Easy modification of MAC behavior without modem firmware changes
+
+* **Observability**  
+  Built-in performance measurement (latency, throughput, reliability)
+
+* **Interactivity**  
+  Runtime control via shell commands (``hdect``)
+
+* **Reproducibility**  
+  Support for scripted experiments and repeatable test scenarios
+
+System Architecture
+*******************
+
+The HDECT Project follows a **dual-core architecture** as provided by the nRF91x1 platform:
+
+Application Core
+================
+
+The application core runs **Zephyr RTOS** and hosts:
+
+* Custom MAC layer logic
+* Scheduling and timing control
+* UE management and addressing
+* Performance measurement (ping, perf)
+* Shell interface and experiment control
+
+Modem Core
+==========
+
+The modem core runs Nordic’s closed-source firmware and provides:
+
+* DECT-2020 NR PHY
+* Radio control and timing
+* Carrier and MCS handling
+* RSSI and reception metadata
+
+Communication between the two cores is handled via the
+:ref:`nrf_modem_dect_phy` interface.
+
+PHY–MAC Split
+*************
+
+A key principle of the HDECT Project is the **strict separation of PHY and MAC responsibilities**.
+
+Physical Layer (PHY)
+====================
+
+Provided by Nordic modem firmware:
+
+* Radio access and synchronization
+* Frame, slot, and subslot timing
+* Modulation and coding (MCS)
+* Transmission power control
+* Reception metadata (RSSI, timing)
+
+The PHY is accessed exclusively through a documented API and is not modified.
+
+Medium Access Control (MAC)
+===========================
+
+Implemented entirely in the HDECT Project:
+
+* Transmission and reception control
+* Scheduling decisions
+* Medium access strategies
+* Reliability mechanisms (research extensions)
+* Performance monitoring
+
+This separation enables MAC-layer experimentation without violating firmware or regulatory constraints.
+
+Scope of the Project
+********************
+
+The HDECT Project currently supports:
+
+* Point-to-point and broadcast communication
+* Interactive MAC control via shell
+* Ping-based latency testing
+* Continuous performance measurements
+* Static scheduling (baseline)
+
+The project is intentionally extensible and serves as a **foundation for advanced research**, including adaptive scheduling and machine-learning-based resource allocation.
+
+Intended Use
+************
+
+The HDECT Project is intended for:
+
+* Academic research and prototyping
+* Master’s and PhD-level thesis work
+* Experimental comparison with private 5G MAC designs
+* Evaluation of DECT-2020 NR capabilities under controlled conditions
+
+It is **not** intended for production deployment or standards compliance testing.
+
+
+
+
 Modules
 *******
 
@@ -23,7 +157,7 @@ Shell/CLI integration and command registration:
 
 .. note::
 
-   Your project uses the command name ``hdect`` (instead of ``dout``).
+   Project uses the command name ``hdect`` (instead of ``dout``).
 
 hs_hello
 ========
@@ -162,75 +296,6 @@ The configuration command group is available as:
 
 Shell tree registration
 =======================
-
-The full command tree is assembled as follows:
-
-.. code-block:: c
-
-   SHELL_STATIC_SUBCMD_SET_CREATE(sub_hdect,
-       SHELL_CMD(led,  &sub_hdect_led,  "LED control",       NULL),
-       SHELL_CMD(mac,  &sub_hdect_mac,  "MAC-DECT control",  NULL),
-       SHELL_CMD(ping, &sub_hdect_ping, "DECT ping utility", NULL),
-       SHELL_CMD(cfg,  &sub_hdect_cfg,  "HS-DECT config",    NULL),
-       SHELL_CMD(perf, &sub_hdect_perf, "Performance metrics", NULL),
-       SHELL_SUBCMD_SET_END
-   );
-
-LED initialization at boot
-==========================
-
-LEDs are initialized at boot time using:
-
-.. code-block:: c
-
-   static int hs_shell_init(const struct device *dev)
-   {
-       ARG_UNUSED(dev);
-       return leds_init();
-   }
-
-   SYS_INIT(hs_shell_init, APPLICATION, 90);
-
-
-Screenshots
-***********
-
-Repository structure
-====================
-
-.. figure:: doc/img/repo_tree.png
-   :alt: HS_DECT_2020 repository tree
-   :align: center
-   :width: 90%
-
-   HS_DECT_2020 repository structure showing the main modules under :file:`src/`.
-
-Shell usage
-===========
-
-.. figure:: doc/img/hdect_shell_help.png
-   :alt: hdect shell command help
-   :align: center
-   :width: 90%
-
-   Example output of ``hdect`` help showing available subcommands.
-
-Perf and ping examples
-======================
-
-.. figure:: doc/img/perf_show.png
-   :alt: hdect perf show output
-   :align: center
-   :width: 90%
-
-   Example output from ``hdect perf show``.
-
-.. figure:: doc/img/ping_start.png
-   :alt: hdect ping start output
-   :align: center
-   :width: 90%
-
-   Example output from ``hdect ping start``.
 
 
 Future Work
