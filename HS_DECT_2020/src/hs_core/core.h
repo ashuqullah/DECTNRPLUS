@@ -3,7 +3,9 @@
 
 #include <zephyr/kernel.h>
 #include <stdint.h>
-
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
 /* === Limits from DECT modem capabilities === */
 
 /* From "Min carrier: 1657 / Max carrier: 1677", band group 0, odd only */
@@ -31,5 +33,13 @@ struct hs_config {
 int hs_core_get_config(struct hs_config *out);
 int hs_core_apply_radio(uint16_t carrier, uint8_t mcs, int8_t tx_power);
 int hs_core_set_network_id(uint32_t netid);
+int dect_session_open(void);
+int dect_session_close(void);
+
+int transmit(uint32_t handle, void *data, size_t data_len);
+int receive(uint32_t handle);
+
+void mac_rtt_mark_tx(void);
+void mac_rtt_set_enabled(bool enable);
 
 #endif /* HS_CORE_H_ */

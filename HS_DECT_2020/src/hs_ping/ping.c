@@ -2,7 +2,8 @@
 #include <zephyr/logging/log.h>
 #include <string.h>
 #include <stdio.h>
-
+#include <zephyr/sys/crc.h>
+#include <zephyr/sys/byteorder.h>
 #include "hs_shell.h"
 #include "ping.h"
 #include "core.h"
@@ -13,12 +14,12 @@ LOG_MODULE_REGISTER(ping, LOG_LEVEL_INF);
 #define PING_BUF_SIZE 64
 #define PING_TIMEOUT_MS 50
 
-/* --- STATE --- */
 static atomic_t ping_running = ATOMIC_INIT(0);
 static uint32_t ping_expected_seq = 0;
 static uint32_t ping_count_cfg = 0;
 
 static uint64_t last_tx_time_ms;
+
 
 /* ================================================
  *                 SERVER MODE
@@ -138,6 +139,10 @@ static void ping_client_thread(void *p1, void *p2, void *p3)
     atomic_set(&ping_running, 0);
 }
 
+
+
+
+
 /* ================================================
  *             PUBLIC START/STOP FUNCTIONS
  * ================================================ */
@@ -165,6 +170,7 @@ int ping_start_server(void)
 }
 
 
+
 int ping_start_client(uint32_t count)
 {
     if (atomic_get(&ping_running)) {
@@ -188,11 +194,11 @@ int ping_start_client(uint32_t count)
 void ping_stop(void)
 {
     if (!atomic_get(&ping_running)) {
-        return 0;
+        return ;
     }
 
     LOG_INF("Stopping PING...");
     atomic_set(&ping_running, 0);
 
-    return 0;
+    return ;
 }

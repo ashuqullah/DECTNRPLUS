@@ -308,7 +308,6 @@ static int cmd_ping_stop(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
-
 /*Get Configureation */
 static int cmd_cfg_show(const struct shell *shell, size_t argc, char **argv)
 {
@@ -406,6 +405,13 @@ static int cmd_cfg_set(const struct shell *shell, size_t argc, char **argv)
     return 0;
 }
 
+
+
+
+
+
+
+
 /* Register 'configuration ' subcommands */
 /* Forward declarations */
 static int cmd_cfg_show(const struct shell *shell, size_t argc, char **argv);
@@ -447,6 +453,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_hdect_perf,
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_hdect_ping,
     SHELL_CMD(start,  NULL, "Start ping client: hdect ping start [count]", cmd_ping_start),
     SHELL_CMD(stop,   NULL, "Stop ping client/server",                     cmd_ping_stop),
+    
     SHELL_SUBCMD_SET_END
 );
 
@@ -480,12 +487,10 @@ SHELL_CMD_REGISTER(hdect, &sub_hdect, "HS-DECT commands", NULL);
 
 /* ======================= Init LEDs at boot ============================== */
 
-static int hs_shell_init(const struct device *dev)
+static int hs_shell_init(void)
 {
-    ARG_UNUSED(dev);
     return leds_init();
 }
-
 SYS_INIT(hs_shell_init, APPLICATION, 90);
 
 /*end of the file */

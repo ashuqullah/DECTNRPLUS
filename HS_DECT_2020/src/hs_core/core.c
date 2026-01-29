@@ -36,6 +36,58 @@ static int    hs_tx_power      = 13;
 static uint32_t hs_network_id  = CONFIG_NETWORK_ID;
 static uint16_t hs_device_id   = 0;      /* set after hwinfo_get_device_id() */
 
+/* ================= FILE TRANSFER (PING EXTENSION) ================= */
+
+#define FT_TYPE_BEGIN   0xA1
+#define FT_TYPE_CHUNK   0xA2
+#define FT_TYPE_END     0xA3
+#define FT_TYPE_RESULT  0xA4
+extern struct k_sem operation_sem;
+
+
+struct __packed ft_begin {
+    uint8_t  type;
+    uint32_t len;
+    uint32_t crc32;
+};
+
+struct __packed ft_chunk_hdr {
+    uint8_t  type;
+    uint16_t seq;
+    uint32_t offset;
+    /* followed by data[] */
+};
+
+struct __packed ft_end {
+    uint8_t type;
+};
+
+struct __packed ft_result {
+    uint8_t  type;
+    uint32_t len_expected;
+    uint32_t len_received;
+    uint32_t crc_expected;
+    uint32_t byte_errors;
+};
+
+/* ----------- ORIGINAL (GOLDEN) FILE – SERVER ONLY ----------- */
+/* Generate with:
+ *   xxd -i original.bin
+ * and paste the array here
+ */
+static const uint8_t golden_file[] = {
+    /* TODO: paste bytes here */
+};
+static const size_t golden_file_len = sizeof(golden_file);
+
+/* ----------- FILE TRANSFER SERVER STATE ----------- */
+static struct {
+    bool     active;
+    uint32_t expected_len;
+    uint32_t expected_crc;
+    uint32_t received_len;
+    uint32_t byte_errors;
+} ft_srv;
 
 /*Helpers */
 
@@ -117,6 +169,26 @@ struct phy_ctrl_field_common {
 	uint32_t transmit_power : 4;
 	uint32_t pad : 24;
 };
+
+
+static void ft_send_result(void)
+{
+    struct ft_result r = {
+        .type = FT_TYPE_RESULT,
+        .len_expected = ft_srv.expected_len,
+        .len_received = ft_srv.received_len,
+        .crc_expected = ft_srv.expected_crc,
+        .byte_errors  = ft_srv.byte_errors,
+    };
+
+    /* Missing tail bytes = errors */
+    if (ft_srv.received_len < ft_srv.expected_len) {
+        r.byte_errors += (ft_srv.expected_len - ft_srv.received_len);
+    }
+
+    transmit(0, (void *)&r, sizeof(r));
+    k_sem_take(&operation_sem, K_FOREVER);
+}
 
 /* Semaphore to synchronize modem calls. */
 K_SEM_DEFINE(operation_sem, 0, 1);
@@ -245,13 +317,93 @@ static void on_pcc_crc_err(const struct nrf_modem_dect_phy_pcc_crc_failure_event
 /* Physical Data Channel reception notification. */
 static void on_pdc(const struct nrf_modem_dect_phy_pdc_event *evt)
 {
-    const char *payload = (const char *)evt->data;
+    const uint8_t *p = (const uint8_t *)evt->data;
+    size_t n = evt->len;
 
-    /* 1) Classify message type by its text prefix */
+    if (!p || n < 1) {
+        return;
+    }
+
+    /* =========================================================
+     * FILE TRANSFER SERVER (binary packets)
+     * ========================================================= */
+    switch (p[0]) {
+
+    case FT_TYPE_BEGIN: {
+        if (n < sizeof(struct ft_begin)) {
+            break;
+        }
+        const struct ft_begin *b = (const struct ft_begin *)p;
+
+        memset(&ft_srv, 0, sizeof(ft_srv));
+        ft_srv.active = true;
+        ft_srv.expected_len = b->len;
+        ft_srv.expected_crc = b->crc32;
+
+        LOG_INF("[FT ] BEGIN len=%u crc=0x%08x",
+                b->len, b->crc32);
+        return; /* handled */
+    }
+
+    case FT_TYPE_CHUNK: {
+        if (!ft_srv.active || n < sizeof(struct ft_chunk_hdr)) {
+            break;
+        }
+
+        const struct ft_chunk_hdr *h = (const struct ft_chunk_hdr *)p;
+        const uint8_t *data = p + sizeof(*h);
+        size_t data_len = n - sizeof(*h);
+
+        uint32_t off = h->offset;
+
+        for (size_t i = 0; i < data_len; i++) {
+            uint32_t idx = off + i;
+
+            if (idx >= golden_file_len) {
+                ft_srv.byte_errors++;
+                continue;
+            }
+            if (data[i] != golden_file[idx]) {
+                ft_srv.byte_errors++;
+            }
+        }
+
+        uint32_t end = off + data_len;
+        if (end > ft_srv.received_len) {
+            ft_srv.received_len = end;
+        }
+
+        return; /* handled */
+    }
+
+    case FT_TYPE_END: {
+        if (!ft_srv.active) {
+            break;
+        }
+        ft_srv.active = false;
+
+        LOG_INF("[FT ] END errors=%u rx_len=%u exp_len=%u",
+                ft_srv.byte_errors,
+                ft_srv.received_len,
+                ft_srv.expected_len);
+
+        ft_send_result();
+        return; /* handled */
+    }
+
+    default:
+        break;
+    }
+
+    /* =========================================================
+     * EXISTING PING / MAC TEXT HANDLING (unchanged)
+     * ========================================================= */
+
+    const char *payload = (const char *)p;
     bool is_ping = false;
     bool is_pong = false;
 
-    if (payload && evt->len >= 4) {
+    if (payload && n >= 4) {
         if (strncmp(payload, "PING", 4) == 0) {
             is_ping = true;
         } else if (strncmp(payload, "PONG", 4) == 0) {
@@ -259,26 +411,15 @@ static void on_pdc(const struct nrf_modem_dect_phy_pdc_event *evt)
         }
     }
 
-    /* 2) Print common PHY info (can be shared) */
     LOG_INF("PDC frame received, len=%u", evt->len);
 
-    /* 3) Print depending on type */
     if (is_ping || is_pong) {
         LOG_INF("[PING] payload: %s", payload);
-        /* RTT only makes sense for the ping client */
-        //mac_rtt_on_rx();
-		mac_rtt_on_pong_rx_modem_time(modem_time);
+        mac_rtt_on_pong_rx_modem_time(modem_time);
     } else {
         LOG_INF("[MAC ] payload: %s", payload);
-        /* No RTT here – normal MAC traffic */
     }
-
-    /* (Optional) extra details like RSSI, header fields, hex dump:
-       we can also prefix them with [PING] or [MAC]
-       if you like cleaner logs.
-    */
 }
-
 
 /* Physical Data Channel CRC error notification. */
 static void on_pdc_crc_err(const struct nrf_modem_dect_phy_pdc_crc_failure_event *evt)
