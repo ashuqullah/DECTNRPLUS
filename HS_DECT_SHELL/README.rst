@@ -55,5 +55,5 @@ Overview
 
 This document describes HS_DECT_SHELL extensions.
 
-.. include:: hs_dect_group.rst
+.. include::hs_dect_doc.rst
 
