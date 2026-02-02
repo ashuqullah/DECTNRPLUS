@@ -1079,7 +1079,4 @@ Aalen University Contribution (DEBUT Project)
 ********
 .. include:: hs_dect_group.rst
 
-.. toctree::
-   :maxdepth: 2
-
-   hs_dect_group
+See also: `HS DECT group scheduling <hs_dect_group.rst>`_.
