@@ -57,6 +57,8 @@ ensuring that existing commands and workflows remain unchanged.
 
 `DECT_SHELL Documentation <dect_shell.rst>`_.
 ************
+DeSh enables testing of :ref:`nrf_modem_dect_phy` interface and related modem features.
+This sample is also a test application for aforementioned features.
 `DECT_SHELL Documentation <dect_shell.rst>`_.
 
 
