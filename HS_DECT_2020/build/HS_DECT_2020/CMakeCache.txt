@@ -229,7 +229,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=HS_DECT
+CMAKE_PROJECT_NAME:STATIC=HS_DECT_2020
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION:STATIC=4.1.99
@@ -362,6 +362,15 @@ GNULD_VERSION_STRING:STRING=2.38
 
 //Path to a program.
 GPERF:FILEPATH=/home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/usr/bin/gperf
+
+//Value Computed by CMake
+HS_DECT_2020_BINARY_DIR:STATIC=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020
+
+//Value Computed by CMake
+HS_DECT_2020_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+HS_DECT_2020_SOURCE_DIR:STATIC=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020
 
 //Value Computed by CMake
 HS_DECT_BINARY_DIR:STATIC=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020/build/HS_DECT_2020

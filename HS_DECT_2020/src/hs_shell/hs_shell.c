@@ -15,6 +15,7 @@
 /*Heder files */
 #include "hello.h"
 #include "ping.h"
+#include "fping.h"
 #include "core.h"
 #include "utils.h"
 #include "perf.h"
@@ -40,7 +41,7 @@ static char hello_mode = 't';   // 't' or 'r'
 
 /* --- PING worker thread --- */
 
-static uint32_t ping_count_cfg = 0;
+
 static uint32_t hello_tx_count_cfg = 0;   /* 0 = use CONFIG_TX_TRANSMISSIONS */
 
 
@@ -265,45 +266,67 @@ static int cmd_mac_mes(const struct shell *shell, size_t argc, char **argv)
 
 /* -------- PING shell commands -------- */
 
+
 static int cmd_ping_start(const struct shell *shell, size_t argc, char **argv)
 {
     if (argc < 2) {
-        shell_print(shell, "Usage: hdect ping start <c|s> [count]");
+        shell_print(shell, "Usage:");
+        shell_print(shell, "  hdect ping start c [count]   (ping client)");
+        shell_print(shell, "  hdect ping start s           (ping server)");
+        shell_print(shell, "  hdect ping start cf          (file-compare client)");
+        shell_print(shell, "  hdect ping start sf          (file-compare server)");
         return -EINVAL;
     }
 
-    char mode = argv[1][0];
+    /* ---- file compare modes ---- */
+    if (strcmp(argv[1], "sf") == 0) {
+        int err = fping_server_start();
+        shell_print(shell, (err == 0) ? "FPING SERVER started" : "FPING SERVER failed");
+        return err;
+    }
 
-    if (mode == 'c') {
+    if (strcmp(argv[1], "cf") == 0) {
+        
+        uint32_t count = 5; /* default */
+        if (argc >= 3) {
+            count = (uint32_t)strtoul(argv[3], NULL, 10);
+        }
+        int err = fping_client_start(count);
+        if (err) {
+            shell_error(shell, "FPING client start failed: %d", err);
+            return err;
+        }
+        shell_print(shell, "FPING CLIENT started");
+        return 0;
+    }
+
+    /* ---- normal ping modes ---- */
+    if (strcmp(argv[1], "c") == 0) {
         uint32_t count = 5;
         if (argc >= 3) {
             count = atoi(argv[2]);
         }
 
         int err = ping_start_client(count);
-        if (err == 0)
-            shell_print(shell, "PING CLIENT started");
-        else
-            shell_print(shell, "PING CLIENT failed");
-    }
-    else if (mode == 's') {
-        int err = ping_start_server();
-        if (err == 0)
-            shell_print(shell, "PING SERVER started");
-        else
-            shell_print(shell, "PING SERVER failed");
-    }
-    else {
-        shell_print(shell, "ERROR: mode must be c or s");
-        return -EINVAL;
+        shell_print(shell, (err == 0) ? "PING CLIENT started" : "PING CLIENT failed");
+        return err;
     }
 
-    return 0;
+    if (strcmp(argv[1], "s") == 0) {
+        int err = ping_start_server();
+        shell_print(shell, (err == 0) ? "PING SERVER started" : "PING SERVER failed");
+        return err;
+    }
+
+    shell_print(shell, "ERROR: mode must be c, s, cf, or sf");
+    return -EINVAL;
 }
+
 
 static int cmd_ping_stop(const struct shell *shell, size_t argc, char **argv)
 {
-    ping_stop();
+     fping_stop();
+     ping_stop();
     shell_print(shell, "PING STOPPED");
     return 0;
 }

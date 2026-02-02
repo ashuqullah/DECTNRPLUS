@@ -48,13 +48,6 @@ static void ping_server_thread(void *p1, void *p2, void *p3)
         /* Wait until RX completes */
         k_sem_take(&operation_sem, K_FOREVER);
 
-        /* Modem callback already placed received bytes into evt->data,
-           but hello.c only prints PDC frames. We assume here that
-           evt->data contains our ASCII "PING <seq>" message. */
-
-        /* In real code you'd process evt->data directly,
-           but since hello.c prints the payload, here we stay minimal. */
-
         /* Simulate echo reply */
         snprintf(buf, sizeof(buf), "PONG %lu", (unsigned long)ping_expected_seq);
         transmit(0, buf, strlen(buf) + 1);
@@ -89,7 +82,7 @@ static void ping_client_thread(void *p1, void *p2, void *p3)
 
         snprintf(txbuf, sizeof(txbuf), "PING %u", seq);
 
-        /* High-level RTT in ms (your existing one) */
+        /* High-level RTT in ms (existing one) */
         last_tx_time_ms = k_uptime_get();
 
         /* Low-level MAC RTT (client only, hello.c will use this) */

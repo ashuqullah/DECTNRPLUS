@@ -11,6 +11,8 @@
 #include <zephyr/drivers/hwinfo.h>
 #include "core.h"
 #include "perf.h"
+#include "fping.h"
+#include "ping.h"
 LOG_MODULE_REGISTER(app);
 
 BUILD_ASSERT(CONFIG_CARRIER, "Carrier must be configured according to local regulations");
@@ -35,59 +37,21 @@ static int    hs_mcs           = 1;
 static int    hs_tx_power      = 13;
 static uint32_t hs_network_id  = CONFIG_NETWORK_ID;
 static uint16_t hs_device_id   = 0;      /* set after hwinfo_get_device_id() */
-
+static uint8_t last_rx_buf[2048];
+static size_t  last_rx_len;
 /* ================= FILE TRANSFER (PING EXTENSION) ================= */
 
-#define FT_TYPE_BEGIN   0xA1
-#define FT_TYPE_CHUNK   0xA2
-#define FT_TYPE_END     0xA3
-#define FT_TYPE_RESULT  0xA4
-extern struct k_sem operation_sem;
+static atomic_t dect_busy = ATOMIC_INIT(0);
 
+bool dect_try_lock(void)
+{
+    return atomic_cas(&dect_busy, 0, 1);
+}
 
-struct __packed ft_begin {
-    uint8_t  type;
-    uint32_t len;
-    uint32_t crc32;
-};
-
-struct __packed ft_chunk_hdr {
-    uint8_t  type;
-    uint16_t seq;
-    uint32_t offset;
-    /* followed by data[] */
-};
-
-struct __packed ft_end {
-    uint8_t type;
-};
-
-struct __packed ft_result {
-    uint8_t  type;
-    uint32_t len_expected;
-    uint32_t len_received;
-    uint32_t crc_expected;
-    uint32_t byte_errors;
-};
-
-/* ----------- ORIGINAL (GOLDEN) FILE – SERVER ONLY ----------- */
-/* Generate with:
- *   xxd -i original.bin
- * and paste the array here
- */
-static const uint8_t golden_file[] = {
-    /* TODO: paste bytes here */
-};
-static const size_t golden_file_len = sizeof(golden_file);
-
-/* ----------- FILE TRANSFER SERVER STATE ----------- */
-static struct {
-    bool     active;
-    uint32_t expected_len;
-    uint32_t expected_crc;
-    uint32_t received_len;
-    uint32_t byte_errors;
-} ft_srv;
+void dect_unlock(void)
+{
+    atomic_clear(&dect_busy);
+}
 
 /*Helpers */
 
@@ -171,29 +135,13 @@ struct phy_ctrl_field_common {
 };
 
 
-static void ft_send_result(void)
-{
-    struct ft_result r = {
-        .type = FT_TYPE_RESULT,
-        .len_expected = ft_srv.expected_len,
-        .len_received = ft_srv.received_len,
-        .crc_expected = ft_srv.expected_crc,
-        .byte_errors  = ft_srv.byte_errors,
-    };
 
-    /* Missing tail bytes = errors */
-    if (ft_srv.received_len < ft_srv.expected_len) {
-        r.byte_errors += (ft_srv.expected_len - ft_srv.received_len);
-    }
-
-    transmit(0, (void *)&r, sizeof(r));
-    k_sem_take(&operation_sem, K_FOREVER);
-}
 
 /* Semaphore to synchronize modem calls. */
 K_SEM_DEFINE(operation_sem, 0, 1);
 
 K_SEM_DEFINE(deinit_sem, 0, 1);
+static size_t last_rx_len;
 
 /* Callback after init operation. */
 static void on_init(const struct nrf_modem_dect_phy_init_event *evt)
@@ -320,105 +268,55 @@ static void on_pdc(const struct nrf_modem_dect_phy_pdc_event *evt)
     const uint8_t *p = (const uint8_t *)evt->data;
     size_t n = evt->len;
 
-    if (!p || n < 1) {
+    if (p == NULL || n == 0) {
         return;
     }
 
-    /* =========================================================
-     * FILE TRANSFER SERVER (binary packets)
-     * ========================================================= */
-    switch (p[0]) {
-
-    case FT_TYPE_BEGIN: {
-        if (n < sizeof(struct ft_begin)) {
-            break;
-        }
-        const struct ft_begin *b = (const struct ft_begin *)p;
-
-        memset(&ft_srv, 0, sizeof(ft_srv));
-        ft_srv.active = true;
-        ft_srv.expected_len = b->len;
-        ft_srv.expected_crc = b->crc32;
-
-        LOG_INF("[FT ] BEGIN len=%u crc=0x%08x",
-                b->len, b->crc32);
-        return; /* handled */
+    /* Clamp and store RX payload for ping/fping threads */
+    size_t copy_len = n;
+    if (copy_len > sizeof(last_rx_buf)) {
+        copy_len = sizeof(last_rx_buf);
     }
+    memcpy(last_rx_buf, p, copy_len);
+    last_rx_len = copy_len;
 
-    case FT_TYPE_CHUNK: {
-        if (!ft_srv.active || n < sizeof(struct ft_chunk_hdr)) {
-            break;
-        }
-
-        const struct ft_chunk_hdr *h = (const struct ft_chunk_hdr *)p;
-        const uint8_t *data = p + sizeof(*h);
-        size_t data_len = n - sizeof(*h);
-
-        uint32_t off = h->offset;
-
-        for (size_t i = 0; i < data_len; i++) {
-            uint32_t idx = off + i;
-
-            if (idx >= golden_file_len) {
-                ft_srv.byte_errors++;
-                continue;
-            }
-            if (data[i] != golden_file[idx]) {
-                ft_srv.byte_errors++;
-            }
-        }
-
-        uint32_t end = off + data_len;
-        if (end > ft_srv.received_len) {
-            ft_srv.received_len = end;
-        }
-
-        return; /* handled */
-    }
-
-    case FT_TYPE_END: {
-        if (!ft_srv.active) {
-            break;
-        }
-        ft_srv.active = false;
-
-        LOG_INF("[FT ] END errors=%u rx_len=%u exp_len=%u",
-                ft_srv.byte_errors,
-                ft_srv.received_len,
-                ft_srv.expected_len);
-
-        ft_send_result();
-        return; /* handled */
-    }
-
-    default:
-        break;
-    }
+    LOG_INF("PDC frame received, len=%u", (unsigned int)n);
 
     /* =========================================================
-     * EXISTING PING / MAC TEXT HANDLING (unchanged)
+     * EXISTING PING / MAC TEXT HANDLING (same idea, safer prints)
      * ========================================================= */
-
-    const char *payload = (const char *)p;
     bool is_ping = false;
     bool is_pong = false;
 
-    if (payload && n >= 4) {
-        if (strncmp(payload, "PING", 4) == 0) {
+    if (n >= 4) {
+        if (memcmp(p, "PING", 4) == 0) {
             is_ping = true;
-        } else if (strncmp(payload, "PONG", 4) == 0) {
+        } else if (memcmp(p, "PONG", 4) == 0) {
             is_pong = true;
         }
     }
 
-    LOG_INF("PDC frame received, len=%u", evt->len);
+    /* Print payload safely (not null-terminated) */
+    size_t print_len = n;
+    if (print_len > 64) {     /* limit log spam */
+        print_len = 64;
+    }
 
     if (is_ping || is_pong) {
-        LOG_INF("[PING] payload: %s", payload);
-        mac_rtt_on_pong_rx_modem_time(modem_time);
+        LOG_INF("[PING] payload (first %u bytes): %.*s",
+                (unsigned int)print_len, (int)print_len, (const char *)p);
+
+        if (is_pong) {
+            /* Only for PONG */
+            mac_rtt_on_pong_rx_modem_time(modem_time);
+        }
     } else {
-        LOG_INF("[MAC ] payload: %s", payload);
+        LOG_INF("[MAC ] payload (first %u bytes): %.*s",
+                (unsigned int)print_len, (int)print_len, (const char *)p);
     }
+
+    /* wake waiting thread (ping/fping uses operation_sem) */
+    k_sem_give(&operation_sem);
 }
 
 /* Physical Data Channel CRC error notification. */
@@ -791,3 +689,12 @@ int hs_core_apply_radio(uint16_t carrier, uint8_t mcs, int8_t tx_power)
     return 0;
 }
 
+int core_get_last_rx(uint8_t *dst, size_t max_len, size_t *out_len)
+{
+    if (!dst || !out_len) return -EINVAL;
+    size_t n = last_rx_len;
+    if (n > max_len) n = max_len;
+    memcpy(dst, last_rx_buf, n);
+    *out_len = n;
+    return 0;
+}

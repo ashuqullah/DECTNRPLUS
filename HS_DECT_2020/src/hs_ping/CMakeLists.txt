@@ -3,6 +3,7 @@
 # Add HELLO module sources directly to the app
 target_sources(app PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/ping.c
+     ${CMAKE_CURRENT_SOURCE_DIR}/fping.c
     
 )
 
