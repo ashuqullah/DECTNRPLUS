@@ -1,6 +1,6 @@
-.. _dect_shell_application:
+.. hs_dect_shell_application:
 
-nRF91x1: DECT NR+ Shell
+nRF91x1: HS_DECT_SHELL – An Extensible DECT NR+ Shell for MAC-Level Experimentation
 ###########################
 
 .. contents::
