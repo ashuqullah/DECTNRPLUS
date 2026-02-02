@@ -1079,3 +1079,7 @@ Aalen University Contribution (DEBUT Project)
 ********
 .. include:: hs_dect_group.rst
 
+.. toctree::
+   :maxdepth: 2
+
+   hs_dect_group
