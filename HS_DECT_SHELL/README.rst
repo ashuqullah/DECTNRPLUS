@@ -54,32 +54,34 @@ HS_DECT_SHELL is intended for experimentation, research, and prototyping. It doe
 aim to implement a full DECT MAC or a production-ready protocol stack. All extensions
 are designed to be additive, non-intrusive, and compatible with upstream DeSh usage,
 ensuring that existing commands and workflows remain unchanged.
+
 Documentation Structure
 -----------------------
 
-This repository documentation is split into multiple ``.rst`` files that are included
-from the main ``README.rst`` to keep the content modular and easy to evolve.
+The documentation in this repository is organized into multiple ``.rst`` files that are
+included from the main ``README.rst``. This structure preserves the original DECT NR+
+Shell documentation while allowing HS_DECT_SHELL-specific extensions to be documented
+in a clear and modular way.
 
 - ``README.rst`` (main entry point)
-  Provides the high-level introduction, project scope, and a consolidated view of the
-  documentation by including the sections below.
+  Serves as the primary documentation entry point. It provides the project overview,
+  scope, and consolidates the documentation by including the files listed below.
 
-- ``hs_dect_doc.rst`` (project documentation)
-  Contains the detailed project overview for HS_DECT_SHELL, including motivation,
-  scope and design principles, relationship to the upstream DeSh sample, and the
-  long-term evolution vision.
+- ``dect_shell.rst`` (original DeSh documentation)
+  Contains the original documentation of the DECT NR+ physical layer (PHY) Shell (DeSh)
+  sample application. This file documents the existing commands, features, and usage
+  of the upstream DeSh implementation and is kept unchanged to preserve reference
+  behavior and compatibility.
 
-- ``hs_dect_group.rst`` (group scheduling)
-  Describes the planned and implemented group-based scheduling extensions, including
-  goals, concepts, command structure (for example, ``dect mac group ...``), and how
-  multi-step MAC procedures are orchestrated in an additive and backward-compatible
-  manner.
-`DECT_SHELL Documentation <dect_shell.rst>`_.
-************
-DeSh enables testing of :ref:`nrf_modem_dect_phy` interface and related modem features.
-This sample is also a test application for aforementioned features.
-`DECT_SHELL Documentation <dect_shell.rst>`_.
+- ``hs_dect_doc.rst`` (HS_DECT_SHELL overview)
+  Describes the HS_DECT_SHELL project, including motivation, scope, design principles,
+  and the relationship to the upstream DeSh sample. This file outlines the long-term
+  evolution vision without altering the original functionality.
 
+- ``hs_dect_group.rst`` (group scheduling extensions)
+  Documents the group-based scheduling extensions introduced in HS_DECT_SHELL, focusing
+  on MAC-level procedure orchestration, command structure, and the additive nature of
+  the enhancements.
 
 `HS DECT Documentation <hs_dect_doc.rst>`_.
 ************
