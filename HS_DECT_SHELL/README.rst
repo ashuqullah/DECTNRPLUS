@@ -1077,13 +1077,10 @@ In addition, it uses the following secure firmware component:
 * :ref:`Trusted Firmware-M <ug_tfm>`
 Aalen University Contribution (DEBUT Project)  
 ********
-HS_DECT_SHELL Documentation
-===========================
-
-.. toctree::
-   :maxdepth: 2
-
-   hs_dect_group
+HS_DECT_SHELL Documentation <hs_dect_doc.rst>`_.
+================================================
 
 
-See also: `HS DECT group scheduling <hs_dect_group.rst>`_.
+
+HS DECT group scheduling <hs_dect_group.rst> _.
+===============================================
