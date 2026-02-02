@@ -82,6 +82,14 @@ in a clear and modular way.
   Documents the group-based scheduling extensions introduced in HS_DECT_SHELL, focusing
   on MAC-level procedure orchestration, command structure, and the additive nature of
   the enhancements.
+.. include:: dect_shell.rst
+.. include:: hs_dect_doc.rst
+.. include:: hs_dect_group.rst
+
+
+DECT Documentation <hs_dect_doc.rst>`_.
+************
+`HS DECT Documentation <dect_shel.rst>`_.
 
 `HS DECT Documentation <hs_dect_doc.rst>`_.
 ************
