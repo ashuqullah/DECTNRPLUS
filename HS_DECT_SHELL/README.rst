@@ -1058,3 +1058,5 @@ It uses the following `sdk-nrfxlib`_ library:
 In addition, it uses the following secure firmware component:
 
 * :ref:`Trusted Firmware-M <ug_tfm>`
+Aalen University of Plied Sceince Project Contribution DEBUET 
+********
