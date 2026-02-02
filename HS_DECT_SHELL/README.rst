@@ -7,7 +7,15 @@ nRF91x1: DECT NR+ Shell
    :local:
    :depth: 2
 
-The DECT NR+ physical layer (PHY) Shell (DeSh) sample application demonstrates how to set up a DECT NR+ application with the DECT PHY firmware and enables you to test various modem features.
+The DECT NR+ physical layer (PHY) Shell (DeSh) sample application demonstrates how to
+set up a DECT NR+ application with the DECT PHY firmware and enables testing of various
+modem features.  
+
+HS_DECT_SHELL builds upon this foundation by preserving the original PHY-level
+functionality while extending the sample into an extensible experimentation and
+development framework. The project is intended to evolve beyond isolated PHY tests
+toward coordinated MAC-level procedures, group-based scheduling, and reproducible
+experimentation workflows, without altering existing command behavior.
 
 .. important::
 
@@ -25,8 +33,17 @@ The sample supports the following development kits and requires at least two kit
 Overview
 ********
 
-DeSh enables testing of :ref:`nrf_modem_dect_phy` interface and related modem features.
-This sample is also a test application for aforementioned features.
+HS_DECT_SHELL is an extension of the original DECT NR+ PHY Shell (DeSh) sample.
+It preserves the original functionality and behavior while introducing additional
+capabilities aimed at long-term evolution of the project.
+
+The focus of HS_DECT_SHELL is to incrementally enhance the sample with:
+- Group-based scheduling of DECT procedures
+- MAC-layer procedure orchestration built on top of existing PHY functionality
+- Improved structure and observability for multi-step and reproducible experiments
+
+All additions are designed to be optional, non-intrusive, and backward compatible,
+ensuring that existing DeSh use cases and workflows remain unchanged.
 
 The subsections list the DeSh features and show shell command examples for their usage.
 
@@ -1058,5 +1075,6 @@ It uses the following `sdk-nrfxlib`_ library:
 In addition, it uses the following secure firmware component:
 
 * :ref:`Trusted Firmware-M <ug_tfm>`
-Aalen University of Plied Sceince Project Contribution DEBUET 
+Aalen University Contribution (DEBUT Project)  
 ********
+*
