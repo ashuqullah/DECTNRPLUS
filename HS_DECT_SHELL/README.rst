@@ -32,7 +32,7 @@ The sample supports the following development kits and requires at least two kit
 
 Overview
 ********
-`HS_DECT_SHELL Documentation <dect_shell.rst>`_.
+`DECT_SHELL Documentation <dect_shell.rst>`_.
 ===========================
 `DECT_SHELL Documentation <dect_shell.rst>`_.
 
@@ -40,9 +40,7 @@ Overview
 `HS DECT group scheduling <hs_dect_group.rst>`_.
 ========================
 `HS DECT group scheduling <hs_dect_group.rst>`_.
-`HS_DECT_SHELL Documentation <hs_dect_doc.rst>`_.
-===========================
-`HS_DECT_SHELL Documentation <hs_dect_doc.rst>`_.
+
 
 
 `HS DECT group scheduling <hs_dect_group.rst>`_.
