@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/CMakeFiles/dect_shell"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/CMakeFiles/dect_shell.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/CMakeFiles/dect_shell-complete.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-build.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-configure.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-download.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-install.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-mkdir.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-patch.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"dect_shell"
+		],
+		"name" : "dect_shell"
+	}
+}

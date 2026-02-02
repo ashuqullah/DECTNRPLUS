@@ -1,0 +1,7 @@
+default: dect_shell
+build_dir: /home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build
+domains:
+  - name: dect_shell
+    build_dir: /home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/dect_shell
+flash_order:
+  - dect_shell

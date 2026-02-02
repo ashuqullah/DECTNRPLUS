@@ -1,0 +1,13 @@
+# Target labels
+ dect_shell
+# Source files and their labels
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/CMakeFiles/dect_shell
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/CMakeFiles/dect_shell.rule
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/CMakeFiles/dect_shell-complete.rule
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-build.rule
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-configure.rule
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-download.rule
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-install.rule
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-mkdir.rule
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-patch.rule
+/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-update.rule
