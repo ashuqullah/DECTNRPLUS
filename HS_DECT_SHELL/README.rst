@@ -37,9 +37,9 @@ Overview
 `DECT_SHELL Documentation <dect_shell.rst>`_.
 
 
-`HS DECT group scheduling <hs_dect_group.rst>`_.
+`HS DECT Documentation <hs_dect_doc.rst>`_.
 ========================
-`HS DECT group scheduling <hs_dect_group.rst>`_.
+`HS DECT Documentation <hs_dect_doc.rst>`_.
 
 
 
