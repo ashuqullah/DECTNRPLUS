@@ -52,8 +52,15 @@ HS_DECT_SHELL Documentation
 
 Overview
 --------
+HS_DECT_SHELL Documentation
+==========================
+
+Overview
+--------
 
 This document describes HS_DECT_SHELL extensions.
 
 .. include:: hs_dect_doc.rst
+
+.. include:: hs_dect_group.rst
 
