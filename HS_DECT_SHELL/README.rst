@@ -89,7 +89,7 @@ in a clear and modular way.
 
 DECT SHELL  Documentation 
 ************
- Original documentation of the DECT NR+ PHY Shell (DeSh) sample application.`HS DECT Documentation <dect_shel.rst>`_.
+ Original documentation of the DECT NR+ PHY Shell (DeSh) sample application. `HS DECT Documentation <dect_shel.rst>`_.
 
 HS DECT Documentation 
 ************
@@ -99,6 +99,6 @@ Project-level documentation describing HS_DECT_SHELL extensions and evolution. `
 
 HS DECT group scheduling
 ************
-Description of group-based scheduling and MAC-level orchestration features.`HS DECT group scheduling <hs_dect_group.rst>`_.
+Description of group-based scheduling and MAC-level orchestration features. `HS DECT group scheduling <hs_dect_group.rst>`_.
 
 
