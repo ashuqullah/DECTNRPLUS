@@ -46,6 +46,7 @@ HS_DECT_SHELL is intended for experimentation, research, and prototyping. It doe
 aim to implement a full DECT MAC or a production-ready protocol stack. All extensions
 are designed to be additive, non-intrusive, and compatible with upstream DeSh usage,
 ensuring that existing commands and workflows remain unchanged.
+
 Requirements
 ************
 
