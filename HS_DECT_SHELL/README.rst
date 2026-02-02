@@ -54,7 +54,26 @@ HS_DECT_SHELL is intended for experimentation, research, and prototyping. It doe
 aim to implement a full DECT MAC or a production-ready protocol stack. All extensions
 are designed to be additive, non-intrusive, and compatible with upstream DeSh usage,
 ensuring that existing commands and workflows remain unchanged.
+Documentation Structure
+-----------------------
 
+This repository documentation is split into multiple ``.rst`` files that are included
+from the main ``README.rst`` to keep the content modular and easy to evolve.
+
+- ``README.rst`` (main entry point)
+  Provides the high-level introduction, project scope, and a consolidated view of the
+  documentation by including the sections below.
+
+- ``hs_dect_doc.rst`` (project documentation)
+  Contains the detailed project overview for HS_DECT_SHELL, including motivation,
+  scope and design principles, relationship to the upstream DeSh sample, and the
+  long-term evolution vision.
+
+- ``hs_dect_group.rst`` (group scheduling)
+  Describes the planned and implemented group-based scheduling extensions, including
+  goals, concepts, command structure (for example, ``dect mac group ...``), and how
+  multi-step MAC procedures are orchestrated in an additive and backward-compatible
+  manner.
 `DECT_SHELL Documentation <dect_shell.rst>`_.
 ************
 DeSh enables testing of :ref:`nrf_modem_dect_phy` interface and related modem features.
