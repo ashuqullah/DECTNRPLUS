@@ -21,14 +21,6 @@ experimentation workflows, without altering existing command behavior.
 
    The sample showcases the use of the :ref:`nrf_modem_dect_phy` interface of the :ref:`nrfxlib:nrf_modem`.
 
-Requirements
-************
-
-The sample supports the following development kits and requires at least two kits:
-
-.. table-from-sample-yaml::
-
-.. include:: /includes/tfm.txt
 
 Project Overview
 ************
