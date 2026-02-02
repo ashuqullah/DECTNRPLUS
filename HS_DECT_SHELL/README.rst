@@ -30,8 +30,31 @@ The sample supports the following development kits and requires at least two kit
 
 .. include:: /includes/tfm.txt
 
-Overview
-********
+Project Overview
+----------------
+
+HS_DECT_SHELL is an evolutionary extension of the DECT NR+ physical layer (PHY) Shell
+(DeSh) sample application provided in the nRF Connect SDK. The original DeSh sample
+demonstrates how to set up a DECT NR+ application using the DECT PHY firmware and
+provides interactive commands for testing various modem and PHY features.
+
+Building on this foundation, HS_DECT_SHELL preserves all existing functionality and
+behavior while introducing optional, backward-compatible extensions aimed at enabling
+more structured experimentation and long-term project evolution. In particular, the
+project focuses on adding higher-level coordination mechanisms on top of the existing
+PHY capabilities, without modifying or replacing the underlying DECT PHY interfaces.
+
+The primary goal of HS_DECT_SHELL is to extend the sample beyond isolated PHY-level
+tests toward coordinated MAC-level procedures, group-based scheduling of operations,
+and reproducible experimentation workflows. These additions allow complex multi-step
+procedures—such as discovery, access, and association—to be executed in a deterministic
+and observable manner.
+
+HS_DECT_SHELL is intended for experimentation, research, and prototyping. It does not
+aim to implement a full DECT MAC or a production-ready protocol stack. All extensions
+are designed to be additive, non-intrusive, and compatible with upstream DeSh usage,
+ensuring that existing commands and workflows remain unchanged.
+
 `DECT_SHELL Documentation <dect_shell.rst>`_.
 ===========================
 `DECT_SHELL Documentation <dect_shell.rst>`_.
