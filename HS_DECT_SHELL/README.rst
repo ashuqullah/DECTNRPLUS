@@ -31,7 +31,7 @@ The sample supports the following development kits and requires at least two kit
 .. include:: /includes/tfm.txt
 
 Project Overview
-----------------
+===========================
 
 HS_DECT_SHELL is an evolutionary extension of the DECT NR+ physical layer (PHY) Shell
 (DeSh) sample application provided in the nRF Connect SDK. The original DeSh sample
