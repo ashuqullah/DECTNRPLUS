@@ -87,17 +87,17 @@ in a clear and modular way.
 .. include:: hs_dect_group.rst
 
 
-DECT Documentation <hs_dect_doc.rst>`_.
+DECT SHELL  Documentation 
 ************
 `HS DECT Documentation <dect_shel.rst>`_.
 
-`HS DECT Documentation <hs_dect_doc.rst>`_.
+HS DECT Documentation 
 ************
 `HS DECT Documentation <hs_dect_doc.rst>`_.
 
 
 
-`HS DECT group scheduling <hs_dect_group.rst>`_.
+HS DECT group scheduling
 ************
 `HS DECT group scheduling <hs_dect_group.rst>`_.
 
