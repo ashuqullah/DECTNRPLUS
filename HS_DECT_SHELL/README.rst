@@ -1077,5 +1077,5 @@ In addition, it uses the following secure firmware component:
 * :ref:`Trusted Firmware-M <ug_tfm>`
 Aalen University Contribution (DEBUT Project)  
 ********
-*.. include:: hs_dect_group.rst
+.. include:: hs_dect_group.rst
 
