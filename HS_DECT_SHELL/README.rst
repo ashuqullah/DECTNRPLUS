@@ -46,3 +46,14 @@ Overview
 `HS DECT group scheduling <hs_dect_group.rst>`_.
 ========================
 `HS DECT group scheduling <hs_dect_group.rst>`_.
+
+HS_DECT_SHELL Documentation
+==========================
+
+Overview
+--------
+
+This document describes HS_DECT_SHELL extensions.
+
+.. include:: hs_dect_group.rst
+
