@@ -1078,9 +1078,9 @@ In addition, it uses the following secure firmware component:
 Aalen University Contribution (DEBUT Project)  
 ********
 HS_DECT_SHELL Documentation <hs_dect_doc.rst>`_.
-================================================
+===========================
 
 
 
 HS DECT group scheduling <hs_dect_group.rst> _.
-===============================================
+========================
