@@ -21,6 +21,8 @@ LOG_MODULE_REGISTER(fping, LOG_LEVEL_INF);
 static atomic_t fping_running = ATOMIC_INIT(0);
 static uint32_t fping_expected_seq = 0;
 static uint32_t fping_count_cfg = 0;
+static uint8_t last_rx_buf[2048];
+static size_t  last_rx_len;
 
 static uint64_t last_tx_time_ms;
 static volatile bool exit_flag = false;
@@ -66,8 +68,9 @@ static struct {
     bool     active;
     uint32_t expected_len;
     uint32_t expected_crc;
-    uint32_t rx_len;
-    uint32_t rx_crc;      /* running CRC */
+    uint32_t rxlen;
+    uint32_t rx_crc;  
+    uint32_t rx_total;    /* running CRC */
 } fping_srv;
 
 static void fping_fill_deterministic(uint8_t *dst, size_t len, uint32_t offset)
@@ -138,7 +141,7 @@ static void fping_server_thread(void *a, void *b, void *c)
             fping_srv.active = true;
             fping_srv.expected_len = p->total_len;
             fping_srv.expected_crc = p->crc32_expected;
-            fping_srv.rx_len = 0;
+            fping_srv.rxlen = 0;
             fping_srv.rx_crc = 0;
 
             LOG_INF("FPING BEGIN: len=%u crc=0x%08x", p->total_len, p->crc32_expected);
@@ -149,7 +152,11 @@ static void fping_server_thread(void *a, void *b, void *c)
 
             const struct fping_chunk_hdr *h = (const struct fping_chunk_hdr *)rxbuf;
             const uint8_t *data = rxbuf + sizeof(*h);
-            size_t data_len = rx_len - sizeof(*h);
+            int rxlen = (int)last_rx_len;
+            if (rxlen < (int)sizeof(*h)) {
+                continue; /* not enough for header */
+            }
+            size_t data_len = (size_t)rxlen - sizeof(*h);
             uint32_t n = h->data_len;
 
             if (sizeof(*h) + n > rxlen) continue;
@@ -158,16 +165,16 @@ static void fping_server_thread(void *a, void *b, void *c)
            fping_srv.rx_crc = hs_crc32_ieee_update(fping_srv.rx_crc, data, data_len);
 
 
-            fping_srv.rx_len += n;
+            fping_srv.rxlen += n;
         }
         else if (type == FPING_END) {
             if (!fping_srv.active) continue;
 
-            bool ok_len = (fping_srv.rx_len == fping_srv.expected_len);
+            bool ok_len = (fping_srv.rxlen == fping_srv.expected_len);
             bool ok_crc = (fping_srv.rx_crc == fping_srv.expected_crc);
 
-            LOG_INF("FPING END: rx_len=%u exp_len=%u rx_crc=0x%08x exp_crc=0x%08x => %s",
-                    fping_srv.rx_len, fping_srv.expected_len,
+            LOG_INF("FPING END: rxlen=%u exp_len=%u rx_crc=0x%08x exp_crc=0x%08x => %s",
+                    fping_srv.rxlen, fping_srv.expected_len,
                     fping_srv.rx_crc, fping_srv.expected_crc,
                     (ok_len && ok_crc) ? "OK" : "FAIL");
 
@@ -194,7 +201,7 @@ static void fping_client_thread(void *a, void *b, void *c)
         uint32_t n = total_len - off;
         if (n > chunk_len) n = chunk_len;
         fping_fill_deterministic(tmp, n, off);
-        crc = hs_crc32_ieee_update(crc, (const uint8_t *)buf, len);
+       
     }
 
     /* SEND BEGIN */

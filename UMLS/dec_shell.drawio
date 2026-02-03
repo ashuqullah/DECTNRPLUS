@@ -1,0 +1,16 @@
+<mxfile host="65bd71144e">
+    <diagram id="WMDDPct9VzcZ9gRvaN4p" name="Page-1">
+        <mxGraphModel dx="1224" dy="975" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;«interface»&lt;/span&gt;&lt;/div&gt;dect_phy_mac_client" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="170" y="130" width="150" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="«interface»&lt;br&gt;&lt;b&gt;dect_phy_mac_cluster_beacon&lt;/b&gt;" style="html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="240" width="220" height="50" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -39,6 +39,7 @@ static uint32_t hs_network_id  = CONFIG_NETWORK_ID;
 static uint16_t hs_device_id   = 0;      /* set after hwinfo_get_device_id() */
 static uint8_t last_rx_buf[2048];
 static size_t  last_rx_len;
+
 /* ================= FILE TRANSFER (PING EXTENSION) ================= */
 
 static atomic_t dect_busy = ATOMIC_INIT(0);
@@ -265,58 +266,38 @@ static void on_pcc_crc_err(const struct nrf_modem_dect_phy_pcc_crc_failure_event
 /* Physical Data Channel reception notification. */
 static void on_pdc(const struct nrf_modem_dect_phy_pdc_event *evt)
 {
-    const uint8_t *p = (const uint8_t *)evt->data;
-    size_t n = evt->len;
+    const char *payload = (const char *)evt->data;
 
-    if (p == NULL || n == 0) {
-        return;
-    }
-
-    /* Clamp and store RX payload for ping/fping threads */
-    size_t copy_len = n;
-    if (copy_len > sizeof(last_rx_buf)) {
-        copy_len = sizeof(last_rx_buf);
-    }
-    memcpy(last_rx_buf, p, copy_len);
-    last_rx_len = copy_len;
-
-    LOG_INF("PDC frame received, len=%u", (unsigned int)n);
-
-    /* =========================================================
-     * EXISTING PING / MAC TEXT HANDLING (same idea, safer prints)
-     * ========================================================= */
+    /* 1) Classify message type by its text prefix */
     bool is_ping = false;
     bool is_pong = false;
 
-    if (n >= 4) {
-        if (memcmp(p, "PING", 4) == 0) {
+    if (payload && evt->len >= 4) {
+        if (strncmp(payload, "PING", 4) == 0) {
             is_ping = true;
-        } else if (memcmp(p, "PONG", 4) == 0) {
+        } else if (strncmp(payload, "PONG", 4) == 0) {
             is_pong = true;
         }
     }
 
-    /* Print payload safely (not null-terminated) */
-    size_t print_len = n;
-    if (print_len > 64) {     /* limit log spam */
-        print_len = 64;
-    }
+    /* 2) Print common PHY info (can be shared) */
+    LOG_INF("PDC frame received, len=%u", evt->len);
 
+    /* 3) Print depending on type */
     if (is_ping || is_pong) {
-        LOG_INF("[PING] payload (first %u bytes): %.*s",
-                (unsigned int)print_len, (int)print_len, (const char *)p);
-
-        if (is_pong) {
-            /* Only for PONG */
-            mac_rtt_on_pong_rx_modem_time(modem_time);
-        }
+        LOG_INF("[PING] payload: %s", payload);
+        /* RTT only makes sense for the ping client */
+        //mac_rtt_on_rx();
+		mac_rtt_on_pong_rx_modem_time(modem_time);
     } else {
-        LOG_INF("[MAC ] payload (first %u bytes): %.*s",
-                (unsigned int)print_len, (int)print_len, (const char *)p);
+        LOG_INF("[MAC ] payload: %s", payload);
+        /* No RTT here – normal MAC traffic */
     }
 
-    /* wake waiting thread (ping/fping uses operation_sem) */
-    k_sem_give(&operation_sem);
+    /* (Optional) extra details like RSSI, header fields, hex dump:
+       we can also prefix them with [PING] or [MAC]
+       if you like cleaner logs.
+    */
 }
 
 /* Physical Data Channel CRC error notification. */

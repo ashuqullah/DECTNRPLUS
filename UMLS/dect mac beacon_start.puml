@@ -1,0 +1,29 @@
+@startuml
+title Scenario: dect mac beacon_start
+
+actor User
+participant "Shell\n(dect_phy_mac_shell.c)" as S
+participant "MAC Ctrl\n(dect_phy_mac_ctrl.c)" as M
+participant "Beacon\n(dect_phy_mac_cluster_beacon.c)" as B
+participant "PDU Codec\n(dect_phy_mac_pdu.c)" as P
+participant "External PHY/Scheduler\n(dect_phy_ctrl.*)" as PHY
+
+User -> S : dect mac beacon_start [-c ch] [-p tx_pwr]
+S -> S : dect_phy_mac_beacon_start_cmd()\n(parse args + validate channel)
+S -> M : dect_phy_mac_ctrl_cluster_beacon_start(params)
+
+M -> B : dect_phy_mac_cluster_beacon_tx_start(params)
+B -> P : (encode beacon PDU)\n(dect_phy_mac_pdu_*encode)
+P --> B : bytes
+
+B -> PHY : schedule periodic TX (beacon frames)
+
+loop Periodic beacons
+  PHY -> M : modem op_complete callback\n(dect_phy_mac_ctrl_th_phy_api_mdm_op_complete_cb)
+  M -> B : dect_phy_mac_cluster_beacon_update()\n(schedule next TX / bookkeeping
+end
+
+S <-- M : return status
+S --> User : "Beacon starting"
+@enduml
+

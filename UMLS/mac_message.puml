@@ -1,0 +1,61 @@
+@startuml
+title End-to-End DECT MAC Scenario (FT + PT)
+
+actor FT_User
+actor PT_User
+
+participant FT_Shell
+participant FT_Ctrl
+participant FT_Beacon
+participant FT_RX
+
+participant PT_Shell
+participant PT_Ctrl
+participant PT_Client
+participant PT_RX
+
+participant PHY
+
+== FT starts beacon ==
+FT_User -> FT_Shell : dect mac beacon_start -c X
+FT_Shell -> FT_Ctrl : beacon_start()
+FT_Ctrl -> FT_Beacon : start_beacon()
+FT_Beacon -> PHY : TX beacon (periodic)
+
+== PT scans beacon ==
+PT_User -> PT_Shell : dect mac beacon_scan -c X
+PT_Shell -> PT_Ctrl : beacon_scan()
+PT_Ctrl -> PHY : RX scan
+PHY -> PT_Ctrl : beacon RX
+PT_Ctrl -> PT_RX : handle RX
+PT_RX -> PT_RX : store FT params
+
+== PT associates ==
+PT_User -> PT_Shell : dect mac associate -t FT_ID
+PT_Shell -> PT_Ctrl : associate()
+PT_Ctrl -> PT_Client : send assoc req
+PT_Client -> PHY : TX assoc req
+
+== FT handles association ==
+PHY -> FT_Ctrl : assoc req RX
+FT_Ctrl -> FT_RX : handle RX
+FT_RX -> FT_Beacon : send assoc resp
+FT_Beacon -> PHY : TX assoc resp
+
+== PT receives association ==
+PHY -> PT_Ctrl : assoc resp RX
+PT_Ctrl -> PT_RX : handle RX
+PT_RX -> PT_Client : association OK
+
+== PT sends data ==
+PT_User -> PT_Shell : dect mac rach_tx -d msg
+PT_Shell -> PT_Ctrl : rach_tx()
+PT_Ctrl -> PT_Client : send data
+PT_Client -> PHY : TX data
+
+== FT receives data ==
+PHY -> FT_Ctrl : data RX
+FT_Ctrl -> FT_RX : handle RX
+FT_RX -> FT_RX : consume message
+
+@enduml

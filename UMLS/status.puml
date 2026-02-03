@@ -1,0 +1,23 @@
+@startuml
+title Scenario: dect mac status
+
+actor User
+participant "Shell\n(dect_phy_mac_shell.c)" as S
+participant "Beacon\n(dect_phy_mac_cluster_beacon.c)" as B
+participant "Client\n(dect_phy_mac_client.c)" as C
+participant "Neighbor DB\n(dect_phy_mac_nbr.c)" as N
+
+User -> S : dect mac status
+S -> S : dect_phy_mac_status_cmd()
+
+S -> B : dect_phy_mac_cluster_beacon_status_print()
+B --> S : beacon status text
+
+S -> C : dect_phy_mac_client_status_print()
+C --> S : client status text
+
+S -> N : dect_phy_mac_nbr_status_print()
+N --> S : neighbor table summary
+
+S --> User : prints status to console
+@enduml

@@ -1,0 +1,55 @@
+@startuml
+title DECT MAC layer - file/module structure
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+package "Shell layer" {
+  component "dect_phy_mac_shell.c\n(dect mac CLI)" as shell
+}
+
+package "MAC Control" {
+  component "dect_phy_mac_ctrl.c" as ctrl
+}
+
+package "MAC RX Dispatcher" {
+  component "dect_phy_mac.c" as mac
+}
+
+package "MAC Procedures" {
+  component "dect_phy_mac_client.c\n(Client / RACH / Assoc)" as client
+  component "dect_phy_mac_cluster_beacon.c\n(Beacon TX)" as beacon
+}
+
+package "Neighbor Handling" {
+  component "dect_phy_mac_nbr.c\n(Neighbor DB)" as nbr
+  component "dect_phy_mac_nbr_bg_scan.c\n(Background Scan)" as bgscan
+}
+
+package "PDU Codec" {
+  component "dect_phy_mac_pdu.c" as pdu
+}
+
+package "External PHY / Scheduler" {
+  component "dect_phy_ctrl.*\n(Modem + Scheduler)" as phy
+}
+
+shell --> ctrl : mac commands
+ctrl --> beacon : start/stop beacon
+ctrl --> client : rach / associate
+ctrl --> mac : RX dispatch
+ctrl --> nbr : clear / update
+ctrl --> phy : schedule ops
+
+mac --> pdu : decode RX PDU
+mac --> client : assoc response
+mac --> beacon : beacon RX checks
+mac --> nbr : store neighbor
+
+client --> pdu : encode PDUs
+client --> bgscan : manage bg scan
+
+beacon --> pdu : encode beacon PDUs
+nbr --> bgscan : bg scan triggers
+
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+title Scenario: dect mac beacon_stop
+
+actor User
+participant "Shell\n(dect_phy_mac_shell.c)" as S
+participant "MAC Ctrl\n(dect_phy_mac_ctrl.c)" as M
+participant "Beacon\n(dect_phy_mac_cluster_beacon.c)" as B
+participant "External PHY/Scheduler\n(dect_phy_ctrl.*)" as PHY
+
+User -> S : dect mac beacon_stop
+S -> S : dect_phy_mac_beacon_stop_cmd()
+S -> M : dect_phy_mac_ctrl_cluster_beacon_stop(USER_INITIATED)
+
+M -> B : dect_phy_mac_cluster_beacon_tx_stop(cause)
+B -> PHY : cancel/stop scheduled beacon TX ops
+
+M --> S : return
+S --> User : "Stopping beacon."
+@enduml

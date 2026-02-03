@@ -1,0 +1,38 @@
+@startuml
+title Scenario: dect mac beacon_scan
+
+actor User
+participant "Shell\n(dect_phy_mac_shell.c)" as S
+participant "MAC Ctrl\n(dect_phy_mac_ctrl.c)" as M
+participant "Neighbor DB\n(dect_phy_mac_nbr.c)" as N
+participant "External PHY/Scheduler\n(dect_phy_ctrl.*)" as PHY
+participant "MAC RX\n(dect_phy_mac.c)" as RX
+participant "PDU Codec\n(dect_phy_mac_pdu.c)" as P
+
+User -> S : dect mac beacon_scan [options]
+S -> S : dect_phy_mac_beacon_scan_cmd()\n(parse args)
+S -> M : dect_phy_mac_ctrl_beacon_scan_start(params)
+
+alt clear neighbor cache requested (-D)
+  M -> N : dect_phy_mac_nbr_info_clear_all()
+end
+
+M -> PHY : schedule scan RX windows/RSSI\n(channel(s), duration, thresholds)
+
+loop While scanning
+  PHY -> M : direct PDC RX callback\n(PDC data received)
+  M -> RX : dect_phy_mac_direct_pdc_handle(pdc_rx)
+
+  RX -> P : dect_phy_mac_pdu_type_header_decode()
+  RX -> P : dect_phy_mac_pdu_common_header_decode()
+  RX -> P : dect_phy_mac_pdu_sdus_decode()
+  P --> RX : decoded beacon + SDUs
+
+  RX -> N : dect_phy_mac_nbr_info_store_n_update(decoded_nbr)
+  N --> RX : stored/updated
+end
+
+PHY -> M : op_complete callback(s)\n(scan done / rx window complete)
+M --> S : return
+S --> User : "Beacon scan started."
+@enduml

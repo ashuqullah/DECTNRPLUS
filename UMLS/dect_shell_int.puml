@@ -1,0 +1,63 @@
+@startuml
+title DECT MAC - Interfaces connected to Implementations
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+' ===== Interfaces (headers) =====
+package "Interfaces (.h)" {
+  interface "dect_phy_mac_ctrl.h" as I_MacCtrl
+  interface "dect_phy_mac_client.h" as I_MacClient
+  interface "dect_phy_mac_cluster_beacon.h" as I_Beacon
+  interface "dect_phy_mac.h" as I_Mac
+  interface "dect_phy_mac_nbr.h" as I_Nbr
+  interface "dect_phy_mac_nbr_bg_scan.h" as I_BgScan
+  interface "dect_phy_mac_pdu.h" as I_Pdu
+  interface "dect_phy_mac_common.h\n(types / params)" as I_Common
+}
+
+' ===== Implementations (C files) =====
+package "Implementations (.c)" {
+  component "dect_phy_mac_ctrl.c" as C_MacCtrl
+  component "dect_phy_mac_client.c" as C_MacClient
+  component "dect_phy_mac_cluster_beacon.c" as C_Beacon
+  component "dect_phy_mac.c" as C_Mac
+  component "dect_phy_mac_nbr.c" as C_Nbr
+  component "dect_phy_mac_nbr_bg_scan.c" as C_BgScan
+  component "dect_phy_mac_pdu.c" as C_Pdu
+}
+
+' ===== Shell =====
+package "Shell" {
+  component "dect_phy_mac_shell.c\n(dect mac CLI)" as C_Shell
+}
+
+component "External PHY / Scheduler\n(dect_phy_ctrl.*, modem callbacks)" as PHY
+
+' ===== Interface implementation =====
+C_MacCtrl ..|> I_MacCtrl
+C_MacClient ..|> I_MacClient
+C_Beacon ..|> I_Beacon
+C_Mac ..|> I_Mac
+C_Nbr ..|> I_Nbr
+C_BgScan ..|> I_BgScan
+C_Pdu ..|> I_Pdu
+
+' ===== Dependencies =====
+C_Shell --> I_MacCtrl : invokes mac commands
+
+I_MacCtrl --> I_Beacon : beacon control
+I_MacCtrl --> I_MacClient : associate / rach / dissociate
+I_MacCtrl --> I_Mac : RX dispatch entry
+I_MacCtrl --> I_Nbr : clear / update nbr cache
+I_MacCtrl --> PHY : schedule ops / callbacks
+
+I_Mac --> I_Pdu : decode RX PDU
+I_Mac --> I_MacClient : assoc response
+I_Mac --> I_Nbr : neighbor update
+
+I_MacClient --> I_Pdu : encode PDUs
+I_Beacon --> I_Pdu : encode beacon PDUs
+I_BgScan --> I_Nbr : background scan usage
+
+@enduml
