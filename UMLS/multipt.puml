@@ -1,0 +1,175 @@
+@startuml
+title FT Beaconing + Association of PT1..PT4 (each started by its own user/CLI)
+
+' Make it readable
+skinparam style strictuml
+skinparam shadowing false
+skinparam ParticipantPadding 25
+skinparam BoxPadding 10
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 120
+
+actor "User FT" as UFT
+actor "User PT1" as U1
+actor "User PT2" as U2
+actor "User PT3" as U3
+actor "User PT4" as U4
+
+box "FT Node (Cluster Head)" #EEF
+participant "FT Shell\n(dect_phy_mac_shell)" as FT_SHELL
+participant "FT MAC Ctrl\n(dect_phy_mac_ctrl)" as FT_CTRL
+participant "FT Beacon\n(dect_phy_mac_cluster_beacon)" as FT_BEACON
+participant "FT MAC RX\n(dect_phy_mac)" as FT_MAC
+end box
+
+box "Shared PHY + Modem" #EFE
+participant "PHY Scheduler\n(dect_phy_api_scheduler)" as SCHED
+participant "Modem/PHY\n(nrf_modem_dect_phy)" as MODEM
+end box
+
+box "PT1 Node" #FFE
+participant "PT1 Shell\n(dect_phy_mac_shell)" as PT1_SHELL
+participant "PT1 MAC RX\n(dect_phy_mac)" as PT1_MAC
+participant "PT1 PDU\n(dect_phy_mac_pdu)" as PT1_PDU
+participant "PT1 Neighbor DB\n(dect_phy_mac_nbr)" as PT1_NBR
+participant "PT1 Client\n(dect_phy_mac_client)" as PT1_CLIENT
+end box
+
+box "PT2 Node" #FFE
+participant "PT2 Shell\n(dect_phy_mac_shell)" as PT2_SHELL
+participant "PT2 MAC RX\n(dect_phy_mac)" as PT2_MAC
+participant "PT2 PDU\n(dect_phy_mac_pdu)" as PT2_PDU
+participant "PT2 Neighbor DB\n(dect_phy_mac_nbr)" as PT2_NBR
+participant "PT2 Client\n(dect_phy_mac_client)" as PT2_CLIENT
+end box
+
+box "PT3 Node" #FFE
+participant "PT3 Shell\n(dect_phy_mac_shell)" as PT3_SHELL
+participant "PT3 MAC RX\n(dect_phy_mac)" as PT3_MAC
+participant "PT3 PDU\n(dect_phy_mac_pdu)" as PT3_PDU
+participant "PT3 Neighbor DB\n(dect_phy_mac_nbr)" as PT3_NBR
+participant "PT3 Client\n(dect_phy_mac_client)" as PT3_CLIENT
+end box
+
+box "PT4 Node" #FFE
+participant "PT4 Shell\n(dect_phy_mac_shell)" as PT4_SHELL
+participant "PT4 MAC RX\n(dect_phy_mac)" as PT4_MAC
+participant "PT4 PDU\n(dect_phy_mac_pdu)" as PT4_PDU
+participant "PT4 Neighbor DB\n(dect_phy_mac_nbr)" as PT4_NBR
+participant "PT4 Client\n(dect_phy_mac_client)" as PT4_CLIENT
+end box
+
+== FT starts beaconing on a specific channel ==
+UFT -> FT_SHELL : beacon_start(channel=CHx)
+FT_SHELL -> FT_CTRL : dect_phy_mac_ctrl_beacon_start()
+FT_CTRL -> FT_BEACON : dect_phy_mac_cluster_beacon_start(params)
+FT_BEACON -> FT_BEACON : cluster_beacon_tx_pdu_build()
+FT_BEACON -> SCHED : schedule TX(beacon)\n(list_item_alloc_tx_element)
+SCHED -> MODEM : modem TX beacon on CHx
+MODEM --> FT_BEACON : TX done callback
+FT_BEACON -> FT_BEACON : cluster_beacon_tx_cb_handle()\nnext_tx_sfn_get()
+
+== PTs start beacon scanning (each user triggers scan) ==
+par PT1 scan
+U1 -> PT1_SHELL : beacon_scan()
+PT1_SHELL -> SCHED : schedule RX/scan on CHx
+SCHED -> MODEM : modem RX/scan on CHx
+MODEM --> PT1_MAC : RX indication (beacon)
+PT1_MAC -> PT1_MAC : dect_phy_mac_handle()\nrx_pcc/pdc_handle
+PT1_MAC -> PT1_PDU : decode headers + SDUs\n(beacon + RA IE)
+PT1_MAC -> PT1_NBR : nbr_info_store_n_update(FT)
+end
+
+par PT2 scan
+U2 -> PT2_SHELL : beacon_scan()
+PT2_SHELL -> SCHED : schedule RX/scan on CHx
+SCHED -> MODEM : modem RX/scan on CHx
+MODEM --> PT2_MAC : RX indication (beacon)
+PT2_MAC -> PT2_MAC : dect_phy_mac_handle()\nrx_pcc/pdc_handle
+PT2_MAC -> PT2_PDU : decode headers + SDUs\n(beacon + RA IE)
+PT2_MAC -> PT2_NBR : nbr_info_store_n_update(FT)
+end
+
+par PT3 scan
+U3 -> PT3_SHELL : beacon_scan()
+PT3_SHELL -> SCHED : schedule RX/scan on CHx
+SCHED -> MODEM : modem RX/scan on CHx
+MODEM --> PT3_MAC : RX indication (beacon)
+PT3_MAC -> PT3_MAC : dect_phy_mac_handle()\nrx_pcc/pdc_handle
+PT3_MAC -> PT3_PDU : decode headers + SDUs\n(beacon + RA IE)
+PT3_MAC -> PT3_NBR : nbr_info_store_n_update(FT)
+end
+
+par PT4 scan
+U4 -> PT4_SHELL : beacon_scan()
+PT4_SHELL -> SCHED : schedule RX/scan on CHx
+SCHED -> MODEM : modem RX/scan on CHx
+MODEM --> PT4_MAC : RX indication (beacon)
+PT4_MAC -> PT4_MAC : dect_phy_mac_handle()\nrx_pcc/pdc_handle
+PT4_MAC -> PT4_PDU : decode headers + SDUs\n(beacon + RA IE)
+PT4_MAC -> PT4_NBR : nbr_info_store_n_update(FT)
+end
+
+== PTs initiate association (each user triggers associate) ==
+par PT1 associate
+U1 -> PT1_SHELL : associate(target=FT)
+PT1_SHELL -> PT1_NBR : nbr_info_set_as_target_nbr(FT)
+PT1_SHELL -> PT1_CLIENT : dect_phy_mac_client_associate()
+PT1_CLIENT -> SCHED : schedule TX(assoc_req)
+SCHED -> MODEM : modem TX assoc_req (PT1->FT)
+MODEM --> FT_MAC : RX assoc_req (from PT1)
+FT_MAC -> FT_MAC : dect_phy_mac_handle()\n(decode assoc_req)
+FT_MAC -> SCHED : schedule TX(assoc_resp to PT1)
+SCHED -> MODEM : modem TX assoc_resp (FT->PT1)
+MODEM --> PT1_MAC : RX assoc_resp
+PT1_MAC -> PT1_CLIENT : client_associate_resp_handle()\nassociation_state_update()
+end
+
+par PT2 associate
+U2 -> PT2_SHELL : associate(target=FT)
+PT2_SHELL -> PT2_NBR : nbr_info_set_as_target_nbr(FT)
+PT2_SHELL -> PT2_CLIENT : dect_phy_mac_client_associate()
+PT2_CLIENT -> SCHED : schedule TX(assoc_req)
+SCHED -> MODEM : modem TX assoc_req (PT2->FT)
+MODEM --> FT_MAC : RX assoc_req (from PT2)
+FT_MAC -> FT_MAC : dect_phy_mac_handle()\n(decode assoc_req)
+FT_MAC -> SCHED : schedule TX(assoc_resp to PT2)
+SCHED -> MODEM : modem TX assoc_resp (FT->PT2)
+MODEM --> PT2_MAC : RX assoc_resp
+PT2_MAC -> PT2_CLIENT : client_associate_resp_handle()\nassociation_state_update()
+end
+
+par PT3 associate
+U3 -> PT3_SHELL : associate(target=FT)
+PT3_SHELL -> PT3_NBR : nbr_info_set_as_target_nbr(FT)
+PT3_SHELL -> PT3_CLIENT : dect_phy_mac_client_associate()
+PT3_CLIENT -> SCHED : schedule TX(assoc_req)
+SCHED -> MODEM : modem TX assoc_req (PT3->FT)
+MODEM --> FT_MAC : RX assoc_req (from PT3)
+FT_MAC -> FT_MAC : dect_phy_mac_handle()\n(decode assoc_req)
+FT_MAC -> SCHED : schedule TX(assoc_resp to PT3)
+SCHED -> MODEM : modem TX assoc_resp (FT->PT3)
+MODEM --> PT3_MAC : RX assoc_resp
+PT3_MAC -> PT3_CLIENT : client_associate_resp_handle()\nassociation_state_update()
+end
+
+par PT4 associate
+U4 -> PT4_SHELL : associate(target=FT)
+PT4_SHELL -> PT4_NBR : nbr_info_set_as_target_nbr(FT)
+PT4_SHELL -> PT4_CLIENT : dect_phy_mac_client_associate()
+PT4_CLIENT -> SCHED : schedule TX(assoc_req)
+SCHED -> MODEM : modem TX assoc_req (PT4->FT)
+MODEM --> FT_MAC : RX assoc_req (from PT4)
+FT_MAC -> FT_MAC : dect_phy_mac_handle()\n(decode assoc_req)
+FT_MAC -> SCHED : schedule TX(assoc_resp to PT4)
+SCHED -> MODEM : modem TX assoc_resp (FT->PT4)
+MODEM --> PT4_MAC : RX assoc_resp
+PT4_MAC -> PT4_CLIENT : client_associate_resp_handle()\nassociation_state_update()
+end
+
+note over PT1_CLIENT,PT4_CLIENT
+If PTs attempt association simultaneously, contention and retries/backoff
+may occur (handled by client RACH scheduling functions when enabled).
+end note
+
+@enduml

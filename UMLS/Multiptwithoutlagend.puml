@@ -1,0 +1,155 @@
+@startuml
+title FT Beaconing + PT1..PT4 Discovery & Association (Structured Communication Diagram)
+
+left to right direction
+skinparam linetype ortho
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam roundcorner 12
+skinparam DefaultFontSize 14
+skinparam ArrowThickness 1
+skinparam maxMessageSize 40
+
+' ---- Actors ----
+actor "User FT" as UFT
+actor "User PT1" as U1
+actor "User PT2" as U2
+actor "User PT3" as U3
+actor "User PT4" as U4
+
+' ===================================================================
+' FT side (LEFT)
+' ===================================================================
+package "FT Node (Cluster Head)" #EEF {
+  component "FT Shell\n(dect_phy_mac_shell)" as FT_SHELL
+  component "FT MAC Ctrl\n(dect_phy_mac_ctrl)" as FT_CTRL
+  component "FT Beacon\n(dect_phy_mac_cluster_beacon)" as FT_BEACON
+  component "FT MAC RX\n(dect_phy_mac)" as FT_MAC
+}
+
+' ===================================================================
+' Shared PHY/Modem (CENTER)
+' ===================================================================
+package "PHY + Modem (Shared)" #EFE {
+  component "PHY Scheduler\n(dect_phy_api_scheduler)" as SCHED
+  component "Modem/PHY\n(nrf_modem_dect_phy)" as MODEM
+}
+
+' ===================================================================
+' PT side (RIGHT) - 4 PTs stacked
+' ===================================================================
+package "PT Nodes (Clients)" #FFE {
+  component "PT1 Shell" as PT1_SHELL
+  component "PT1 MAC RX" as PT1_MAC
+  component "PT1 PDU" as PT1_PDU
+  component "PT1 Neighbor DB" as PT1_NBR
+  component "PT1 Client" as PT1_CLIENT
+
+  
+  component "PT2 Shell" as PT2_SHELL
+  component "PT2 MAC RX" as PT2_MAC
+  component "PT2 PDU" as PT2_PDU
+  component "PT2 Neighbor DB" as PT2_NBR
+  component "PT2 Client" as PT2_CLIENT
+
+
+  component "PT3 Shell" as PT3_SHELL
+  component "PT3 MAC RX" as PT3_MAC
+  component "PT3 PDU" as PT3_PDU
+  component "PT3 Neighbor DB" as PT3_NBR
+  component "PT3 Client" as PT3_CLIENT
+
+  
+  component "PT4 Shell" as PT4_SHELL
+  component "PT4 MAC RX" as PT4_MAC
+  component "PT4 PDU" as PT4_PDU
+  component "PT4 Neighbor DB" as PT4_NBR
+  component "PT4 Client" as PT4_CLIENT
+}
+
+' =========================
+' 1) FT beacon start
+' =========================
+UFT --> FT_SHELL : (1)
+FT_SHELL --> FT_CTRL : (1.1)
+FT_CTRL --> FT_BEACON : (1.2)
+FT_BEACON --> SCHED : (1.3)
+SCHED --> MODEM : (1.4)
+
+' =========================
+' 2) PT scans
+' =========================
+U1 --> PT1_SHELL : (2.1)
+PT1_SHELL --> SCHED : (2.2)
+MODEM --> PT1_MAC : (2.3)
+PT1_MAC --> PT1_PDU : (2.4)
+PT1_MAC --> PT1_NBR : (2.5)
+
+U2 --> PT2_SHELL : (3.1)
+PT2_SHELL --> SCHED : (3.2)
+MODEM --> PT2_MAC : (3.3)
+PT2_MAC --> PT2_PDU : (3.4)
+PT2_MAC --> PT2_NBR : (3.5)
+
+U3 --> PT3_SHELL : (4.1)
+PT3_SHELL --> SCHED : (4.2)
+MODEM --> PT3_MAC : (4.3)
+PT3_MAC --> PT3_PDU : (4.4)
+PT3_MAC --> PT3_NBR : (4.5)
+
+U4 --> PT4_SHELL : (5.1)
+PT4_SHELL --> SCHED : (5.2)
+MODEM --> PT4_MAC : (5.3)
+PT4_MAC --> PT4_PDU : (5.4)
+PT4_MAC --> PT4_NBR : (5.5)
+
+' =========================
+' 3) PT association
+' =========================
+U1 --> PT1_SHELL : (6.1)
+PT1_SHELL --> PT1_NBR : (6.2)
+PT1_SHELL --> PT1_CLIENT : (6.3)
+PT1_CLIENT --> SCHED : (6.4)
+MODEM --> FT_MAC : (6.5)
+FT_MAC --> SCHED : (6.6)
+MODEM --> PT1_MAC : (6.7)
+PT1_MAC --> PT1_CLIENT : (6.8)
+
+U2 --> PT2_SHELL : (7.1)
+PT2_SHELL --> PT2_NBR : (7.2)
+PT2_SHELL --> PT2_CLIENT : (7.3)
+PT2_CLIENT --> SCHED : (7.4)
+MODEM --> FT_MAC : (7.5)
+FT_MAC --> SCHED : (7.6)
+MODEM --> PT2_MAC : (7.7)
+PT2_MAC --> PT2_CLIENT : (7.8)
+
+U3 --> PT3_SHELL : (8.1)
+PT3_SHELL --> PT3_NBR : (8.2)
+PT3_SHELL --> PT3_CLIENT : (8.3)
+PT3_CLIENT --> SCHED : (8.4)
+MODEM --> FT_MAC : (8.5)
+FT_MAC --> SCHED : (8.6)
+MODEM --> PT3_MAC : (8.7)
+PT3_MAC --> PT3_CLIENT : (8.8)
+
+U4 --> PT4_SHELL : (9.1)
+PT4_SHELL --> PT4_NBR : (9.2)
+PT4_SHELL --> PT4_CLIENT : (9.3)
+PT4_CLIENT --> SCHED : (9.4)
+MODEM --> FT_MAC : (9.5)
+FT_MAC --> SCHED : (9.6)
+MODEM --> PT4_MAC : (9.7)
+PT4_MAC --> PT4_CLIENT : (9.8)
+
+' =========================
+' Legend on the RIGHT (same picture)
+' =========================
+
+note bottom
+FT is on the left, shared PHY/modem in the center, PTs on the right.
+Parallel association may contend; retries/backoff are handled by client RACH
+scheduling if enabled.
+end note
+
+@enduml
