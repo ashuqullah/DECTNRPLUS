@@ -64,6 +64,7 @@ static const struct dect_phy_settings phy_settings_data_defaults = {
 	.harq = phy_harq_common_settings,
 	.tx = phy_tx_common_settings,
 	.rx = phy_rx_common_settings,
+	
 };
 static struct dect_phy_settings phy_settings_data = phy_settings_data_defaults;
 

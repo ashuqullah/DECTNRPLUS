@@ -5,16 +5,9 @@
     {
       "core": "NRFDL_DEVICE_CORE_APPLICATION",
       "operation": {
-        "erase_protect_key": null,
-        "type": "recover"
-      }
-    },
-    {
-      "core": "NRFDL_DEVICE_CORE_APPLICATION",
-      "operation": {
         "chip_erase_mode": "ERASE_RANGES_TOUCHED_BY_FIRMWARE",
         "firmware": {
-          "file": "/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/merged.hex"
+          "file": "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/merged.hex"
         },
         "type": "program",
         "verify": "VERIFY_READ"

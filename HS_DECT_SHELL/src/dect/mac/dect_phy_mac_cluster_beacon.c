@@ -29,6 +29,9 @@
 #include "dect_phy_mac_common.h"
 #include "dect_phy_mac_pdu.h"
 #include "dect_phy_mac_ctrl.h"
+#include "dect_phy_mac_ft_assoc.h"
+#include "dect_app_time.h"
+
 
 static struct dect_phy_mac_cluster_beacon_data {
 	bool running;

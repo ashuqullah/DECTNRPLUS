@@ -27,7 +27,7 @@
 #include "dect_phy_mac_nbr.h"
 #include "dect_phy_mac_client.h"
 #include "dect_phy_mac_ctrl.h"
-
+#include "dect_phy_mac_ft_assoc.h"
 /**************************************************************************************************/
 
 static int dect_phy_mac_cmd_print_help(const struct shell *shell, size_t argc, char **argv)
@@ -561,7 +561,22 @@ show_usage:
 	desh_print_no_format(dect_phy_mac_rach_tx_cmd_usage_str);
 	return 0;
 }
+/************************************************Group Seched**************************************************/
+static void dect_phy_mac_ft_assoc_status_cmd(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(shell); ARG_UNUSED(argc); ARG_UNUSED(argv);
+	dect_phy_mac_ft_assoc_status_print();
+}
 
+static void dect_phy_mac_ft_assoc_clear_cmd(const struct shell *shell, size_t argc, char **argv)
+{
+	ARG_UNUSED(shell); ARG_UNUSED(argc); ARG_UNUSED(argv);
+	dect_phy_mac_ft_assoc_clear_all();
+}
+
+
+
+/**************************************************************************************************/
 /**************************************************************************************************/
 
 static void dect_phy_mac_status_cmd(const struct shell *shell, size_t argc, char **argv)
@@ -591,8 +606,13 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 		      dect_phy_mac_dissociate_cmd, 1, 6),
 	SHELL_CMD_ARG(rach_tx, NULL, "Usage options: dect mac rach_tx -h",
 		      dect_phy_mac_rach_tx_cmd, 1, 11),
-	SHELL_SUBCMD_SET_END);
+	SHELL_CMD_ARG(ft_assoc_status, NULL, "Usage: dect mac ft_assoc_status",
+	      dect_phy_mac_ft_assoc_status_cmd, 1, 0),
+	SHELL_CMD_ARG(ft_assoc_clear, NULL, "Usage: dect mac ft_assoc_clear",
+	      dect_phy_mac_ft_assoc_clear_cmd, 1, 0),
 
+	SHELL_SUBCMD_SET_END);
+	
 SHELL_SUBCMD_ADD((dect), mac, &mac_shell_cmd_sub,
 		 "Commands for using sample MAC commands on top of libmodem PHY API.",
 		 dect_phy_mac_cmd, 1, 0);

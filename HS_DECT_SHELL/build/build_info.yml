@@ -8,18 +8,18 @@ cmake:
     qualifiers: 'nrf9151/ns'
     revision: ''
   images:
-   - name: 'dect_shell'
-     source-dir: '/home/ashuqullah-alizai/Documents/dect_phy/dect_shell'
+   - name: 'HS_DECT_SHELL'
+     source-dir: '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL'
      type: 'MAIN'
   kconfig:
     files:
-     - '/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/empty.conf'
-     - '/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/empty.conf'
     user-files:
-     - '/home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/empty.conf'
   sysbuild: 'true'
 version: '0.1.0'
 west:
-  command: '/home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/dect_phy/dect_shell/build /home/ashuqullah-alizai/Documents/dect_phy/dect_shell --pristine --board nrf9151dk/nrf9151/ns -- -DDEBUG_THREAD_INFO=Off -Ddect_shell_DEBUG_THREAD_INFO=Off'
+  command: '/home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL --pristine --board nrf9151dk/nrf9151/ns -- -DCONFIG_DEBUG_THREAD_INFO=y'
   topdir: '/home/ashuqullah-alizai/ncs/v3.1.1'
   version: '1.4.0'

@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_SHELL"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_SHELL.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_SHELL-complete.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-build.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-configure.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-download.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-install.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-mkdir.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-patch.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"HS_DECT_SHELL"
+		],
+		"name" : "HS_DECT_SHELL"
+	}
+}

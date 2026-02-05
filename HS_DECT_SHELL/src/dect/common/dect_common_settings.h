@@ -6,6 +6,7 @@
 
 #ifndef DECT_COMMON_SETTINGS_H
 #define DECT_COMMON_SETTINGS_H
+#include <nrf_modem_dect_phy.h>
 
 #include <zephyr/kernel.h>
 
@@ -45,7 +46,42 @@
 /* SCAN_MEAS_DURATION as per MAC spec */
 #define DECT_PHY_DETT_DEFAULT_SCAN_MEAS_DURATION_SLOTS 24
 
-/************************************************************************************************/
+
+/****************************************New Code 'Added********************************************************/
+/* ===== HS_DECT: MAC fixed scheduling / multi-PT support ===== */
+
+#ifndef DECT_MAX_PTS
+#define DECT_MAX_PTS 8 /* can be 4 if you want hard cap */
+#endif
+
+enum dect_mac_sched_mode {
+	DECT_MAC_SCHED_RANDOM = 0,
+	DECT_MAC_SCHED_FIXED  = 1,
+};
+
+struct dect_mac_fixed_slot {
+	uint16_t start_subslot;
+	uint16_t end_subslot;
+};
+
+struct dect_mac_sched_settings {
+	enum dect_mac_sched_mode mode;
+
+	/* 0 = FT device, 1..max_pts = PT index */
+	uint8_t pt_id;
+
+	/* Maximum number of PTs expected in fixed scheduling */
+	uint8_t max_pts;
+
+	/* Length of repeating superframe in subslots */
+	uint16_t superframe_len;
+
+	/* Slot allocation for each PT (index 0 -> PT1, 1 -> PT2, ...) */
+	struct dect_mac_fixed_slot pt_slots[DECT_MAX_PTS];
+};
+
+/*********New Code 'Added end*********************************************************************************/
+
 struct dect_phy_settings_common_tx {
 	int32_t power_dbm;
 	uint8_t mcs;
@@ -110,7 +146,7 @@ struct dect_phy_settings_common {
 	uint32_t transmitter_id;
 	uint16_t band_nbr;
 	bool activate_at_startup;
-	enum nrf_modem_dect_phy_radio_mode startup_radio_mode;
+	uint8_t startup_radio_mode; /* enum nrf_modem_dect_phy_radio_mode */
 	uint16_t short_rd_id; /* Generated random value, cannot be set */
 };
 
@@ -126,6 +162,9 @@ struct dect_phy_settings {
 
 	/* Common scheduler settings */
 	struct dect_phy_settings_scheduler scheduler;
+		/* HS_DECT: MAC scheduling configuration */
+	struct dect_mac_sched_settings mac_sched;
+
 };
 
 int dect_common_settings_defaults_set(void);
@@ -133,5 +172,6 @@ int dect_common_settings_read(struct dect_phy_settings *dect_common_sett);
 struct dect_phy_settings *dect_common_settings_ref_get(void);
 
 int dect_common_settings_write(struct dect_phy_settings *dect_common_sett);
+
 
 #endif /* DECT_COMMON_SETTINGS_H */

@@ -1579,7 +1579,29 @@ static const char dect_phy_sett_cmd_usage_str[] =
 	"                                                    starting a TX for providing\n"
 	"                                                    HARQ feedback if requested by\n"
 	"                                                    client.\n"
-	"                                                    Default: 4 (subslots).\n";
+	"                                                    Default: 4 (subslots).\n"
+	"      --sche_harq_feedback_tx_delay_subslots <int>, Gap between data RX and\n"
+"                                                    starting a TX for providing\n"
+"                                                    HARQ feedback if requested by\n"
+"                                                    client.\n"
+"                                                    Default: 4 (subslots).\n"
+"\n"
+"HS_DECT MAC scheduling extensions:\n"
+"      --sched_mode <mode>,         MAC scheduling mode.\n"
+"                                   random : legacy random access (default).\n"
+"                                   fixed  : fixed, slot-based scheduling.\n"
+"      --pt_id <id>,                Portable Terminal (PT) identifier.\n"
+"                                   0 = Fixed Terminal (FT).\n"
+"                                   1..N = PT index in fixed scheduling.\n"
+"      --max_pts <N>,               Maximum number of PTs supported by the FT.\n"
+"                                   Controls FT association table size.\n"
+"      --sf_len <subslots>,         Superframe length in subslots for fixed scheduling.\n"
+"      --pt1_slot <start:end>,      Fixed subslot range for PT1.\n"
+"      --pt2_slot <start:end>,      Fixed subslot range for PT2.\n"
+"      --pt3_slot <start:end>,      Fixed subslot range for PT3.\n"
+"      --pt4_slot <start:end>,      Fixed subslot range for PT4.\n"
+"                                   Slot ranges must fit within sf_len.\n";
+
 
 /* Specifying the expected options (both long and short): */
 static struct option long_options_settings[] = {
@@ -1610,6 +1632,16 @@ static struct option long_options_settings[] = {
 	 DECT_SHELL_SETT_COMMON_RSSI_SCAN_SUITABLE_PERCENT},
 	{"reset", no_argument, 0, DECT_SHELL_SETT_RESET_ALL},
 	{"read", no_argument, 0, 'r'},
+	/* ===== HS_DECT MAC scheduling extensions ===== */
+	{"sched_mode", required_argument, 0, 1001},
+	{"pt_id", required_argument, 0, 1002},
+	{"max_pts", required_argument, 0, 1003},
+	{"sf_len", required_argument, 0, 1004},
+	{"pt1_slot", required_argument, 0, 1005},
+	{"pt2_slot", required_argument, 0, 1006},
+	{"pt3_slot", required_argument, 0, 1007},
+	{"pt4_slot", required_argument, 0, 1008},
+
 	{0, 0, 0, 0}};
 
 static void dect_phy_sett_cmd_print(struct dect_phy_settings *dect_sett)
@@ -1664,6 +1696,24 @@ static void dect_phy_sett_cmd_print(struct dect_phy_settings *dect_sett)
 		   dect_sett->harq.harq_feedback_rx_subslot_count);
 	desh_print("  HARQ feedback TX delay (subslots)........................%d",
 		   dect_sett->harq.harq_feedback_tx_delay_subslot_count);
+	desh_print("HS_DECT MAC scheduling settings:");
+	desh_print("  sched_mode.....................................%s",
+		   (dect_sett->mac_sched.mode == DECT_MAC_SCHED_FIXED) ? "fixed" : "random");
+	desh_print("  role/pt_id.....................................%u (%s)",
+		   dect_sett->mac_sched.pt_id,
+		   (dect_sett->mac_sched.pt_id == 0) ? "FT" : "PT");
+	desh_print("  max_pts........................................%u",
+		   dect_sett->mac_sched.max_pts);
+	desh_print("  superframe_len (subslots)......................%u",
+		   dect_sett->mac_sched.superframe_len);
+
+	for (int i = 0; i < dect_sett->mac_sched.max_pts && i < DECT_MAX_PTS; i++) {
+		desh_print("  PT%u slot.......................................%u:%u",
+			   (unsigned)(i + 1),
+			   dect_sett->mac_sched.pt_slots[i].start_subslot,
+			   dect_sett->mac_sched.pt_slots[i].end_subslot);
+	}
+
 }
 
 static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv)
@@ -1836,6 +1886,55 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 			dect_common_settings_defaults_set();
 			goto settings_updated;
 		}
+		/* ===== HS_DECT MAC scheduling extensions ===== */
+
+		case 1001: /* sched_mode */
+			if (!strcmp(optarg, "fixed")) {
+				newsettings.mac_sched.mode = DECT_MAC_SCHED_FIXED;
+			} else if (!strcmp(optarg, "random")) {
+				newsettings.mac_sched.mode = DECT_MAC_SCHED_RANDOM;
+			} else {
+				shell_error(shell, "sched_mode: use fixed|random");
+				return -EINVAL;
+			}
+			break;
+
+		case 1002: /* pt_id */
+			newsettings.mac_sched.pt_id = atoi(optarg);
+			break;
+
+		case 1003: /* max_pts */
+			newsettings.mac_sched.max_pts = atoi(optarg);
+			break;
+
+		case 1004: /* sf_len */
+			newsettings.mac_sched.superframe_len = atoi(optarg);
+			break;
+
+		case 1005: /* pt1_slot */
+			sscanf(optarg, "%hu:%hu",
+				&newsettings.mac_sched.pt_slots[0].start_subslot,
+				&newsettings.mac_sched.pt_slots[0].end_subslot);
+			break;
+
+		case 1006: /* pt2_slot */
+			sscanf(optarg, "%hu:%hu",
+				&newsettings.mac_sched.pt_slots[1].start_subslot,
+				&newsettings.mac_sched.pt_slots[1].end_subslot);
+			break;
+
+		case 1007: /* pt3_slot */
+			sscanf(optarg, "%hu:%hu",
+				&newsettings.mac_sched.pt_slots[2].start_subslot,
+				&newsettings.mac_sched.pt_slots[2].end_subslot);
+			break;
+
+		case 1008: /* pt4_slot */
+			sscanf(optarg, "%hu:%hu",
+				&newsettings.mac_sched.pt_slots[3].start_subslot,
+				&newsettings.mac_sched.pt_slots[3].end_subslot);
+			break;
+
 		case 'h':
 			goto show_usage;
 		case '?':
@@ -1843,6 +1942,7 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
 			goto show_usage;
 		}
+		
 	}
 	if (optind < argc) {
 		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);

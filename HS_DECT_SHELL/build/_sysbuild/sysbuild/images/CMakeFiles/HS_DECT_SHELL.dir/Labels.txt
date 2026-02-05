@@ -1,0 +1,13 @@
+# Target labels
+ HS_DECT_SHELL
+# Source files and their labels
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_SHELL
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_SHELL.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_SHELL-complete.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-build.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-configure.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-download.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-install.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-mkdir.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-patch.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/HS_DECT_SHELL-prefix/src/HS_DECT_SHELL-stamp/HS_DECT_SHELL-update.rule
