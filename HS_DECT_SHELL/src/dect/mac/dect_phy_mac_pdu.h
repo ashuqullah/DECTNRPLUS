@@ -56,6 +56,17 @@ typedef struct {
 #define DECT_PHY_MAC_BROADCAST_HEADER_SIZE 7
 
 /******************************************************************************/
+/* ================= HS_DECT vendor extension IE =================
+ * We use IE_TYPE_EXTENSION (63) + a vendor-defined IE extension id.
+ * Payload format:
+ *   byte0: version (HS_DECT_ASSOC_EXT_VER)
+ *   byte1: flags  (bit0: PT_FIXED_MODE, bit1..7: reserved)
+ */
+#define HS_DECT_ASSOC_EXT_VER                1
+#define HS_DECT_IE_EXT_TYPE_ASSOC_POLICY     0xA1
+
+#define HS_DECT_ASSOC_FLAG_PT_FIXED_MODE     (1u << 0)
+/* ================================================================ */
 
 /* MAC spec: Table 6.3.4-1: MAC extension field encoding */
 typedef enum {

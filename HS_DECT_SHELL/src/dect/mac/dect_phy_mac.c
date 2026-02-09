@@ -17,12 +17,13 @@
 #include "dect_common_utils.h"
 #include "dect_common_pdu.h"
 #include "dect_phy_ctrl.h"
-
+#include "dect_common_settings.h"
 #include "dect_phy_mac_pdu.h"
 #include "dect_phy_mac_nbr.h"
 #include "dect_phy_mac_cluster_beacon.h"
 #include "dect_phy_mac_client.h"
 #include "dect_phy_mac.h"
+#include "dect_phy_mac_ft_assoc.h"
 
 /**************************************************************************************************/
 
@@ -445,7 +446,19 @@ bool dect_phy_mac_handle(struct dect_phy_commmon_op_pdc_rcv_params *rcv_params)
 			} else if (sdu_list_item->message_type ==
 				   DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_RESP) {
 				association_resp = &sdu_list_item->message.association_resp;
+						} else if (sdu_list_item->message_type ==
+				   DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_REL) {
+
+				/* PT dissociated -> remove from FT assoc table */
+				uint32_t pt_long_rd_id = common_header.transmitter_id;
+
+				int rc = dect_phy_mac_ft_assoc_remove(pt_long_rd_id);
+				if (rc == 0) {
+					desh_print("FT: PT %u dissociated -> removed from assoc table",
+						   pt_long_rd_id);
+				}
 			}
+
 		}
 		/* If received cluster beacon with RA IE, store as a neighbor */
 		if (beacon_msg != NULL && ra_ie != NULL) {
@@ -506,13 +519,44 @@ bool dect_phy_mac_direct_pdc_handle(struct dect_phy_commmon_op_pdc_rcv_params *r
 	handled = dect_phy_mac_pdu_sdus_decode(payload_ptr, rcv_params->data_length - header_len,
 					       &sdu_list);
 	if (handled) {
+		bool pt_says_fixed = false;
+		bool got_hs_policy = false;
+
 		SYS_DLIST_FOR_EACH_CONTAINER(&sdu_list, sdu_list_item, dnode) {
-			if (sdu_list_item->message_type ==
-			    DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_REQ) {
+		/* HS_DECT: parse vendor extension IE for PT policy */
+				if (sdu_list_item->mux_header.ie_type == DECT_PHY_MAC_IE_TYPE_EXTENSION &&
+					sdu_list_item->mux_header.ie_ext == HS_DECT_IE_EXT_TYPE_ASSOC_POLICY &&
+					sdu_list_item->message.common_msg.data_length >= 2) {
+
+					const uint8_t *p = sdu_list_item->message.common_msg.data;
+					if (p[0] == HS_DECT_ASSOC_EXT_VER) {
+						got_hs_policy = true;
+						pt_says_fixed = ((p[1] & HS_DECT_ASSOC_FLAG_PT_FIXED_MODE) != 0);
+					}
+				}
+
+			if (sdu_list_item->message_type == DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_REQ) {
+
+				struct dect_phy_settings *s = dect_common_settings_ref_get();
+
+				/* If FT is fixed, PT must also be fixed (must advertise it). */
+				if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+
+					if (!got_hs_policy || !pt_says_fixed) {
+						/* Reject association explicitly */
+						dect_phy_mac_cluster_beacon_association_reject_send(rcv_params,
+													&common_header);
+						/* Do NOT proceed with normal association */
+						continue;
+					}
+				}
+
+				/* Normal flow */
 				dect_phy_mac_cluster_beacon_association_req_handle(
 					rcv_params, &common_header,
 					&sdu_list_item->message.association_req);
 			}
+
 		}
 	}
 	/* Remove all nodes from the list and dealloc */

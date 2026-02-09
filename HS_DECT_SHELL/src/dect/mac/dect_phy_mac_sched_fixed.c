@@ -8,6 +8,11 @@
 /* subslot duration in modem ticks . */
 #define DECT_SUBSLOT_BB_TICKS (28800ULL)
 #endif
+/* DECT ETSI timing constants*/
+#define DECT_ETSI_FRAME_US            10000U  /* 10 ms */
+#define DECT_ETSI_SLOT_US               416U  /* ~416 us */
+#define DECT_ETSI_SLOTS_PER_FRAME        24U  /* 24*416 */
+
 
 bool dect_phy_mac_sched_fixed_enabled(void)
 {
@@ -66,36 +71,58 @@ int dect_phy_mac_sched_fixed_next_ul_start_time_get(uint64_t *start_time_bb)
 	if (!start_time_bb) {
 		return -EINVAL;
 	}
+
 	struct dect_phy_settings *s = dect_common_settings_ref_get();
+
+	/* Only valid in fixed scheduling mode and on PT side */
 	if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
 		return -EINVAL;
 	}
 	if (s->mac_sched.pt_id == 0) {
-		/* FT does not transmit UL. */
-		return -EINVAL;
-	}
-	if (dect_phy_mac_sched_fixed_validate_settings() != 0) {
+		/* FT does not use PT UL scheduling */
 		return -EINVAL;
 	}
 
-	uint16_t st = 0, en = 0;
-	if (dect_phy_mac_sched_fixed_slot_get(s->mac_sched.pt_id, &st, &en) != 0) {
+	/* Convert ETSI timing to modem BB ticks */
+	const uint64_t frame_ticks = dect_app_time_us_to_mdm_ticks(DECT_ETSI_FRAME_US);
+	const uint64_t slot_ticks  = dect_app_time_us_to_mdm_ticks(DECT_ETSI_SLOT_US);
+
+	if (frame_ticks == 0 || slot_ticks == 0) {
 		return -EINVAL;
 	}
+
+	/* Read PT slot assignment (interpreted as SLOT INDICES inside a 10ms frame) */
+	uint16_t slot_start = 0, slot_end = 0;
+	int ret = dect_phy_mac_sched_fixed_slot_get(s->mac_sched.pt_id, &slot_start, &slot_end);
+	if (ret) {
+		return ret;
+	}
+
+	/* Validate slot range fits inside one ETSI frame */
+	if (slot_start > slot_end ||
+	    slot_end >= DECT_ETSI_SLOTS_PER_FRAME) {
+		return -EINVAL;
+	}
+
+	/* Choose which slot to use.
+	 * Minimal deterministic behavior: always transmit at slot_start.
+	 * (Later you can rotate between slot_start..slot_end.)
+	 */
+	const uint16_t chosen_slot = slot_start;
 
 	uint64_t now = dect_app_modem_time_now();
-	uint64_t sf_ticks = superframe_bb_ticks_get(s->mac_sched.superframe_len);
 
-	/* Align "now" to superframe boundary (simple modulo alignment). */
-	uint64_t sf_start = now - (now % sf_ticks);
+	/* Align to 10 ms frame boundary */
+	uint64_t frame_start = now - (now % frame_ticks);
 
-	uint64_t slot_start = sf_start + ((uint64_t)st * DECT_SUBSLOT_BB_TICKS);
+	/* Compute the next TX time at the chosen slot boundary */
+	uint64_t tx_time = frame_start + ((uint64_t)chosen_slot * slot_ticks);
 
-	/* If already past slot_start, schedule in next superframe. */
-	if (slot_start <= now) {
-		slot_start += sf_ticks;
+	/* If already passed in this frame, schedule in next frame */
+	if (tx_time <= now) {
+		tx_time += frame_ticks;
 	}
 
-	*start_time_bb = slot_start;
+	*start_time_bb = tx_time;
 	return 0;
 }

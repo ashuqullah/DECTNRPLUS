@@ -10,6 +10,15 @@
 #include <zephyr/kernel.h>
 #include <stdint.h>
 
+/* HS_DECT vendor IE carried inside IE type extension */
+#define HS_DECT_IE_ID            0xA1   /* you already see this in logs */
+#define HS_DECT_IE_VER           0x01
+
+#define HS_DECT_SCHED_MODE_RANDOM 0
+#define HS_DECT_SCHED_MODE_FIXED  1
+#define HS_DECT_ROLE_FT 0
+#define HS_DECT_ROLE_PT 1
+
 /******************************************************************************/
 
 struct dect_phy_mac_beacon_start_params {

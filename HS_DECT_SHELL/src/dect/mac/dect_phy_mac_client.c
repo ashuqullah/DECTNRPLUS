@@ -508,6 +508,37 @@ static int dect_phy_mac_client_association_req_pdu_encode(
 
 	sys_dlist_init(&sdu_list);
 	sys_dlist_append(&sdu_list, &data_sdu_list_item->dnode);
+			/* HS_DECT: advertise PT scheduler policy in an extension IE */
+		{
+			struct dect_phy_settings *s = dect_common_settings_ref_get();
+
+			uint8_t ext_payload[2];
+			ext_payload[0] = HS_DECT_ASSOC_EXT_VER;
+
+			/* bit0 indicates "PT is in fixed scheduler mode" */
+			ext_payload[1] = 0;
+			if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+				ext_payload[1] |= HS_DECT_ASSOC_FLAG_PT_FIXED_MODE;
+			}
+
+			dect_phy_mac_sdu_t *ext_sdu =
+				(dect_phy_mac_sdu_t *)k_calloc(1, sizeof(dect_phy_mac_sdu_t));
+			if (ext_sdu == NULL) {
+				return -ENOMEM;
+			}
+
+			ext_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_16BIT_LEN;
+			ext_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_EXTENSION;
+			ext_sdu->mux_header.ie_ext = HS_DECT_IE_EXT_TYPE_ASSOC_POLICY;
+			ext_sdu->mux_header.payload_length = sizeof(ext_payload);
+
+			ext_sdu->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
+			ext_sdu->message.common_msg.data_length = sizeof(ext_payload);
+			memcpy(ext_sdu->message.common_msg.data, ext_payload, sizeof(ext_payload));
+
+			sys_dlist_append(&sdu_list, &ext_sdu->dnode);
+		}
+		/* Encode SDUs and fill padding if needed */
 	pdu_ptr = dect_phy_mac_pdu_sdus_encode(pdu_ptr, &sdu_list);
 
 	/* Length so far  */

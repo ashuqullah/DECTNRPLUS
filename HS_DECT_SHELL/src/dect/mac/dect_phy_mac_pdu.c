@@ -20,6 +20,57 @@
 #include "dect_phy_mac_pdu.h"
 #include "dect_phy_mac.h"
 
+/* ===== HS_DECT Beacon Scheduling IE ===== */
+
+#define HS_DECT_IE_EXT_ID_SCHED_BEACON   0xA2
+#define HS_DECT_IE_VERSION               1
+#define HS_DECT_SLOTS_PER_FRAME          24
+
+enum hs_dect_sched_mode {
+	HS_DECT_SCHED_RANDOM = 0,
+	HS_DECT_SCHED_FIXED  = 1,
+};
+
+struct hs_dect_beacon_sched_ie {
+	uint8_t ext_id;          /* HS_DECT_IE_EXT_ID_SCHED_BEACON */
+	uint8_t version;         /* HS_DECT_IE_VERSION */
+	uint8_t sched_mode;      /* random / fixed */
+	uint8_t max_pts;
+	uint8_t superframe_len;  /* subslots */
+	uint8_t reserved;
+	/* followed by slot map: [start,end] per PT */
+} __packed;
+
+bool hs_dect_beacon_sched_ie_parse(
+	const uint8_t *data,
+	uint16_t len,
+	struct hs_dect_beacon_sched_ie *out,
+	uint8_t *slots /* [2 * max_pts] */
+)
+{
+	if (len < sizeof(*out)) {
+		return false;
+	}
+
+	memcpy(out, data, sizeof(*out));
+
+	if (out->ext_id != HS_DECT_IE_EXT_ID_SCHED_BEACON ||
+	    out->version != HS_DECT_IE_VERSION) {
+		return false;
+	}
+
+	uint16_t need = sizeof(*out) + out->max_pts * 2;
+	if (len < need) {
+		return false;
+	}
+
+	memcpy(slots, data + sizeof(*out), out->max_pts * 2);
+	return true;
+}
+
+/* End of HS_DECT Beacon Scheduling IE */
+
+
 /**************************************************************************************************/
 
 const char *dect_phy_mac_pdu_header_type_to_string(int type, char *out_str_buff)
@@ -1174,6 +1225,14 @@ bool dect_phy_mac_pdu_sdus_decode(uint8_t *payload_ptr, uint32_t payload_len, sy
 			memcpy(sdu_list_item->message.common_msg.data, mux_header.payload_ptr,
 			       mux_header.payload_length);
 			break;
+		case DECT_PHY_MAC_IE_TYPE_EXTENSION:
+			/* Store raw payload; higher layers can check mux_header.ie_ext */
+			sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_ESCAPE;
+			sdu_list_item->message.common_msg.data_length = mux_header.payload_length;
+			memcpy(sdu_list_item->message.common_msg.data,
+			       mux_header.payload_ptr, mux_header.payload_length);
+			break;
+
 		default:
 			sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
 			sdu_list_item->message.common_msg.data_length = mux_header.payload_length;

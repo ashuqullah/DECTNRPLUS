@@ -51,12 +51,17 @@
 /* ===== HS_DECT: MAC fixed scheduling / multi-PT support ===== */
 
 #ifndef DECT_MAX_PTS
-#define DECT_MAX_PTS 8 /* can be 4 if you want hard cap */
+#define DECT_MAX_PTS 6 /* can be 4  */
 #endif
 
 enum dect_mac_sched_mode {
 	DECT_MAC_SCHED_RANDOM = 0,
 	DECT_MAC_SCHED_FIXED  = 1,
+};
+enum dect_mac_role {
+	DECT_MAC_ROLE_UNDEF = 0,
+	DECT_MAC_ROLE_FT,
+	DECT_MAC_ROLE_PT,
 };
 
 struct dect_mac_fixed_slot {
@@ -66,18 +71,14 @@ struct dect_mac_fixed_slot {
 
 struct dect_mac_sched_settings {
 	enum dect_mac_sched_mode mode;
-
-	/* 0 = FT device, 1..max_pts = PT index */
-	uint8_t pt_id;
-
-	/* Maximum number of PTs expected in fixed scheduling */
+	enum dect_mac_role role;   /* <-- REQUIRED */
 	uint8_t max_pts;
-
-	/* Length of repeating superframe in subslots */
+	uint8_t pt_id;
 	uint16_t superframe_len;
-
-	/* Slot allocation for each PT (index 0 -> PT1, 1 -> PT2, ...) */
-	struct dect_mac_fixed_slot pt_slots[DECT_MAX_PTS];
+	struct {
+		uint16_t start_subslot;
+		uint16_t end_subslot;
+	} pt_slots[6];
 };
 
 /*********New Code 'Added end*********************************************************************************/

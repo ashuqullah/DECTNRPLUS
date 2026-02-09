@@ -34,7 +34,7 @@
 #include "dect_phy_mac_nbr.h"
 #include "dect_phy_mac_client.h"
 #include "dect_phy_mac_ctrl.h"
-
+#include "dect_phy_mac_pdu.h"
 extern struct k_work_q dect_phy_ctrl_work_q;
 extern struct k_sem rssi_scan_sema;
 

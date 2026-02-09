@@ -32,6 +32,24 @@
 #include "dect_phy_mac_ft_assoc.h"
 #include "dect_app_time.h"
 
+/*=============================Constant Fixed Scheduall  ===========================================*/
+#define HS_DECT_IE_EXT_TYPE_SCHED_ASSIGN  0xA1
+#define HS_DECT_IE_VER 1  
+/* HS_DECT: Vendor-specific beacon payload carried via IE_TYPE_ESCAPE */
+#define HS_DECT_BEACON_MAGIC0        0x48 /* 'H' */
+#define HS_DECT_BEACON_MAGIC1        0x53 /* 'S' */
+#define HS_DECT_BEACON_VER           0x01
+
+#define HS_DECT_BEACON_SCHED_RANDOM  0x00
+#define HS_DECT_BEACON_SCHED_FIXED   0x01
+
+/* Payload layout (8 bytes):
+ * [0]='H' [1]='S' [2]=ver [3]=sched_mode [4]=role_bitmap [5]=max_pts [6]=slots_per_frame [7]=reserved
+ */
+#define HS_DECT_BEACON_PAYLOAD_LEN   8
+#define HS_DECT_SLOTS_PER_FRAME      24  /* keep consistent with your project */
+
+/*========================================================================*/
 
 static struct dect_phy_mac_cluster_beacon_data {
 	bool running;
@@ -160,6 +178,47 @@ static int dect_phy_mac_cluster_beacon_encode(struct dect_phy_mac_beacon_start_p
 	rach_sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_RANDOM_ACCESS_RESOURCE_IE;
 	rach_sdu_list_item->message.rach_ie = rach_ie;
 	sys_dlist_append(&sdu_list, &rach_sdu_list_item->dnode);
+		/* ===== HS_DECT: advertise scheduling mode in beacon (ESCAPE IE) ===== */
+		dect_phy_mac_sdu_t *hs_sdu_list_item =
+			(dect_phy_mac_sdu_t *)k_calloc(1, sizeof(dect_phy_mac_sdu_t));
+		if (hs_sdu_list_item == NULL) {
+			return -ENOMEM;
+		}
+
+		/* Decide what FT advertises (for now: based on local settings) */
+		uint8_t hs_sched_mode = HS_DECT_BEACON_SCHED_RANDOM;
+		if (current_settings->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+			hs_sched_mode = HS_DECT_BEACON_SCHED_FIXED;
+		}
+
+		uint8_t hs_payload[HS_DECT_BEACON_PAYLOAD_LEN] = {0};
+		hs_payload[0] = HS_DECT_BEACON_MAGIC0;
+		hs_payload[1] = HS_DECT_BEACON_MAGIC1;
+		hs_payload[2] = HS_DECT_BEACON_VER;
+		hs_payload[3] = hs_sched_mode;
+
+		/* role_bitmap (example): bit0=FT fixed capable, bit1=PT fixed capable */
+		hs_payload[4] = 0x03;
+
+		hs_payload[5] = (uint8_t)current_settings->mac_sched.max_pts;
+		hs_payload[6] = (uint8_t)HS_DECT_SLOTS_PER_FRAME;
+		hs_payload[7] = 0x00;
+
+		dect_phy_mac_mux_header_t hs_mux = {
+			.mac_ext = DECT_PHY_MAC_EXT_8BIT_LEN,
+			.ie_type = DECT_PHY_MAC_IE_TYPE_ESCAPE,
+			.payload_length = HS_DECT_BEACON_PAYLOAD_LEN,
+		};
+
+		hs_sdu_list_item->mux_header = hs_mux;
+		hs_sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_ESCAPE;
+		hs_sdu_list_item->message.common_msg.data_length = HS_DECT_BEACON_PAYLOAD_LEN;
+		memcpy(hs_sdu_list_item->message.common_msg.data, hs_payload, HS_DECT_BEACON_PAYLOAD_LEN);
+
+		sys_dlist_append(&sdu_list, &hs_sdu_list_item->dnode);
+		/* ===== end HS_DECT beacon extension ===== */
+
+
 
 	pdu_ptr = dect_phy_mac_pdu_sdus_encode(pdu_ptr, &sdu_list);
 
@@ -612,6 +671,59 @@ static int dect_phy_mac_cluster_beacon_association_resp_pdu_encode(
 
 	sys_dlist_init(&sdu_list);
 	sys_dlist_append(&sdu_list, &data_sdu_list_item->dnode);
+		/* HS_DECT: In fixed scheduling mode, add an EXTENSION IE telling PT its assigned index
+	 * and (optionally) the slot map.
+		*/
+		if (current_settings->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+
+			/* Assign PT index at FT based on PT long rd id */
+			int pt_idx = dect_phy_mac_ft_assoc_add_or_update(
+				common_header->transmitter_id, /* PT long rd id */
+				(uint16_t)rcv_params->last_received_pcc_transmitter_short_rd_id,
+				(int8_t)rcv_params->rx_pwr_dbm,
+				rcv_params->time);
+
+			if (pt_idx < 0) {
+				/* FT full: you can also choose to reject association here.
+				* For now, still respond ACK but without assignment IE.
+				*/
+				desh_warn("FT assoc table full, cannot assign PT index (err %d)", pt_idx);
+			} else {
+				/* Build Extension IE payload */
+				uint8_t payload[32];
+				uint8_t *w = payload;
+
+				*w++ = HS_DECT_IE_VER;   /* IE version */
+				*w++ = 1;              /* mode: 1=fixed, 0=random */
+				*w++ = (uint8_t)pt_idx; /* assigned PT index (1..max_pts) */
+				*w++ = (uint8_t)current_settings->mac_sched.max_pts;
+				*w++ = (uint8_t)current_settings->mac_sched.superframe_len; /* interpret as slots/frame */
+
+				/* slot map (PT1..PTmax): start/end */
+				for (int i = 0; i < current_settings->mac_sched.max_pts; i++) {
+					*w++ = (uint8_t)current_settings->mac_sched.pt_slots[i].start_subslot;
+					*w++ = (uint8_t)current_settings->mac_sched.pt_slots[i].end_subslot;
+				}
+
+				uint16_t ext_len = (uint16_t)(w - payload);
+
+				dect_phy_mac_sdu_t *ext_sdu =
+					(dect_phy_mac_sdu_t *)k_calloc(1, sizeof(dect_phy_mac_sdu_t));
+				if (ext_sdu != NULL) {
+					ext_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_16BIT_LEN;
+					ext_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_EXTENSION;
+					ext_sdu->mux_header.ie_ext = HS_DECT_IE_EXT_TYPE_SCHED_ASSIGN;
+					ext_sdu->mux_header.payload_length = ext_len;
+
+					ext_sdu->message_type = DECT_PHY_MAC_MESSAGE_ESCAPE;
+					ext_sdu->message.common_msg.data_length = ext_len;
+					memcpy(ext_sdu->message.common_msg.data, payload, ext_len);
+
+					sys_dlist_append(&sdu_list, &ext_sdu->dnode);
+				}
+			}
+		}
+
 	pdu_ptr = dect_phy_mac_pdu_sdus_encode(pdu_ptr, &sdu_list);
 
 	/* Length so far  */
@@ -713,6 +825,123 @@ void dect_phy_mac_cluster_beacon_association_req_handle(
 		       tx_op.handle);
 	}
 }
+/* In case of association request with ack_bit=0 or other need to reject association, we can send an association response with ack_bit=0. */
+
+void dect_phy_mac_cluster_beacon_association_reject_send(
+	struct dect_phy_commmon_op_pdc_rcv_params *rcv_params,
+	dect_phy_mac_common_header_t *common_header)
+{
+	if (!beacon_data.running) {
+		return;
+	}
+
+	struct dect_phy_settings *current_settings = dect_common_settings_ref_get();
+
+	/* Build a minimal Association Response with ack_bit=0 */
+	union nrf_modem_dect_phy_hdr phy_header;
+	uint8_t encoded[DECT_DATA_MAX_LEN];
+	uint8_t *pdu_ptr = encoded;
+
+	memset(encoded, 0, sizeof(encoded));
+
+	/* PHY header same style as normal association resp */
+	struct dect_phy_header_type2_format1_t header = {
+		.packet_length = 1,
+		.packet_length_type = DECT_PHY_HEADER_PKT_LENGTH_TYPE_SLOTS,
+		.format = DECT_PHY_HEADER_FORMAT_001,
+		.short_network_id = (uint8_t)(current_settings->common.network_id & 0xFF),
+		.transmitter_identity_hi = (uint8_t)(current_settings->common.short_rd_id >> 8),
+		.transmitter_identity_lo = (uint8_t)(current_settings->common.short_rd_id & 0xFF),
+		.df_mcs = rcv_params->rx_mcs,
+		.transmit_power = dect_common_utils_dbm_to_phy_tx_power(rcv_params->rx_pwr_dbm),
+		.receiver_identity_hi =
+			(uint8_t)(rcv_params->last_received_pcc_transmitter_short_rd_id >> 8),
+		.receiver_identity_lo =
+			(uint8_t)(rcv_params->last_received_pcc_transmitter_short_rd_id & 0xFF),
+		.feedback.format1.format = 0,
+	};
+
+	dect_phy_mac_type_header_t type_header_resp = {
+		.version = 0,
+		.security = 0,
+		.type = DECT_PHY_MAC_HEADER_TYPE_UNICAST,
+	};
+
+	dect_phy_mac_common_header_t common_header_resp = {
+		.type = DECT_PHY_MAC_HEADER_TYPE_UNICAST,
+		.reset = 1,
+		.seq_nbr = common_header->seq_nbr,
+		.nw_id = current_settings->common.network_id,
+		.transmitter_id = current_settings->common.transmitter_id,
+		.receiver_id = common_header->transmitter_id,
+	};
+
+	pdu_ptr = dect_phy_mac_pdu_type_header_encode(&type_header_resp, pdu_ptr);
+	pdu_ptr = dect_phy_mac_pdu_common_header_encode(&common_header_resp, pdu_ptr);
+
+	sys_dlist_t sdu_list;
+	sys_dlist_init(&sdu_list);
+
+	dect_phy_mac_sdu_t *resp_sdu =
+		(dect_phy_mac_sdu_t *)k_calloc(1, sizeof(dect_phy_mac_sdu_t));
+	if (resp_sdu == NULL) {
+		return;
+	}
+
+	resp_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_8BIT_LEN;
+	resp_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_ASSOCIATION_RESP;
+	resp_sdu->mux_header.payload_length = DECT_PHY_MAC_ASSOCIATION_RESP_MIN_LEN;
+
+	/* ACK=0 => reject */
+	resp_sdu->message_type = DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_RESP;
+	resp_sdu->message.association_resp.ack_bit = 0;
+	resp_sdu->message.association_resp.group_bit = 0;
+	resp_sdu->message.association_resp.harq_conf_bit = 0;
+	resp_sdu->message.association_resp.flow_count = 0;
+
+	sys_dlist_append(&sdu_list, &resp_sdu->dnode);
+
+	pdu_ptr = dect_phy_mac_pdu_sdus_encode(pdu_ptr, &sdu_list);
+
+	uint16_t encoded_len = pdu_ptr - encoded;
+
+	header.packet_length = dect_common_utils_phy_packet_length_calculate(
+		encoded_len, header.packet_length_type, header.df_mcs);
+	if ((int)header.packet_length < 0) {
+		return;
+	}
+
+	memcpy(&phy_header.type_2, &header, sizeof(phy_header.type_2));
+
+	/* Schedule response similarly to normal association response */
+	uint64_t req_received = rcv_params->time;
+	uint64_t req_len = (rcv_params->last_received_pcc_phy_len_type ==
+			    DECT_PHY_HEADER_PKT_LENGTH_TYPE_SLOTS)
+				   ? (rcv_params->last_received_pcc_phy_len *
+				      DECT_RADIO_SLOT_DURATION_IN_MODEM_TICKS)
+				   : (rcv_params->last_received_pcc_phy_len *
+				      DECT_RADIO_SUBSLOT_DURATION_IN_MODEM_TICKS);
+
+	uint64_t resp_start_time =
+		req_received + req_len + (DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS / 2);
+
+	struct nrf_modem_dect_phy_tx_params tx_op;
+
+	tx_op.bs_cqi = NRF_MODEM_DECT_PHY_BS_CQI_NOT_USED;
+	tx_op.carrier = beacon_data.start_params.beacon_channel;
+	tx_op.data_size = encoded_len;
+	tx_op.data = encoded;
+	tx_op.lbt_period = NRF_MODEM_DECT_LBT_PERIOD_MIN;
+	tx_op.lbt_rssi_threshold_max = current_settings->rssi_scan.busy_threshold;
+	tx_op.network_id = current_settings->common.network_id;
+	tx_op.phy_header = &phy_header;
+	tx_op.phy_type = DECT_PHY_HEADER_TYPE2;
+	tx_op.handle = DECT_PHY_MAC_BEACON_RA_RESP_TX_HANDLE;
+	tx_op.start_time = resp_start_time;
+
+	(void)nrf_modem_dect_phy_tx(&tx_op);
+}
+
 
 void dect_phy_mac_cluster_beacon_status_print(void)
 {

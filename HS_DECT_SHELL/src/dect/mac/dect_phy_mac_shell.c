@@ -212,7 +212,16 @@ static void dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc
 
 	optreset = 1;
 	optind = 1;
+	/* Schedula Mode valideation if */
+	const struct dect_phy_settings *s = dect_common_settings_ref_get();
 
+		if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED &&
+			s->mac_sched.role != DECT_MAC_ROLE_FT) {
+			shell_error(shell,
+				"Beacon start denied: node role is not FT");
+			return -EPERM;
+		}
+		/* In FIXED mode, only FT can start beacon, but it can still be started in RANDOM mode as well (legacy behavior). */
 	while ((opt = getopt_long(argc, argv, "p:c:h", long_options_beacon_start,
 				  &long_index)) != -1) {
 		switch (opt) {
@@ -297,7 +306,28 @@ static int dect_phy_mac_associate_cmd(const struct shell *shell, size_t argc, ch
 	params.tx_power_dbm = 0;
 	params.mcs = 0;
 	params.target_long_rd_id = 38;
+	/*HS DECT association check ft pt */
 
+	const struct dect_phy_settings *s = dect_common_settings_ref_get();
+
+		/* Role enforcement stays strict */
+		if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED &&
+			s->mac_sched.role != DECT_MAC_ROLE_PT) {
+			shell_error(shell,
+				"Association denied: node role is not PT");
+			return -EPERM;
+		}
+
+		/* Scheduler policy:
+		* - RANDOM: allow association (legacy workflow)
+		* - FIXED: allow, but FT may still reject if it requires something else
+		*/
+		if (s->mac_sched.mode == DECT_MAC_SCHED_RANDOM) {
+			desh_warn("Associating in RANDOM mode (legacy). "
+				"If FT requires FIXED scheduler, association will be rejected.");
+		}
+
+	/*	*/
 	while ((opt = getopt_long(argc, argv, "p:m:t:h", long_options_associate,
 				  &long_index)) != -1) {
 		switch (opt) {

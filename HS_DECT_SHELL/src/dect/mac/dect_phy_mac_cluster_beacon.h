@@ -48,6 +48,11 @@ void dect_phy_mac_cluster_beacon_association_req_handle(
 	dect_phy_mac_common_header_t *common_header,
 	dect_phy_mac_association_req_t *association_req);
 
+void dect_phy_mac_cluster_beacon_association_reject_send(
+	struct dect_phy_commmon_op_pdc_rcv_params *rcv_params,
+	dect_phy_mac_common_header_t *common_header);
+
+
 /******************************************************************************/
 
 int64_t dect_phy_mac_cluster_beacon_rcv_time_shift_calculate(

@@ -41,3 +41,18 @@ void dect_app_modem_time_save(uint64_t const *time)
 		m_last_app_time_bb = dect_app_ztime_now_in_mdm_ticks();
 	}
 }
+/*Convert aptime modem ticks to us micro second*/
+
+uint64_t dect_app_time_us_to_mdm_ticks(uint32_t us)
+{
+	/* NRF_MODEM_DECT_MODEM_TIME_TICK_RATE_KHZ = ticks per millisecond */
+	/* ticks = us * (ticks/ms) / 1000 */
+	return ((uint64_t)us * (uint64_t)NRF_MODEM_DECT_MODEM_TIME_TICK_RATE_KHZ) / 1000ULL;
+}
+
+uint32_t dect_app_time_mdm_ticks_to_us(uint64_t ticks)
+{
+	/* us = ticks * 1000 / (ticks/ms) */
+	return (uint32_t)((ticks * 1000ULL) / (uint64_t)NRF_MODEM_DECT_MODEM_TIME_TICK_RATE_KHZ);
+}
+/*==============================================================================================*/
