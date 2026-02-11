@@ -35,6 +35,10 @@
 #include "dect_phy_mac_client.h"
 #include "dect_phy_mac_ctrl.h"
 #include "dect_phy_mac_pdu.h"
+#include "dect_phy_mac_ft_assoc.h"
+#include "dect_phy_mac_sched_fixed.h"
+
+
 extern struct k_work_q dect_phy_ctrl_work_q;
 extern struct k_sem rssi_scan_sema;
 
@@ -366,6 +370,16 @@ int dect_phy_mac_ctrl_rach_tx_stop(void)
 	dect_phy_ctrl_ext_command_stop();
 	return 0;
 }
+
+/*Hs helper*/
+static inline bool hs_is_fixed_ft(void)
+{
+    struct dect_phy_settings *s = dect_common_settings_ref_get();
+
+    return (dect_phy_mac_sched_fixed_enabled() &&
+            s && s->mac_sched.role == DECT_MAC_ROLE_FT);
+}
+
 
 /**************************************************************************************************/
 

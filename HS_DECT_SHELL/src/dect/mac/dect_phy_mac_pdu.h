@@ -65,7 +65,11 @@ typedef struct {
 #define HS_DECT_ASSOC_EXT_VER                1
 #define HS_DECT_IE_EXT_TYPE_ASSOC_POLICY     0xA1
 
-#define HS_DECT_ASSOC_FLAG_PT_FIXED_MODE     (1u << 0)
+/* HS_DECT flags (keep single source of truth if already defined elsewhere) */
+#ifndef HS_DECT_ASSOC_FLAG_PT_FIXED_MODE
+#define HS_DECT_ASSOC_FLAG_PT_FIXED_MODE   (1U << 1)
+#endif
+
 /* ================================================================ */
 
 /* MAC spec: Table 6.3.4-1: MAC extension field encoding */

@@ -51,7 +51,7 @@
 /* ===== HS_DECT: MAC fixed scheduling / multi-PT support ===== */
 
 #ifndef DECT_MAX_PTS
-#define DECT_MAX_PTS 6 /* can be 4  */
+#define DECT_MAX_PTS 4 /* can be 4  */
 #endif
 
 enum dect_mac_sched_mode {
@@ -63,7 +63,11 @@ enum dect_mac_role {
 	DECT_MAC_ROLE_FT,
 	DECT_MAC_ROLE_PT,
 };
+#define HS_DECT_ASSOC_EXT_VER               1
 
+/* flags in payload[1] */
+#define HS_DECT_ASSOC_FLAG_FT_FIXED_MODE    (1U << 0)
+#define HS_DECT_ASSOC_FLAG_PT_FIXED_MODE    (1U << 1)
 struct dect_mac_fixed_slot {
 	uint16_t start_subslot;
 	uint16_t end_subslot;

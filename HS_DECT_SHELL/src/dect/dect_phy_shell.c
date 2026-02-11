@@ -63,13 +63,36 @@ static int dect_phy_scheduler_list_purge_cmd(const struct shell *shell, size_t a
 	return 0;
 }
 /*=======================================Helper for the slot overlaping check and slot assignments =======================================================*/
+/* ===== HS_DECT: fixed scheduler helpers ===== */
+
 static bool slots_overlap(uint16_t a_start, uint16_t a_end,
 			  uint16_t b_start, uint16_t b_end)
 {
 	return !(a_end < b_start || b_end < a_start);
 }
-#define HS_DECT_SLOTS_PER_FRAME 24
 
+static int hs_dect_parse_slot_range(const struct shell *shell,
+				   const char *optarg,
+				   uint16_t *start, uint16_t *end)
+{
+	unsigned int a, b;
+
+	if (!optarg || sscanf(optarg, "%u:%u", &a, &b) != 2) {
+		shell_error(shell, "slot format must be a:b");
+		return -EINVAL;
+	}
+	if (a >= HS_DECT_SLOTS_PER_FRAME || b >= HS_DECT_SLOTS_PER_FRAME || a > b) {
+		shell_error(shell, "slot range must be within 0..%d and start<=end",
+			    HS_DECT_SLOTS_PER_FRAME - 1);
+		return -EINVAL;
+	}
+
+	*start = (uint16_t)a;
+	*end   = (uint16_t)b;
+	return 0;
+}
+
+/* Default: split 24 subslots equally across max_pts */
 static void hs_dect_assign_default_pt_slots(struct dect_phy_settings *s)
 {
 	int n = s->mac_sched.max_pts;
@@ -96,12 +119,13 @@ static void hs_dect_assign_default_pt_slots(struct dect_phy_settings *s)
 		start = end + 1;
 	}
 
-	/* For unused entries, clear to 0:0 (optional) */
+	/* Clear unused entries */
 	for (int i = n; i < DECT_MAX_PTS; i++) {
 		s->mac_sched.pt_slots[i].start_subslot = 0;
 		s->mac_sched.pt_slots[i].end_subslot = 0;
 	}
 }
+
 
 /**************************************************************************************************/
 
@@ -1675,21 +1699,37 @@ static struct option long_options_settings[] = {
 	{"reset", no_argument, 0, DECT_SHELL_SETT_RESET_ALL},
 	{"read", no_argument, 0, 'r'},
 	/* ===== HS_DECT MAC scheduling extensions ===== */
-	{"sched_mode", required_argument, 0, 1001},
-	{"pt_id", required_argument, 0, 1002},
-	{"max_pts", required_argument, 0, 1003},
-	{"sf_len", required_argument, 0, 1004},
-	{"pt1_slot", required_argument, 0, 1005},
-	{"pt2_slot", required_argument, 0, 1006},
-	{"pt3_slot", required_argument, 0, 1007},
-	{"pt4_slot", required_argument, 0, 1008},
-	{"role", required_argument, 0, 1010},
+		/* ===== HS_DECT MAC scheduling extensions ===== */
+	{"sched_mode", required_argument, 0, 1001}, /* fixed|random */
+	{"role",       required_argument, 0, 1002}, /* ft|pt (required when switching to fixed) */
+	{"pt_id",      required_argument, 0, 1003}, /* 1..DECT_MAX_PTS (PT only) */
+	{"max_pts",    required_argument, 0, 1004}, /* 1..DECT_MAX_PTS (FT only) */
 
+	{"pt1_slot",   required_argument, 0, 1010}, /* a:b (FT only) */
+	{"pt2_slot",   required_argument, 0, 1011},
+	{"pt3_slot",   required_argument, 0, 1012},
+	{"pt4_slot",   required_argument, 0, 1013},
+	{"pt5_slot",   required_argument, 0, 1014},
+	{"pt6_slot",   required_argument, 0, 1015},
+
+	
 
 	{0, 0, 0, 0}};
 
+	static const char *hs_dect_role_to_str(int role)
+		{
+			switch (role) {
+			case DECT_MAC_ROLE_FT:
+				return "FT";
+			case DECT_MAC_ROLE_PT:
+				return "PT";
+			default:
+				return "UNKNOWN";
+			}
+		}
 static void dect_phy_sett_cmd_print(struct dect_phy_settings *dect_sett)
 {
+	
 	char tmp_str[128] = {0};
 
 	desh_print("Common settings:");
@@ -1747,13 +1787,19 @@ static void dect_phy_sett_cmd_print(struct dect_phy_settings *dect_sett)
 	desh_print("  (fixed schedule disabled; slot settings ignored)");
 	return;
 	}else{
-	desh_print("  role/pt_id.....................................%u (%s)",
-		   dect_sett->mac_sched.pt_id,
-		   (dect_sett->mac_sched.pt_id == 0) ? "FT" : "PT");
+	desh_print("  role...........................................%s (%d)",
+	   hs_dect_role_to_str(dect_sett->mac_sched.role),
+	   dect_sett->mac_sched.role);
+
+	if (dect_sett->mac_sched.role == DECT_MAC_ROLE_PT)
+	{
+		desh_print("  pt_id..........................................%u",
+	   dect_sett->mac_sched.pt_id);
+	}
+	
+	
 	desh_print("  max_pts........................................%u",
 		   dect_sett->mac_sched.max_pts);
-	desh_print("  superframe_len (subslots)......................%u",
-		   dect_sett->mac_sched.superframe_len);
 
 	for (int i = 0; i < dect_sett->mac_sched.max_pts && i < DECT_MAX_PTS; i++) {
 		desh_print("  PT%u slot.......................................%u:%u",
@@ -1768,11 +1814,15 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 {
 	struct dect_phy_settings current_settings;
 	struct dect_phy_settings newsettings;
-/* Fixed schedulling mode flags */
-	bool fixed_opt_used = false;
+
+	/* Track what user actually set on CLI */
 	bool sched_mode_set = false;
+	bool role_set = false;
+	bool pt_id_set = false;
+	bool max_pts_set = false;
+	bool any_fixed_only_opt = false;
 	bool pt_slot_any_set = false;
-/* End of fixed scheduling mode flags */
+
 	optreset = 1;
 	optind = 1;
 
@@ -1788,10 +1838,8 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 	newsettings = current_settings;
 
 	while ((opt = getopt_long(argc, argv, "m:d:n:t:b:rh",
-				  long_options_settings, &long_index)) != -1) {
-
+				 long_options_settings, &long_index)) != -1) {
 		switch (opt) {
-
 		case 'r': {
 			dect_common_settings_read(&current_settings);
 			dect_phy_sett_cmd_print(&current_settings);
@@ -1814,7 +1862,6 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 		case 'm': {
 			tmp_value = atoi(optarg);
 			newsettings.common.activate_at_startup = true;
-
 			if (tmp_value == 1) {
 				newsettings.common.startup_radio_mode =
 					NRF_MODEM_DECT_PHY_RADIO_MODE_LOW_LATENCY;
@@ -1852,13 +1899,11 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 				desh_error("Band #%d is not supported.", tmp_value);
 				return -EINVAL;
 			}
-
 			if ((newsettings.common.band_nbr == 4 &&
 			     current_settings.common.band_nbr != 4) ||
 			    (current_settings.common.band_nbr == 4 &&
 			     newsettings.common.band_nbr != 4)) {
-				desh_warn("Note: Band change to/from 4 requires "
-					  "a reboot or a reactivate.");
+				desh_warn("Note: Band change to/from 4 requires a reboot or a reactivate.");
 			}
 			break;
 		}
@@ -1868,20 +1913,17 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 			break;
 		}
 
-		case DECT_SHELL_SETT_COMMON_RX_EXP_RSSI_LEVEL: {
+		case DECT_SHELL_SETT_COMMON_RX_EXP_RSSI_LEVEL:
 			newsettings.rx.expected_rssi_level = atoi(optarg);
 			break;
-		}
 
-		case DECT_SHELL_SETT_COMMON_TX_PWR: {
+		case DECT_SHELL_SETT_COMMON_TX_PWR:
 			newsettings.tx.power_dbm = atoi(optarg);
 			break;
-		}
 
-		case DECT_SHELL_SETT_COMMON_TX_MCS: {
+		case DECT_SHELL_SETT_COMMON_TX_MCS:
 			newsettings.tx.mcs = atoi(optarg);
 			break;
-		}
 
 		case DECT_SHELL_SETT_COMMON_HARQ_MDM_PROCESS_COUNT: {
 			tmp_value = atoi(optarg);
@@ -1903,25 +1945,21 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 			break;
 		}
 
-		case DECT_SHELL_SETT_COMMON_SUBSLOT_COUNT_HARQ_FEEDBACK_RX_DELAY_SLOT_COUNT: {
+		case DECT_SHELL_SETT_COMMON_SUBSLOT_COUNT_HARQ_FEEDBACK_RX_DELAY_SLOT_COUNT:
 			newsettings.harq.harq_feedback_rx_delay_subslot_count = atoi(optarg);
 			break;
-		}
 
-		case DECT_SHELL_SETT_COMMON_SUBSLOT_COUNT_HARQ_FEEDBACK_RX: {
+		case DECT_SHELL_SETT_COMMON_SUBSLOT_COUNT_HARQ_FEEDBACK_RX:
 			newsettings.harq.harq_feedback_rx_subslot_count = atoi(optarg);
 			break;
-		}
 
-		case DECT_SHELL_SETT_COMMON_SUBSLOT_COUNT_HARQ_FEEDBACK_TX_DELAY_SLOT_COUNT: {
+		case DECT_SHELL_SETT_COMMON_SUBSLOT_COUNT_HARQ_FEEDBACK_TX_DELAY_SLOT_COUNT:
 			newsettings.harq.harq_feedback_tx_delay_subslot_count = atoi(optarg);
 			break;
-		}
 
-		case DECT_SHELL_SETT_COMMON_RSSI_SCAN_TIME_PER_CHANNEL: {
+		case DECT_SHELL_SETT_COMMON_RSSI_SCAN_TIME_PER_CHANNEL:
 			newsettings.rssi_scan.time_per_channel_ms = atoi(optarg);
 			break;
-		}
 
 		case DECT_SHELL_SETT_COMMON_RSSI_SCAN_FREE_THRESHOLD: {
 			tmp_value = atoi(optarg);
@@ -1949,31 +1987,20 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 				desh_error("Give decent value (0-100)");
 				return -EINVAL;
 			}
-			newsettings.rssi_scan.type_subslots_params.scan_suitable_percent =
-				tmp_value;
+			newsettings.rssi_scan.type_subslots_params.scan_suitable_percent = tmp_value;
 			break;
 		}
 
-		case DECT_SHELL_SETT_RESET_ALL: {
+		case DECT_SHELL_SETT_RESET_ALL:
 			dect_common_settings_defaults_set();
 			goto settings_updated;
-		}
 
 		/* ===== HS_DECT MAC scheduling extensions ===== */
 
-		case 1001: /* sched_mode */
+		case 1001: /* --sched_mode fixed|random */
 			sched_mode_set = true;
-
 			if (!strcmp(optarg, "fixed")) {
 				newsettings.mac_sched.mode = DECT_MAC_SCHED_FIXED;
-
-				/* If user switches to fixed and has max_pts already set,
-				* auto-assign slots unless user already set them explicitly.
-				*/
-				if (newsettings.mac_sched.max_pts > 0 && !pt_slot_any_set) {
-					hs_dect_assign_default_pt_slots(&newsettings);
-				}
-
 			} else if (!strcmp(optarg, "random")) {
 				newsettings.mac_sched.mode = DECT_MAC_SCHED_RANDOM;
 			} else {
@@ -1982,71 +2009,51 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 			}
 			break;
 
-
-		case 1002: /* pt_id */
-			fixed_opt_used = true;
-			newsettings.mac_sched.pt_id = atoi(optarg);
-			break;
-
-		case 1003: /* max_pts */
-			fixed_opt_used = true;
-			newsettings.mac_sched.max_pts = atoi(optarg);
-
-			/* If fixed mode already selected, auto-generate default slots,
-			* unless user already started setting them explicitly.
-			*/
-			if (newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED && !pt_slot_any_set) {
-				hs_dect_assign_default_pt_slots(&newsettings);
-			}
-			break;
-
-
-		case 1004: /* sf_len */
-			fixed_opt_used = true;
-			newsettings.mac_sched.superframe_len = atoi(optarg);
-			break;
-
-		case 1005: /* pt1_slot */
-			fixed_opt_used = true;
-			pt_slot_any_set = true;
-			sscanf(optarg, "%hu:%hu",
-			       &newsettings.mac_sched.pt_slots[0].start_subslot,
-			       &newsettings.mac_sched.pt_slots[0].end_subslot);
-			break;
-
-		case 1006: /* pt2_slot */
-			fixed_opt_used = true;
-			pt_slot_any_set = true;
-			sscanf(optarg, "%hu:%hu",
-			       &newsettings.mac_sched.pt_slots[1].start_subslot,
-			       &newsettings.mac_sched.pt_slots[1].end_subslot);
-			break;
-
-		case 1007: /* pt3_slot */
-			fixed_opt_used = true;
-			pt_slot_any_set = true;
-			sscanf(optarg, "%hu:%hu",
-			       &newsettings.mac_sched.pt_slots[2].start_subslot,
-			       &newsettings.mac_sched.pt_slots[2].end_subslot);
-			break;
-
-		case 1008: /* pt4_slot */
-			fixed_opt_used = true;
-			pt_slot_any_set = true;
-			sscanf(optarg, "%hu:%hu",
-			       &newsettings.mac_sched.pt_slots[3].start_subslot,
-			       &newsettings.mac_sched.pt_slots[3].end_subslot);
-			break;
-		case 1010: /* role */
+		case 1002: /* --role ft|pt */
+			role_set = true;
+			any_fixed_only_opt = true;
 			if (!strcmp(optarg, "ft")) {
 				newsettings.mac_sched.role = DECT_MAC_ROLE_FT;
 			} else if (!strcmp(optarg, "pt")) {
 				newsettings.mac_sched.role = DECT_MAC_ROLE_PT;
 			} else {
-				shell_error(shell, "role must be ft or pt");
+				shell_error(shell, "role: use ft|pt");
 				return -EINVAL;
 			}
 			break;
+
+		case 1003: /* --pt_id N (PT only) */
+			pt_id_set = true;
+			any_fixed_only_opt = true;
+			newsettings.mac_sched.pt_id = atoi(optarg);
+			break;
+
+		case 1004: /* --max_pts N (FT only) */
+			max_pts_set = true;
+			any_fixed_only_opt = true;
+			newsettings.mac_sched.max_pts = atoi(optarg);
+			break;
+
+		case 1010: /* --pt1_slot a:b */
+		case 1011: /* --pt2_slot a:b */
+		case 1012: /* --pt3_slot a:b */
+		case 1013: /* --pt4_slot a:b */
+		case 1014: /* --pt5_slot a:b */
+		case 1015: /* --pt6_slot a:b */ {
+			int idx = (opt - 1010); /* 0..5 */
+			uint16_t s0, e0;
+
+			pt_slot_any_set = true;
+			any_fixed_only_opt = true;
+
+			ret = hs_dect_parse_slot_range(shell, optarg, &s0, &e0);
+			if (ret) {
+				return ret;
+			}
+			newsettings.mac_sched.pt_slots[idx].start_subslot = s0;
+			newsettings.mac_sched.pt_slots[idx].end_subslot = e0;
+			break;
+		}
 
 		case 'h':
 			goto show_usage;
@@ -2063,66 +2070,136 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 		goto show_usage;
 	}
 
-	/* HS_DECT policy: fixed-only options require sched_mode=fixed */
-	if (fixed_opt_used && newsettings.mac_sched.mode != DECT_MAC_SCHED_FIXED) {
-		shell_error(shell,
-			    "Fixed scheduling options require --sched_mode fixed. "
-			    "Current mode is random.");
+	/* ==============================
+	 * Scheduler policy validation
+	 * ============================== */
+
+	/* RANDOM: do not enforce role, ignore fixed-only args */
+	if (newsettings.mac_sched.mode == DECT_MAC_SCHED_RANDOM) {
+		if (any_fixed_only_opt || pt_slot_any_set) {
+			desh_warn("sched_mode=random: fixed scheduler options ignored");
+		}
+		/* Optional: clear fixed fields to safe defaults */
+		newsettings.mac_sched.role = 0;
+		newsettings.mac_sched.pt_id = 0;
+		newsettings.mac_sched.max_pts = 0;
+		for (int i = 0; i < DECT_MAX_PTS; i++) {
+			newsettings.mac_sched.pt_slots[i].start_subslot = 0;
+			newsettings.mac_sched.pt_slots[i].end_subslot = 0;
+		}
+
+		dect_common_settings_write(&newsettings);
+		goto settings_updated;
+	}
+
+	/* FIXED: if switching RANDOM->FIXED in this command, role must be given */
+	if (newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED &&
+	    current_settings.mac_sched.mode != DECT_MAC_SCHED_FIXED &&
+	    !role_set) {
+		shell_error(shell, "FIXED scheduler requires role selection (--role ft|pt)");
 		return -EINVAL;
 	}
 
-		/* Validate fixed scheduling settings */
-	if (newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+	/* If fixed and role not set on CLI, keep stored role */
+	if (newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED && !role_set) {
+		newsettings.mac_sched.role = current_settings.mac_sched.role;
+	}
 
-		/* Role must be selected in fixed mode */
-		if (newsettings.mac_sched.role != DECT_MAC_ROLE_FT &&
-			newsettings.mac_sched.role != DECT_MAC_ROLE_PT) {
-			shell_error(shell, "FIXED scheduler requires role selection (--role ft|pt)");
+	/* PT role rules */
+	if (newsettings.mac_sched.role == DECT_MAC_ROLE_PT) {
+		/* PT must not set FT-only options */
+		if (max_pts_set || pt_slot_any_set) {
+			shell_error(shell, "PT role: --max_pts and --ptX_slot are FT-only options");
 			return -EINVAL;
 		}
 
-		/* PT should not be forced to configure max_pts.
-		* If max_pts is unset (0), make it a safe local default (1).
-		*/
-		if (newsettings.mac_sched.role == DECT_MAC_ROLE_PT) {
-			if (newsettings.mac_sched.max_pts == 0) {
-				newsettings.mac_sched.max_pts = 1;
-			}
-		} else {
-			/* FT must provide / own max_pts and it must be within allowed range */
-			if (newsettings.mac_sched.max_pts < 1 || newsettings.mac_sched.max_pts > 6) {
-				shell_error(shell, "max_pts must be 1..6");
-				return -EINVAL;
+		/* pt_id optional: default if missing */
+		if (!pt_id_set) {
+			if (current_settings.mac_sched.role == DECT_MAC_ROLE_PT &&
+			    current_settings.mac_sched.pt_id > 0) {
+				newsettings.mac_sched.pt_id = current_settings.mac_sched.pt_id;
+			} else {
+				newsettings.mac_sched.pt_id = 1; /* default PT id */
 			}
 		}
 
-		/* Validate slot ranges do not overlap (only meaningful for FT config).
-		* If you want: skip overlap check when PT role.
-		*/
-		if (newsettings.mac_sched.role == DECT_MAC_ROLE_FT) {
-			for (int i = 0; i < newsettings.mac_sched.max_pts; i++) {
-				uint16_t si = newsettings.mac_sched.pt_slots[i].start_subslot;
-				uint16_t ei = newsettings.mac_sched.pt_slots[i].end_subslot;
+		if (newsettings.mac_sched.pt_id < 1 || newsettings.mac_sched.pt_id > DECT_MAX_PTS) {
+			shell_error(shell, "pt_id must be 1..%d", DECT_MAX_PTS);
+			return -EINVAL;
+		}
 
-				for (int j = i + 1; j < newsettings.mac_sched.max_pts; j++) {
-					uint16_t sj = newsettings.mac_sched.pt_slots[j].start_subslot;
-					uint16_t ej = newsettings.mac_sched.pt_slots[j].end_subslot;
+		/* PT does not own slot plan; clear local slot table */
+		newsettings.mac_sched.max_pts = 0;
+		for (int i = 0; i < DECT_MAX_PTS; i++) {
+			newsettings.mac_sched.pt_slots[i].start_subslot = 0;
+			newsettings.mac_sched.pt_slots[i].end_subslot = 0;
+		}
 
-					if (slots_overlap(si, ei, sj, ej)) {
-						shell_error(shell,
-								"fixed sched: PT%d slot %u:%u overlaps with PT%d slot %u:%u",
-								i + 1, si, ei, j + 1, sj, ej);
-						return -EINVAL;
-					}
+		dect_common_settings_write(&newsettings);
+		goto settings_updated;
+	}
+
+	/* FT role rules */
+	if (newsettings.mac_sched.role == DECT_MAC_ROLE_FT) {
+		/* FT must not set PT-only option (optional rule, but keeps CLI clean) */
+		if (pt_id_set) {
+			shell_error(shell, "FT role: --pt_id is PT-only option");
+			return -EINVAL;
+		}
+
+		/* max_pts optional: default if missing */
+		if (!max_pts_set) {
+			if (current_settings.mac_sched.role == DECT_MAC_ROLE_FT &&
+			    current_settings.mac_sched.mode == DECT_MAC_SCHED_FIXED &&
+			    current_settings.mac_sched.max_pts >= 1 &&
+			    current_settings.mac_sched.max_pts <= DECT_MAX_PTS) {
+				newsettings.mac_sched.max_pts = current_settings.mac_sched.max_pts;
+			} else {
+				newsettings.mac_sched.max_pts = DECT_MAX_PTS;
+			}
+		}
+
+		if (newsettings.mac_sched.max_pts < 1 || newsettings.mac_sched.max_pts > DECT_MAX_PTS) {
+			shell_error(shell, "max_pts must be 1..%d", DECT_MAX_PTS);
+			return -EINVAL;
+		}
+
+		/* If slots not explicitly provided, assign defaults */
+		if (!pt_slot_any_set) {
+			hs_dect_assign_default_pt_slots(&newsettings);
+		}
+
+		/* Validate no overlaps for FT slots (only up to max_pts) */
+		for (int i = 0; i < newsettings.mac_sched.max_pts; i++) {
+			uint16_t si = newsettings.mac_sched.pt_slots[i].start_subslot;
+			uint16_t ei = newsettings.mac_sched.pt_slots[i].end_subslot;
+
+			if (si >= HS_DECT_SLOTS_PER_FRAME || ei >= HS_DECT_SLOTS_PER_FRAME || si > ei) {
+				shell_error(shell, "PT%d slot must be within 0..%d and start<=end",
+					    i + 1, HS_DECT_SLOTS_PER_FRAME - 1);
+				return -EINVAL;
+			}
+
+			for (int j = i + 1; j < newsettings.mac_sched.max_pts; j++) {
+				uint16_t sj = newsettings.mac_sched.pt_slots[j].start_subslot;
+				uint16_t ej = newsettings.mac_sched.pt_slots[j].end_subslot;
+
+				if (slots_overlap(si, ei, sj, ej)) {
+					shell_error(shell,
+						    "fixed sched: PT%d slot %u:%u overlaps PT%d slot %u:%u",
+						    i + 1, si, ei, j + 1, sj, ej);
+					return -EINVAL;
 				}
 			}
 		}
+
+		dect_common_settings_write(&newsettings);
+		goto settings_updated;
 	}
 
-	
-
-	/* Only write if validation passed */
-	dect_common_settings_write(&newsettings);
+	/* If fixed but role unknown => reject */
+	shell_error(shell, "FIXED scheduler requires role selection (--role ft|pt)");
+	return -EINVAL;
 
 settings_updated:
 	dect_phy_ctrl_msgq_non_data_op_add(DECT_PHY_CTRL_OP_SETTINGS_UPDATED);
@@ -2132,6 +2209,7 @@ show_usage:
 	desh_print_no_format(dect_phy_sett_cmd_usage_str);
 	return 0;
 }
+
 
 /**************************************************************************************************/
 

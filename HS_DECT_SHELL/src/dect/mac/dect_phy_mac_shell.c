@@ -28,6 +28,51 @@
 #include "dect_phy_mac_client.h"
 #include "dect_phy_mac_ctrl.h"
 #include "dect_phy_mac_ft_assoc.h"
+#include "dect_phy_mac_sched_fixed.h"
+
+
+/* -----------------------------------------------------------
+ * Fixed scheduling policy guards HS DECT shell commands to restrict certain operations only to the allowed role (FT or PT) when in FIXED mode.
+ * ----------------------------------------------------------- */
+
+static bool mac_shell_is_fixed_mode(void)
+{
+    return dect_phy_mac_sched_fixed_enabled();
+}
+
+/* Validate fixed scheduling settings when in FIXED mode */
+static int mac_shell_guard_fixed_settings(const struct shell *shell)
+{
+    if (!mac_shell_is_fixed_mode()) {
+        return 0; /* Random mode: do not restrict */
+    }
+
+    int err = dect_phy_mac_sched_fixed_validate_settings();
+    if (err) {
+        shell_error(shell, "FIXED mode: invalid scheduling settings (err=%d). Use `dect sett -r` and fix.", err);
+        return err;
+    }
+    return 0;
+}
+
+/* Enforce role only in FIXED mode */
+static int mac_shell_guard_role(const struct shell *shell, enum dect_mac_role required)
+{
+    if (!mac_shell_is_fixed_mode()) {
+        return 0; /* Random mode: do not restrict */
+    }
+
+    struct dect_phy_settings *s = dect_common_settings_ref_get();
+
+    if (s->mac_sched.role != required) {
+        shell_error(shell, "FIXED mode: command requires role=%s",
+                    (required == DECT_MAC_ROLE_FT) ? "FT" : "PT");
+        return -EPERM;
+    }
+    return 0;
+}
+
+
 /**************************************************************************************************/
 
 static int dect_phy_mac_cmd_print_help(const struct shell *shell, size_t argc, char **argv)
@@ -98,7 +143,7 @@ static struct option long_options_beacon_scan[] = {
 	{"busy_th", required_argument, 0, DECT_PHY_MAC_SHELL_BEACON_SCAN_RSSI_SCAN_BUSY_TH},
 	{0, 0, 0, 0}};
 
-static void dect_phy_mac_beacon_scan_cmd(const struct shell *shell, size_t argc, char **argv)
+static int dect_phy_mac_beacon_scan_cmd(const struct shell *shell, size_t argc, char **argv)
 {
 	struct dect_phy_mac_beacon_scan_params params = {
 		.clear_nbr_cache_before_scan = false,
@@ -118,6 +163,15 @@ static void dect_phy_mac_beacon_scan_cmd(const struct shell *shell, size_t argc,
 	params.busy_rssi_limit = current_settings->rssi_scan.busy_threshold;
 	params.free_rssi_limit = current_settings->rssi_scan.free_threshold;
 	params.rssi_interval_secs = 1;
+	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_PT);
+		if (err) {
+			return err;
+		}
+
+		err = mac_shell_guard_fixed_settings(shell);
+		if (err) {
+			return err;
+		}
 
 	while ((opt = getopt_long(argc, argv, "c:t:e:i:Dfh", long_options_beacon_scan,
 				  &long_index)) != -1) {
@@ -173,10 +227,11 @@ static void dect_phy_mac_beacon_scan_cmd(const struct shell *shell, size_t argc,
 	} else {
 		desh_print("Beacon scan started.");
 	}
-	return;
+	return 0;
 
 show_usage:
 	desh_print_no_format(dect_phy_mac_beacon_scan_usage_str);
+	return 0;
 }
 
 /**************************************************************************************************/
@@ -199,7 +254,7 @@ static const char dect_phy_mac_beacon_start_cmd_usage_str[] =
 static struct option long_options_beacon_start[] = {{"tx_pwr", required_argument, 0, 'p'},
 						    {0, 0, 0, 0}};
 
-static void dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc, char **argv)
+static int dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc, char **argv)
 {
 	struct dect_phy_mac_beacon_start_params params = {
 		.tx_power_dbm = 0,
@@ -213,6 +268,16 @@ static void dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc
 	optreset = 1;
 	optind = 1;
 	/* Schedula Mode valideation if */
+	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_FT);
+		if (err) {
+			return err;
+		}
+
+		err = mac_shell_guard_fixed_settings(shell);
+		if (err) {
+			return err;
+		}
+
 	const struct dect_phy_settings *s = dect_common_settings_ref_get();
 
 		if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED &&
@@ -262,16 +327,28 @@ static void dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc
 		desh_print("Beacon starting");
 	}
 
-	return;
+	return 0;
 
 show_usage:
 	desh_print_no_format(dect_phy_mac_beacon_start_cmd_usage_str);
+	return 0;
 }
 
-static void dect_phy_mac_beacon_stop_cmd(const struct shell *shell, size_t argc, char **argv)
+static int dect_phy_mac_beacon_stop_cmd(const struct shell *shell, size_t argc, char **argv)
 {
+	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_FT);
+		if (err) {
+			return err;
+		}
+
+		err = mac_shell_guard_fixed_settings(shell);
+		if (err) {
+			return err;
+		}
+
 	desh_print("Stopping beacon.");
 	dect_phy_mac_ctrl_cluster_beacon_stop(DECT_PHY_MAC_CTRL_BEACON_STOP_CAUSE_USER_INITIATED);
+	return 0;
 }
 
 /**************************************************************************************************/
@@ -307,6 +384,10 @@ static int dect_phy_mac_associate_cmd(const struct shell *shell, size_t argc, ch
 	params.mcs = 0;
 	params.target_long_rd_id = 38;
 	/*HS DECT association check ft pt */
+	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_PT);
+		if (err) {
+			return err;
+		}
 
 	const struct dect_phy_settings *s = dect_common_settings_ref_get();
 
@@ -497,6 +578,21 @@ static int dect_phy_mac_rach_tx_cmd(const struct shell *shell, size_t argc, char
 	int long_index = 0;
 	int opt;
 
+	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_PT);
+		if (err) {
+			return err;
+		}
+
+		err = mac_shell_guard_fixed_settings(shell);
+		if (err) {
+			return err;
+		}
+
+		if (mac_shell_is_fixed_mode()) {
+			shell_warn(shell, "FIXED mode: RACH TX is intended for bootstrap/association only");
+		}
+
+
 	if (argc < 2) {
 		goto show_usage;
 	}
@@ -592,16 +688,19 @@ show_usage:
 	return 0;
 }
 /************************************************Group Seched**************************************************/
-static void dect_phy_mac_ft_assoc_status_cmd(const struct shell *shell, size_t argc, char **argv)
+static int dect_phy_mac_ft_assoc_status_cmd(const struct shell *shell, size_t argc, char **argv)
 {
 	ARG_UNUSED(shell); ARG_UNUSED(argc); ARG_UNUSED(argv);
 	dect_phy_mac_ft_assoc_status_print();
+	return 0;
 }
 
-static void dect_phy_mac_ft_assoc_clear_cmd(const struct shell *shell, size_t argc, char **argv)
+static int dect_phy_mac_ft_assoc_clear_cmd(const struct shell *shell, size_t argc, char **argv)
 {
 	ARG_UNUSED(shell); ARG_UNUSED(argc); ARG_UNUSED(argv);
 	dect_phy_mac_ft_assoc_clear_all();
+	shell_print(shell, "FT association table cleared");
+	return 0;
 }
 
 

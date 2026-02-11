@@ -22,29 +22,84 @@ bool dect_phy_mac_sched_fixed_enabled(void)
 
 int dect_phy_mac_sched_fixed_validate_settings(void)
 {
-	struct dect_phy_settings *s = dect_common_settings_ref_get();
+    struct dect_phy_settings *s = dect_common_settings_ref_get();
 
-	if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
-		return 0;
-	}
-	if (s->mac_sched.superframe_len == 0) {
-		return -EINVAL;
-	}
-	if (s->mac_sched.max_pts < 1 || s->mac_sched.max_pts > DECT_MAX_PTS) {
-		return -EINVAL;
-	}
-	if (s->mac_sched.pt_id != 0 && s->mac_sched.pt_id > s->mac_sched.max_pts) {
-		return -EINVAL;
-	}
-	for (int i = 0; i < s->mac_sched.max_pts; i++) {
-		uint16_t st = s->mac_sched.pt_slots[i].start_subslot;
-		uint16_t en = s->mac_sched.pt_slots[i].end_subslot;
-		if (st > en || en >= s->mac_sched.superframe_len) {
-			return -EINVAL;
-		}
-	}
-	return 0;
+    if (s == NULL) {
+        return -EINVAL;
+    }
+
+    if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
+        return 0; /* Not fixed scheduling -> always valid here */
+    }
+
+    /* Validate fixed scheduling against a single 10ms frame of 24 slots (0..23).
+     * superframe_len may be 0 during bootstrap and must not invalidate FIXED mode.
+     */
+    const uint16_t frame_len_slots = 24;
+
+    /* Role must be set in FIXED mode */
+    if (s->mac_sched.role != DECT_MAC_ROLE_FT && s->mac_sched.role != DECT_MAC_ROLE_PT) {
+        return -EINVAL;
+    }
+
+    /* ---------------- PT validation ---------------- */
+    if (s->mac_sched.role == DECT_MAC_ROLE_PT) {
+        /* PT must have a valid PT ID (1..DECT_MAX_PTS) */
+        if (s->mac_sched.pt_id < 1 || s->mac_sched.pt_id > DECT_MAX_PTS) {
+            return -EINVAL;
+        }
+
+        /* PT does not need max_pts or slot-table validation here.
+         * Slot ownership can be derived/received from FT later.
+         */
+        return 0;
+    }
+
+    /* ---------------- FT validation ---------------- */
+    /* FT must have max_pts within [1..DECT_MAX_PTS] */
+    if (s->mac_sched.max_pts < 1 || s->mac_sched.max_pts > DECT_MAX_PTS) {
+        return -EINVAL;
+    }
+
+    /* Validate each configured PT slot range:
+     * - start <= end
+     * - end within 0..23
+     * - no overlap between PT ranges
+     */
+    for (int i = 0; i < s->mac_sched.max_pts; i++) {
+        uint16_t st_i = s->mac_sched.pt_slots[i].start_subslot;
+        uint16_t en_i = s->mac_sched.pt_slots[i].end_subslot;
+
+        if (st_i > en_i) {
+            return -EINVAL;
+        }
+        if (en_i >= frame_len_slots) {
+            return -EINVAL;
+        }
+
+        /* overlap check with later entries */
+        for (int j = i + 1; j < s->mac_sched.max_pts; j++) {
+            uint16_t st_j = s->mac_sched.pt_slots[j].start_subslot;
+            uint16_t en_j = s->mac_sched.pt_slots[j].end_subslot;
+
+            if (st_j > en_j) {
+                return -EINVAL;
+            }
+            if (en_j >= frame_len_slots) {
+                return -EINVAL;
+            }
+
+            bool overlap = (st_i <= en_j) && (st_j <= en_i);
+            if (overlap) {
+                return -EINVAL;
+            }
+        }
+    }
+
+    return 0;
 }
+
+
 
 int dect_phy_mac_sched_fixed_slot_get(uint8_t pt_id, uint16_t *start, uint16_t *end)
 {
@@ -59,11 +114,6 @@ int dect_phy_mac_sched_fixed_slot_get(uint8_t pt_id, uint16_t *start, uint16_t *
 	*start = s->mac_sched.pt_slots[idx].start_subslot;
 	*end = s->mac_sched.pt_slots[idx].end_subslot;
 	return 0;
-}
-
-static uint64_t superframe_bb_ticks_get(uint16_t sf_len)
-{
-	return (uint64_t)sf_len * DECT_SUBSLOT_BB_TICKS;
 }
 
 int dect_phy_mac_sched_fixed_next_ul_start_time_get(uint64_t *start_time_bb)

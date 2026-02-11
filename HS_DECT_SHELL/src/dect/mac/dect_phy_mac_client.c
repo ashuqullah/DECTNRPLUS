@@ -856,15 +856,31 @@ void dect_phy_mac_client_associate_resp_handle(
 
 	if (!association_data) {
 		desh_warn("(%s): No association data found for transmitter id %u",
-			(__func__), common_header->transmitter_id);
+			  __func__, common_header->transmitter_id);
 		return;
 	}
+
+	/* Stop timeout work */
 	k_work_cancel_delayable(&association_data->association_resp_wait_work);
 
-	association_data->state =  DECT_PHY_MAC_CLIENT_ASSOCIATION_STATE_ASSOCIATED;
-	desh_print("(%s): associated with device %d - starting background scan",
-		(__func__), common_header->transmitter_id);
+	if (!association_resp->ack_bit) {
+		association_data->state = DECT_PHY_MAC_CLIENT_ASSOCIATION_STATE_DISASSOCIATED;
 
+		desh_warn("(%s): association rejected by FT %u (reject_cause=%u)",
+			  __func__, common_header->transmitter_id,
+			  association_resp->reject_cause);
+
+		return;
+	}
+	/* ========================================================== */
+
+	/* ACK => associated */
+	association_data->state = DECT_PHY_MAC_CLIENT_ASSOCIATION_STATE_ASSOCIATED;
+
+	desh_print("(%s): associated with device %u - starting background scan",
+		   __func__, common_header->transmitter_id);
+
+	/* Start BG scan (same as your current code) */
 	struct dect_phy_mac_nbr_bg_scan_params bg_scan_params;
 
 	bg_scan_params.cb_op_completed = dect_phy_mac_client_nbr_scan_completed_cb;
@@ -877,11 +893,12 @@ void dect_phy_mac_client_associate_resp_handle(
 	}
 
 	if (dect_phy_mac_nbr_bg_scan_start(&bg_scan_params)) {
-		desh_warn("(%s): dect_phy_mac_nbr_bg_scan_start failed", (__func__));
+		desh_warn("(%s): dect_phy_mac_nbr_bg_scan_start failed", __func__);
 	} else {
 		association_data->bg_scan_ongoing = true;
 	}
 }
+
 
 /**************************************************************************************************/
 
