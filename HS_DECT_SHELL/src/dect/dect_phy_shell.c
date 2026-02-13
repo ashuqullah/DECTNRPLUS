@@ -98,7 +98,7 @@ static void hs_dect_assign_default_pt_slots(struct dect_phy_settings *s)
 	int n = s->mac_sched.max_pts;
 
 	if (n < 1) {
-		n = 1;
+		n = DECT_DEF_PTS; /* default max_pts */
 	}
 	if (n > DECT_MAX_PTS) {
 		n = DECT_MAX_PTS;
@@ -528,7 +528,7 @@ static const char dect_phy_rf_tool_cmd_usage_str[] =
 	"                                     TX slots/subslots and MCS4 supports max of 4/8\n"
 	"                                     consecutive TX slots/subslots.\n"
 	"      --tx_idle_subslot_count <int>, Idle duration after TX operation in subslots.\n"
-	"                                     Default: 6.\n";
+	"                                     Default: 4.\n";
 
 /* Specifying the expected options (both long and short): */
 static struct option long_options_cert[] = {
@@ -2155,7 +2155,7 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 			    current_settings.mac_sched.max_pts <= DECT_MAX_PTS) {
 				newsettings.mac_sched.max_pts = current_settings.mac_sched.max_pts;
 			} else {
-				newsettings.mac_sched.max_pts = DECT_MAX_PTS;
+				newsettings.mac_sched.max_pts = DECT_DEF_PTS; /* default max_pts */
 			}
 		}
 

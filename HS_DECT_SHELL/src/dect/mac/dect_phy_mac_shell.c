@@ -383,80 +383,86 @@ static int dect_phy_mac_associate_cmd(const struct shell *shell, size_t argc, ch
 	params.tx_power_dbm = 0;
 	params.mcs = 0;
 	params.target_long_rd_id = 38;
-	/*HS DECT association check ft pt */
+
+	/* PT-only */
 	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_PT);
-		if (err) {
-			return err;
-		}
+	if (err) {
+		return err;
+	}
 
 	const struct dect_phy_settings *s = dect_common_settings_ref_get();
+	if (s == NULL) {
+		shell_error(shell, "Settings not available");
+		return -EINVAL;
+	}
 
-		/* Role enforcement stays strict */
-		if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED &&
-			s->mac_sched.role != DECT_MAC_ROLE_PT) {
-			shell_error(shell,
-				"Association denied: node role is not PT");
-			return -EPERM;
-		}
-
-		/* Scheduler policy:
-		* - RANDOM: allow association (legacy workflow)
-		* - FIXED: allow, but FT may still reject if it requires something else
-		*/
-		if (s->mac_sched.mode == DECT_MAC_SCHED_RANDOM) {
-			desh_warn("Associating in RANDOM mode (legacy). "
-				"If FT requires FIXED scheduler, association will be rejected.");
-		}
-
-	/*	*/
-	while ((opt = getopt_long(argc, argv, "p:m:t:h", long_options_associate,
-				  &long_index)) != -1) {
+	/* Parse args */
+	while ((opt = getopt_long(argc, argv, "p:m:t:h", long_options_associate, &long_index)) != -1) {
 		switch (opt) {
 		case 't': {
 			params.target_long_rd_id = shell_strtoul(optarg, 10, &ret);
 			if (ret) {
-				desh_error("Give decent tx id (> 0)");
+				shell_error(shell, "Invalid --long_rd_id");
 				return -EINVAL;
 			}
 			break;
 		}
-		case 'p': {
+		case 'p':
 			params.tx_power_dbm = atoi(optarg);
 			break;
-		}
-		case 'm': {
+		case 'm':
 			params.mcs = atoi(optarg);
 			break;
-		}
 		case 'h':
 			goto show_usage;
 		case '?':
 		default:
-			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
+			shell_error(shell, "Unknown option (%s). See usage:", argv[optind - 1]);
 			goto show_usage;
 		}
 	}
+
 	if (optind < argc) {
-		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
+		shell_error(shell, "Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
 	}
 
-	desh_print("Sending association_req to FT %u's random access resource",
-		params.target_long_rd_id);
+	/* Decide association mode based on local scheduler mode */
+	if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+		desh_print("Associating in FIXED mode.");
+		desh_print("Sending association_req to FT %u using FIXED association procedure",
+			   params.target_long_rd_id);
+
+		/* NEW CTRL API (to be implemented in dect_phy_mac_ctrl.c) */
+		ret = dect_phy_mac_ctrl_associate_fixed(&params);
+
+		if (ret) {
+			desh_error("Cannot send FIXED association request to FT %u, err %d",
+				   params.target_long_rd_id, ret);
+		} else {
+			desh_print("FIXED association request TX started.");
+		}
+
+		return ret;
+	}
+
+	/* Default: legacy RANDOM association (unchanged) */
+	desh_warn("Associating in RANDOM mode (legacy). If FT requires FIXED scheduler, association will be rejected.");
+	desh_print("Sending association_req to FT %u's random access resource", params.target_long_rd_id);
 
 	ret = dect_phy_mac_ctrl_associate(&params);
 	if (ret) {
-		desh_error("Cannot send association request to PT %u "
-			   "a random access resource, err %d",
-				params.target_long_rd_id, ret);
+		desh_error("Cannot send association request to FT %u a random access resource, err %d",
+			   params.target_long_rd_id, ret);
 	} else {
 		desh_print("Association request TX started.");
 	}
-	return 0;
+
+	return ret;
 
 show_usage:
 	desh_print_no_format(dect_phy_mac_associate_cmd_usage_str);
-	return 0;
+	return -EINVAL;
 }
 
 /**************************************************************************************************/

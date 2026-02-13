@@ -9,7 +9,7 @@
 
 #include <zephyr/kernel.h>
 #include "dect_common.h"
-
+#include "dect_common_settings.h"
 /******************************************************************************/
 
 /* MAC spec: ETSI TS 103 636-4 v1.5.1 */
@@ -56,20 +56,20 @@ typedef struct {
 #define DECT_PHY_MAC_BROADCAST_HEADER_SIZE 7
 
 /******************************************************************************/
-/* ================= HS_DECT vendor extension IE =================
+/* ================= HSA_DECT vendor extension IE =================
  * We use IE_TYPE_EXTENSION (63) + a vendor-defined IE extension id.
  * Payload format:
- *   byte0: version (HS_DECT_ASSOC_EXT_VER)
+ *   byte0: version (HSA_DECT_ASSOC_EXT_VER)
  *   byte1: flags  (bit0: PT_FIXED_MODE, bit1..7: reserved)
  */
-#define HS_DECT_ASSOC_EXT_VER                1
-#define HS_DECT_IE_EXT_TYPE_ASSOC_POLICY     0xA1
+#define HSA_DECT_ASSOC_EXT_VER                1
+#define HSA_DECT_IE_EXT_TYPE_ASSOC_POLICY     0xA1
 
-/* HS_DECT flags (keep single source of truth if already defined elsewhere) */
-#ifndef HS_DECT_ASSOC_FLAG_PT_FIXED_MODE
-#define HS_DECT_ASSOC_FLAG_PT_FIXED_MODE   (1U << 1)
+/* HSA_DECT flags (keep single source of truth if already defined elsewhere) */
+#ifndef HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE
+#define HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE   (1U << 1)
 #endif
-
+#define DECT_PHY_MAC_FIXED_SCHED_RES_IE_MIN_LEN 4 /* ver + mode + max_pts + active_pts */
 /* ================================================================ */
 
 /* MAC spec: Table 6.3.4-1: MAC extension field encoding */
@@ -104,6 +104,7 @@ typedef enum {
 	DECT_PHY_MAC_IE_TYPE_ROUTE_INFO_IE = 17,	     /* 0b010001 */
 	DECT_PHY_MAC_IE_TYPE_RESOURCE_ALLOCATION_IE = 18,    /* 0b010010 */
 	DECT_PHY_MAC_IE_TYPE_RANDOM_ACCESS_RESOURCE_IE = 19, /* 0b010011 */
+	DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE = 26,
 	DECT_PHY_MAC_IE_TYPE_RD_CAPABILITY_IE = 20,	     /* 0b010100 */
 	DECT_PHY_MAC_IE_TYPE_NEIGHBOURING_IE = 21,	     /* 0b010101 */
 	DECT_PHY_MAC_IE_TYPE_BROADCAST_IND_IE = 22,	     /* 0b010110 */
@@ -112,7 +113,6 @@ typedef enum {
 	DECT_PHY_MAC_IE_TYPE_MEASUREMENT_REPORT = 25,	     /* 0b011001 */
 	/* Reserved */
 	DECT_PHY_MAC_IE_TYPE_ESCAPE = 62,    /* 0b111110 */
-	DECT_PHY_MAC_IE_TYPE_EXTENSION = 63, /* 0b111111 */
 
 	/* MAC spec, Table 6.3.4-3: IE type field encoding
 	 * for MAC extension field encoding 11 and payload length 0 byte
@@ -167,6 +167,7 @@ typedef enum {
 	DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_REL,
 
 	DECT_PHY_MAC_MESSAGE_RANDOM_ACCESS_RESOURCE_IE,
+	DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE,
 	DECT_PHY_MAC_MESSAGE_ESCAPE,
 
 	DECT_PHY_MAC_MESSAGE_PADDING,
@@ -223,6 +224,18 @@ typedef struct {
 	uint16_t next_cluster_channel;
 	uint32_t time_to_next;
 } dect_phy_mac_cluster_beacon_t;
+
+typedef struct {
+    uint8_t ver;        /* HSA_FIXED_SCHED_IE_VER */
+    uint8_t mode;       /* 1 = fixed */
+    uint8_t max_pts;    /* 1..DECT_MAX_PTS */
+	uint8_t active_pts;
+    struct {
+        uint8_t start_slot; /* 0..23 */
+        uint8_t end_slot;   /* 0..23 */
+		uint8_t slot_count;
+    } pt[DECT_MAX_PTS];
+} dect_phy_mac_fixed_sched_resource_ie_t;
 
 /**************************************************************************************************/
 
@@ -388,6 +401,7 @@ typedef union {
 	dect_phy_mac_association_req_t association_req;
 	dect_phy_mac_association_resp_t association_resp;
 	dect_phy_mac_association_rel_t association_rel;
+	dect_phy_mac_fixed_sched_resource_ie_t fixed_sched_ie;
 
 	/* A container for others */
 	dect_phy_mac_common_sdu_t common_msg;

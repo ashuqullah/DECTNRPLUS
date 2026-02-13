@@ -322,6 +322,40 @@ int dect_phy_mac_ctrl_dissociate(struct dect_phy_mac_associate_params *params)
 	return ret;
 }
 
+/*HSA Fixed Schedulling association function */
+int dect_phy_mac_ctrl_associate_fixed(struct dect_phy_mac_associate_params *params)
+{
+	struct dect_phy_mac_nbr_info_list_item *scan_info =
+		dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
+	int ret;
+
+	if (!scan_info) {
+		desh_error("Beacon with long RD ID %u has not been seen in scan results",
+			   params->target_long_rd_id);
+		return -EINVAL;
+	}
+
+	ret = dect_phy_ctrl_ext_command_start(mac_data.ext_cmd);
+	if (ret) {
+		return ret;
+	}
+
+	/* NOTE:
+	 * FIXED association is not using RA resource anymore, so we do NOT warn about
+	 * "Associate req to RA resource requires LBT...".
+	 * Keep radio mode untouched here.
+	 */
+
+	ret = dect_phy_mac_client_associate_fixed(scan_info, params);
+	if (ret) {
+		desh_error("Cannot start client_associate_fixed: %d", ret);
+		(void)dect_phy_ctrl_ext_command_stop();
+	}
+
+	return ret;
+}
+
+
 /**************************************************************************************************/
 
 int dect_phy_mac_ctrl_rach_tx_start(struct dect_phy_mac_rach_tx_params *params)

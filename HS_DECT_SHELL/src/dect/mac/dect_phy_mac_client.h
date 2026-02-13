@@ -35,5 +35,8 @@ void dect_phy_mac_client_status_print(void);
 /******************************************************************************/
 
 bool dect_phy_mac_client_associated_by_target_short_rd_id(uint16_t target_short_rd_id);
+int dect_phy_mac_client_associate_fixed(struct dect_phy_mac_nbr_info_list_item *target_nbr,
+					struct dect_phy_mac_associate_params *params);
+
 
 #endif /* DECT_PHY_MAC_CLIENT_H */

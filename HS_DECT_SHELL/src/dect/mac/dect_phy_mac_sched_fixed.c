@@ -3,7 +3,7 @@
 #include "dect_common_settings.h"
 #include "dect_phy_mac_sched_fixed.h"
 #include "dect_app_time.h"  /* provides dect_app_modem_time_now() */
-
+#include "dect_common_utils.h"
 #ifndef DECT_SUBSLOT_BB_TICKS
 /* subslot duration in modem ticks . */
 #define DECT_SUBSLOT_BB_TICKS (28800ULL)
@@ -175,4 +175,66 @@ int dect_phy_mac_sched_fixed_next_ul_start_time_get(uint64_t *start_time_bb)
 
 	*start_time_bb = tx_time;
 	return 0;
+}
+int dect_phy_mac_sched_fixed_build_beacon_payload(uint8_t *buf,
+                                                  size_t buf_size)
+{
+    struct dect_phy_settings *settings = dect_common_settings_ref_get();
+    if (!settings || !buf)
+        return -EINVAL;
+
+    if (settings->mac_sched.mode != DECT_MAC_SCHED_FIXED)
+        return -EINVAL;
+
+    uint8_t max_pts = settings->mac_sched.max_pts;
+
+    if (max_pts == 0 || max_pts > DECT_MAX_PTS)
+        return -EINVAL;
+
+    /* Layout:
+     * [0] version
+     * [1] mode (1=fixed)
+     * [2] max_pts
+     * [3] total_slots
+     * [4..] PT slot allocations (start,end per PT)
+     */
+
+    uint8_t total_slots = DECT_ETSI_SLOTS_PER_FRAME;
+    size_t required_len = 4 + (max_pts * 2);
+
+    if (buf_size < required_len)
+        return -ENOMEM;
+
+    buf[0] = 1; /* version */
+    buf[1] = 1; /* fixed mode */
+    buf[2] = max_pts;
+    buf[3] = total_slots;
+
+    /* ---- Dynamic Slot Distribution ---- */
+
+    uint8_t base_slots = total_slots / max_pts;
+    uint8_t remainder  = total_slots % max_pts;
+
+    uint8_t current_slot = 0;
+
+    for (uint8_t i = 0; i < max_pts; i++) {
+
+        uint8_t this_pt_slots = base_slots;
+
+        /* distribute remainder to first PTs */
+        if (remainder > 0) {
+            this_pt_slots++;
+            remainder--;
+        }
+
+        uint8_t start = current_slot;
+        uint8_t end   = current_slot + this_pt_slots - 1;
+
+        buf[4 + (i * 2)]     = start;
+        buf[4 + (i * 2) + 1] = end;
+
+        current_slot += this_pt_slots;
+    }
+
+    return required_len;
 }

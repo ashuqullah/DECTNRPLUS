@@ -31,27 +31,27 @@
 #include "dect_phy_mac_ctrl.h"
 #include "dect_phy_mac_ft_assoc.h"
 #include "dect_app_time.h"
-
+#include "dect_phy_mac_sched_fixed.h"
 /*=============================Constant Fixed Scheduall  ===========================================*/
-#define HS_DECT_IE_EXT_TYPE_SCHED_ASSIGN  0xA1
+#define HSA_DECT_IE_EXT_TYPE_SCHED_ASSIGN  0xA1
 
 /* HS_DECT: Vendor-specific beacon payload carried via IE_TYPE_ESCAPE */
-#define HS_DECT_BEACON_MAGIC0        0x48 /* 'H' */
-#define HS_DECT_BEACON_MAGIC1        0x53 /* 'S' */
-#define HS_DECT_BEACON_VER           0x01
+#define HSA_DECT_BEACON_MAGIC0        0x48 /* 'H' */
+#define HSA_DECT_BEACON_MAGIC1        0x53 /* 'S' */
+#define HSA_DECT_BEACON_VER           0x01
 
 #define HS_DECT_BEACON_SCHED_RANDOM  0x00
-#define HS_DECT_BEACON_SCHED_FIXED   0x01
-#define HS_DECT_IE_EXT_TYPE_FT_MODE  0xA2
-
+#define HSA_DECT_BEACON_SCHED_FIXED   0x01
+#define HSA_DECT_IE_EXT_TYPE_FT_MODE  0xA2
+#define HSA_DECT_IE_EXT_TYPE_FIXED_SCHED  0xB1
 /* Payload layout (8 bytes):
  * [0]='H' [1]='S' [2]=ver [3]=sched_mode [4]=role_bitmap [5]=max_pts [6]=slots_per_frame [7]=reserved
  */
-#define HS_DECT_BEACON_PAYLOAD_LEN   8
-#define HS_DECT_SLOTS_PER_FRAME      24  /* keep consistent with your project */
+#define HSA_DECT_BEACON_PAYLOAD_LEN   8
+#define HSA_DECT_SLOTS_PER_FRAME      24  /* keep consistent with your project */
 
 /*========================================================================*/
-static void hs_sdu_list_free_all(sys_dlist_t *list)
+static void hsa_sdu_list_free_all(sys_dlist_t *list)
 {
 	while (!sys_dlist_is_empty(list)) {
 		sys_dnode_t *n = sys_dlist_get(list);
@@ -92,20 +92,28 @@ struct dect_phy_mac_cluster_beacon_lms_rssi_scan_data {
 static void dect_phy_mac_cluster_beacon_scheduler_list_items_remove(void);
 
 
-static int dect_phy_mac_cluster_beacon_encode(struct dect_phy_mac_beacon_start_params *params,
-					     uint8_t **target_ptr,
-					     union nrf_modem_dect_phy_hdr *out_phy_header)
+
+
+/* Fixed-mode beacon encoder:
+ * - Cluster Beacon SDU ONLY
+ * - NO Random Access Resource IE => PT can scan but cannot associate
+ * - Adds HS extension IE (0xA1) advertising FT mode (fixed/random)
+ */
+static int hsa_dect_phy_mac_cluster_beacon_encode_fixed(struct dect_phy_mac_beacon_start_params *params,
+						      uint8_t **target_ptr, /* In/Out */
+						      union nrf_modem_dect_phy_hdr *out_phy_header)
 {
 	struct dect_phy_settings *current_settings = dect_common_settings_ref_get();
+	uint8_t phy_tx_power;
 
-	if (current_settings == NULL || params == NULL || target_ptr == NULL ||
-	    *target_ptr == NULL || out_phy_header == NULL) {
+	if (current_settings == NULL || params == NULL ||
+	    target_ptr == NULL || *target_ptr == NULL || out_phy_header == NULL) {
 		return -EINVAL;
 	}
 
-	/* ---------- PHY header (type1) ---------- */
-	uint8_t phy_tx_power = dect_common_utils_dbm_to_phy_tx_power(params->tx_power_dbm);
+	phy_tx_power = dect_common_utils_dbm_to_phy_tx_power(params->tx_power_dbm);
 
+	/* PHY header (Type1 beacon) */
 	struct dect_phy_ctrl_field_common header = {
 		.packet_length_type = DECT_PHY_HEADER_PKT_LENGTH_TYPE_SLOTS,
 		.header_format = DECT_PHY_HEADER_TYPE1,
@@ -116,7 +124,7 @@ static int dect_phy_mac_cluster_beacon_encode(struct dect_phy_mac_beacon_start_p
 		.transmit_power = phy_tx_power,
 	};
 
-	/* ---------- MAC headers ---------- */
+	/* MAC headers */
 	dect_phy_mac_type_header_t type_header = {
 		.version = 0,
 		.security = 0,
@@ -127,135 +135,170 @@ static int dect_phy_mac_cluster_beacon_encode(struct dect_phy_mac_beacon_start_p
 		.type = DECT_PHY_MAC_HEADER_TYPE_BEACON,
 		.reset = 1,
 		.seq_nbr = 0,
-		.nw_id = ((current_settings->common.network_id >> 8) & DECT_COMMON_UTILS_BIT_MASK_24BIT),
+		.nw_id = ((current_settings->common.network_id >> 8) &
+			  DECT_COMMON_UTILS_BIT_MASK_24BIT),
 		.transmitter_id = current_settings->common.transmitter_id,
 	};
 
-	/* ---------- SDU list ---------- */
+	/* Build SDU list */
 	sys_dlist_t sdu_list;
 	sys_dlist_init(&sdu_list);
 
-	/* Cluster Beacon SDU */
-	dect_phy_mac_sdu_t *cluster_beacon_sdu = k_calloc(1, sizeof(*cluster_beacon_sdu));
-	if (!cluster_beacon_sdu) {
+	/* ---------------- SDU#1: Cluster Beacon ---------------- */
+	dect_phy_mac_sdu_t *beacon_sdu = k_calloc(1, sizeof(*beacon_sdu));
+	if (!beacon_sdu) {
 		return -ENOMEM;
 	}
 
-	cluster_beacon_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_8BIT_LEN;
-	cluster_beacon_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_CLUSTER_BEACON;
-	cluster_beacon_sdu->mux_header.payload_length = 5;
+	beacon_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_8BIT_LEN;
+	beacon_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_CLUSTER_BEACON;
+	beacon_sdu->mux_header.payload_length = 5;
 
-	cluster_beacon_sdu->message_type = DECT_PHY_MAC_MESSAGE_TYPE_CLUSTER_BEACON;
-	cluster_beacon_sdu->message.cluster_beacon.system_frame_number = beacon_data.next_sfn;
-	cluster_beacon_sdu->message.cluster_beacon.tx_pwr_bit = 1;
-	cluster_beacon_sdu->message.cluster_beacon.pwr_const_bit = 0;
-	cluster_beacon_sdu->message.cluster_beacon.frame_offset_bit = 0;
-	cluster_beacon_sdu->message.cluster_beacon.next_channel_bit = 0;
-	cluster_beacon_sdu->message.cluster_beacon.time_to_next = 0;
-	cluster_beacon_sdu->message.cluster_beacon.nw_beacon_period = DECT_PHY_MAC_NW_BEACON_PERIOD_50MS;
-	cluster_beacon_sdu->message.cluster_beacon.cluster_beacon_period = DECT_PHY_MAC_CLUSTER_BEACON_PERIOD_2000MS;
-	cluster_beacon_sdu->message.cluster_beacon.count_to_trigger = 0;
-	cluster_beacon_sdu->message.cluster_beacon.relative_quality = 0;
-	cluster_beacon_sdu->message.cluster_beacon.min_quality = 0;
-	cluster_beacon_sdu->message.cluster_beacon.max_phy_tx_power =
+	beacon_sdu->message_type = DECT_PHY_MAC_MESSAGE_TYPE_CLUSTER_BEACON;
+	beacon_sdu->message.cluster_beacon.system_frame_number = beacon_data.next_sfn;
+	beacon_sdu->message.cluster_beacon.tx_pwr_bit = 1;
+	beacon_sdu->message.cluster_beacon.pwr_const_bit = 0;
+	beacon_sdu->message.cluster_beacon.frame_offset_bit = 0;
+	beacon_sdu->message.cluster_beacon.next_channel_bit = 0;
+	beacon_sdu->message.cluster_beacon.time_to_next = 0;
+	beacon_sdu->message.cluster_beacon.nw_beacon_period = DECT_PHY_MAC_NW_BEACON_PERIOD_50MS;
+	beacon_sdu->message.cluster_beacon.cluster_beacon_period =
+		DECT_PHY_MAC_CLUSTER_BEACON_PERIOD_2000MS;
+	beacon_sdu->message.cluster_beacon.count_to_trigger = 0;
+	beacon_sdu->message.cluster_beacon.relative_quality = 0;
+	beacon_sdu->message.cluster_beacon.min_quality = 0;
+	beacon_sdu->message.cluster_beacon.max_phy_tx_power =
 		dect_common_utils_dbm_to_phy_tx_power(19);
 
-	sys_dlist_append(&sdu_list, &cluster_beacon_sdu->dnode);
+	sys_dlist_append(&sdu_list, &beacon_sdu->dnode);
 
-	/* Random Access Resource IE SDU */
-	dect_phy_mac_sdu_t *ra_ie_sdu = k_calloc(1, sizeof(*ra_ie_sdu));
-	if (!ra_ie_sdu) {
-		hs_sdu_list_free_all(&sdu_list);
-		return -ENOMEM;
-	}
-
-	ra_ie_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_8BIT_LEN;
-	ra_ie_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_RANDOM_ACCESS_RESOURCE_IE;
-	ra_ie_sdu->mux_header.payload_length = 7;
-
-	ra_ie_sdu->message_type = DECT_PHY_MAC_MESSAGE_RANDOM_ACCESS_RESOURCE_IE;
-	ra_ie_sdu->message.rach_ie.channel_included = false;
-	ra_ie_sdu->message.rach_ie.channel2_included = false;
-	ra_ie_sdu->message.rach_ie.sfn_included = false;
-	ra_ie_sdu->message.rach_ie.length_type = DECT_PHY_HEADER_PKT_LENGTH_TYPE_SLOTS;
-	ra_ie_sdu->message.rach_ie.length = DECT_PHY_MAC_CLUSTER_BEACON_RA_LENGTH_SLOTS;
-	ra_ie_sdu->message.rach_ie.start_subslot = DECT_PHY_MAC_CLUSTER_BEACON_RA_START_SUBSLOT;
-	ra_ie_sdu->message.rach_ie.max_rach_length_type = DECT_PHY_HEADER_PKT_LENGTH_TYPE_SLOTS;
-	ra_ie_sdu->message.rach_ie.max_rach_length = 4;
-	ra_ie_sdu->message.rach_ie.dect_delay = 1;
-	ra_ie_sdu->message.rach_ie.response_win = 10;
-	ra_ie_sdu->message.rach_ie.validity = DECT_PHY_MAC_CLUSTER_BEACON_RA_VALIDITY;
-	ra_ie_sdu->message.rach_ie.repeat = DECT_PHY_MAC_RA_REPEAT_TYPE_FRAMES;
-	ra_ie_sdu->message.rach_ie.repetition = DECT_PHY_MAC_CLUSTER_BEACON_RA_REPETITION;
-	ra_ie_sdu->message.rach_ie.cw_min_sig = 0;
-	ra_ie_sdu->message.rach_ie.cw_max_sig = 7;
-
-	sys_dlist_append(&sdu_list, &ra_ie_sdu->dnode);
-
-	/* ================= HS_DECT: advertise scheduling mode ================= */
+	/* ---------------- SDU#2: Fixed Scheduling Resource IE (STRUCTURED) ----------------
+	 * IMPORTANT:
+	 * - No ie_ext here (you changed fixed IE type to 26, so this is a normal IE).
+	 * - Encode via message.fixed_sched_ie so RX can decode allocations.
+	 *
+	 * This example builds a simple deterministic slot allocation:
+	 * - Split 24 slots equally across max_pts
+	 * - Each PT gets a contiguous window.
+	 *
+	 * Replace the allocation logic with your real scheduler once ready.
+	 */
 	{
-		uint8_t payload[2];
-		payload[0] = HS_DECT_ASSOC_EXT_VER;
-		payload[1] = (current_settings->mac_sched.mode == DECT_MAC_SCHED_FIXED) ? 1 : 0;
-
-		dect_phy_mac_sdu_t *mode_sdu = k_calloc(1, sizeof(*mode_sdu));
-		if (mode_sdu) {
-			mode_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_16BIT_LEN;
-			mode_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_EXTENSION;
-			mode_sdu->mux_header.ie_ext = HS_DECT_IE_EXT_TYPE_ASSOC_POLICY;
-			mode_sdu->mux_header.payload_length = sizeof(payload);
-
-			mode_sdu->message_type = DECT_PHY_MAC_MESSAGE_ESCAPE;
-			mode_sdu->message.common_msg.data_length = sizeof(payload);
-			memcpy(mode_sdu->message.common_msg.data, payload, sizeof(payload));
-
-			sys_dlist_append(&sdu_list, &mode_sdu->dnode);
+		dect_phy_mac_sdu_t *fixed_sdu = k_calloc(1, sizeof(*fixed_sdu));
+		if (!fixed_sdu) {
+			hsa_sdu_list_free_all(&sdu_list);
+			return -ENOMEM;
 		}
-	}
-	/* ===================================================================== */
 
-	/* ---------- Encode MAC PDU ---------- */
+		/* Choose max_pts advertised by FT.
+		 * If you have a config value elsewhere, replace this line.
+		 */
+		uint8_t max_pts = current_settings->mac_sched.max_pts;   /* <-- replace with your real settings field */
+
+			if (max_pts < 1U || max_pts > DECT_MAX_PTS) {
+				max_pts = DECT_DEF_PTS;  /* fallback default */
+			}
+			if (max_pts < 1U) {
+				max_pts = 1U;
+			}
+			if (max_pts > DECT_MAX_PTS) {
+				max_pts = DECT_MAX_PTS;
+}
+
+		fixed_sdu->message_type = DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE;
+
+		fixed_sdu->message.fixed_sched_ie.ver = 1;
+		fixed_sdu->message.fixed_sched_ie.mode = 1; /* fixed */
+		fixed_sdu->message.fixed_sched_ie.max_pts = max_pts;
+		fixed_sdu->message.fixed_sched_ie.active_pts = 0; /* before association */
+
+		/* Simple contiguous partition of 24 slots */
+		const uint8_t total_slots = 24U;
+		uint8_t base = (uint8_t)(total_slots / max_pts);
+		uint8_t rem  = (uint8_t)(total_slots % max_pts);
+
+		uint8_t slot = 0U;
+		for (uint8_t i = 0; i < max_pts; i++) {
+			uint8_t cnt = base + ((i < rem) ? 1U : 0U);
+			uint8_t start = slot;
+			uint8_t end = (uint8_t)(slot + cnt - 1U);
+
+			/* Clamp (defensive) */
+			if (start > 23U) {
+				start = 23U;
+			}
+			if (end > 23U) {
+				end = 23U;
+			}
+			if (cnt == 0U) {
+				cnt = 1U;
+			}
+
+			fixed_sdu->message.fixed_sched_ie.pt[i].start_slot = start;
+			fixed_sdu->message.fixed_sched_ie.pt[i].end_slot = end;
+			fixed_sdu->message.fixed_sched_ie.pt[i].slot_count = cnt;
+
+			slot = (uint8_t)(end + 1U);
+			if (slot > 24U) {
+				slot = 24U;
+			}
+		}
+
+		fixed_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_16BIT_LEN;
+		fixed_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE;
+
+		/* Payload length must match your fixed-sched encoder format:
+		 *   4 + (max_pts * 3)
+		 */
+		fixed_sdu->mux_header.payload_length =
+			(uint16_t)(4U + (fixed_sdu->message.fixed_sched_ie.max_pts * 3U));
+
+		sys_dlist_append(&sdu_list, &fixed_sdu->dnode);
+	}
+
+	/* ---------------- Encode into buffer ---------------- */
 	uint8_t *pdu_ptr = *target_ptr;
 
 	pdu_ptr = dect_phy_mac_pdu_type_header_encode(&type_header, pdu_ptr);
 	if (pdu_ptr == NULL) {
-		hs_sdu_list_free_all(&sdu_list);
+		hsa_sdu_list_free_all(&sdu_list);
 		return -EINVAL;
 	}
 
 	pdu_ptr = dect_phy_mac_pdu_common_header_encode(&common_header, pdu_ptr);
 	if (pdu_ptr == NULL) {
-		hs_sdu_list_free_all(&sdu_list);
+		hsa_sdu_list_free_all(&sdu_list);
 		return -EINVAL;
 	}
 
 	pdu_ptr = dect_phy_mac_pdu_sdus_encode(pdu_ptr, &sdu_list);
 	if (pdu_ptr == NULL) {
-		hs_sdu_list_free_all(&sdu_list);
+		hsa_sdu_list_free_all(&sdu_list);
 		return -EINVAL;
 	}
 
-	/* ---------- Calculate lengths & padding (SAFE) ---------- */
 	uint16_t encoded_pdu_length = (uint16_t)(pdu_ptr - *target_ptr);
 
+	/* Calculate PHY packet length */
 	header.packet_length = dect_common_utils_phy_packet_length_calculate(
 		encoded_pdu_length, header.packet_length_type, header.df_mcs);
 	if ((int)header.packet_length <= 0) {
-		hs_sdu_list_free_all(&sdu_list);
+		hsa_sdu_list_free_all(&sdu_list);
 		return -EINVAL;
 	}
 
-	int16_t total_byte_count = dect_common_utils_slots_in_bytes(header.packet_length, header.df_mcs);
+	int16_t total_byte_count =
+		dect_common_utils_slots_in_bytes(header.packet_length, header.df_mcs);
 	if (total_byte_count <= 0) {
-		hs_sdu_list_free_all(&sdu_list);
+		hsa_sdu_list_free_all(&sdu_list);
 		return -EINVAL;
 	}
 
 	int16_t padding_need = total_byte_count - (int16_t)encoded_pdu_length;
 	if (padding_need < 0) {
-		desh_error("(%s): Beacon PDU too long: enc=%u bytes, slots=%d -> max=%d bytes",
+		desh_error("(%s): Fixed beacon PDU too long (%u bytes) for %d slots (max %d bytes)",
 			   __func__, encoded_pdu_length, header.packet_length, total_byte_count);
-		hs_sdu_list_free_all(&sdu_list);
+		hsa_sdu_list_free_all(&sdu_list);
 		return -EMSGSIZE;
 	}
 
@@ -268,20 +311,188 @@ static int dect_phy_mac_cluster_beacon_encode(struct dect_phy_mac_beacon_start_p
 
 	*target_ptr = pdu_ptr;
 
-	/* ---------- Output PHY header ---------- */
+	/* Output PHY header correctly */
 	union nrf_modem_dect_phy_hdr phy_header;
 	memset(&phy_header, 0, sizeof(phy_header));
 	memcpy(&phy_header.type_1, &header, sizeof(phy_header.type_1));
 	memcpy(out_phy_header, &phy_header, sizeof(*out_phy_header));
 
-	/* Save last beacon content (for debug) */
-	beacon_data.last_cluster_beacon_msg = cluster_beacon_sdu->message.cluster_beacon;
-	beacon_data.last_rach_ie = ra_ie_sdu->message.rach_ie;
+	/* Store last beacon content (for debug) */
+	beacon_data.last_cluster_beacon_msg = beacon_sdu->message.cluster_beacon;
 
-	/* Free SDU nodes */
-	hs_sdu_list_free_all(&sdu_list);
-
+	hsa_sdu_list_free_all(&sdu_list);
 	return header.packet_length;
+}
+
+
+
+
+
+static int dect_phy_mac_cluster_beacon_encode(
+        struct dect_phy_mac_beacon_start_params *params,
+        uint8_t **target_ptr,
+        union nrf_modem_dect_phy_hdr *out_phy_header)
+{
+    struct dect_phy_settings *current_settings = dect_common_settings_ref_get();
+
+    if (!current_settings || !params || !target_ptr || !*target_ptr || !out_phy_header) {
+        return -EINVAL;
+    }
+
+    uint8_t phy_tx_power =
+        dect_common_utils_dbm_to_phy_tx_power(params->tx_power_dbm);
+
+    struct dect_phy_ctrl_field_common header = {
+        .packet_length_type = DECT_PHY_HEADER_PKT_LENGTH_TYPE_SLOTS,
+        .header_format = DECT_PHY_HEADER_TYPE1,
+        .short_network_id =
+            (uint8_t)(current_settings->common.network_id & 0xFF),
+        .transmitter_identity_hi =
+            (uint8_t)(current_settings->common.short_rd_id >> 8),
+        .transmitter_identity_lo =
+            (uint8_t)(current_settings->common.short_rd_id & 0xFF),
+        .df_mcs = 0,
+        .transmit_power = phy_tx_power,
+    };
+
+    dect_phy_mac_type_header_t type_header = {
+        .version = 0,
+        .security = 0,
+        .type = DECT_PHY_MAC_HEADER_TYPE_BEACON,
+    };
+
+    dect_phy_mac_common_header_t common_header = {
+        .type = DECT_PHY_MAC_HEADER_TYPE_BEACON,
+        .reset = 1,
+        .seq_nbr = 0,
+        .nw_id =
+            ((current_settings->common.network_id >> 8) &
+             DECT_COMMON_UTILS_BIT_MASK_24BIT),
+        .transmitter_id = current_settings->common.transmitter_id,
+    };
+
+    sys_dlist_t sdu_list;
+    sys_dlist_init(&sdu_list);
+
+    /* ---------- Cluster Beacon SDU ---------- */
+    dect_phy_mac_sdu_t *cluster_beacon_sdu =
+        k_calloc(1, sizeof(*cluster_beacon_sdu));
+    if (!cluster_beacon_sdu)
+        return -ENOMEM;
+
+    cluster_beacon_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_8BIT_LEN;
+    cluster_beacon_sdu->mux_header.ie_type =
+        DECT_PHY_MAC_IE_TYPE_CLUSTER_BEACON;
+    cluster_beacon_sdu->mux_header.payload_length = 5;
+
+    cluster_beacon_sdu->message_type =
+        DECT_PHY_MAC_MESSAGE_TYPE_CLUSTER_BEACON;
+
+    cluster_beacon_sdu->message.cluster_beacon.system_frame_number =
+        beacon_data.next_sfn;
+    cluster_beacon_sdu->message.cluster_beacon.tx_pwr_bit = 1;
+    cluster_beacon_sdu->message.cluster_beacon.pwr_const_bit = 0;
+    cluster_beacon_sdu->message.cluster_beacon.frame_offset_bit = 0;
+    cluster_beacon_sdu->message.cluster_beacon.next_channel_bit = 0;
+    cluster_beacon_sdu->message.cluster_beacon.time_to_next = 0;
+    cluster_beacon_sdu->message.cluster_beacon.nw_beacon_period =
+        DECT_PHY_MAC_NW_BEACON_PERIOD_50MS;
+    cluster_beacon_sdu->message.cluster_beacon.cluster_beacon_period =
+        DECT_PHY_MAC_CLUSTER_BEACON_PERIOD_2000MS;
+    cluster_beacon_sdu->message.cluster_beacon.count_to_trigger = 0;
+    cluster_beacon_sdu->message.cluster_beacon.relative_quality = 0;
+    cluster_beacon_sdu->message.cluster_beacon.min_quality = 0;
+    cluster_beacon_sdu->message.cluster_beacon.max_phy_tx_power =
+        dect_common_utils_dbm_to_phy_tx_power(19);
+
+    sys_dlist_append(&sdu_list, &cluster_beacon_sdu->dnode);
+
+    /* ---------- RANDOM ACCESS RESOURCE IE ---------- */
+    dect_phy_mac_sdu_t *ra_ie_sdu =
+        k_calloc(1, sizeof(*ra_ie_sdu));
+    if (!ra_ie_sdu) {
+        hsa_sdu_list_free_all(&sdu_list);
+        return -ENOMEM;
+    }
+
+    ra_ie_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_8BIT_LEN;
+    ra_ie_sdu->mux_header.ie_type =
+        DECT_PHY_MAC_IE_TYPE_RANDOM_ACCESS_RESOURCE_IE;
+    ra_ie_sdu->mux_header.payload_length = 7;
+
+    ra_ie_sdu->message_type =
+        DECT_PHY_MAC_MESSAGE_RANDOM_ACCESS_RESOURCE_IE;
+
+    ra_ie_sdu->message.rach_ie.length_type =
+        DECT_PHY_HEADER_PKT_LENGTH_TYPE_SLOTS;
+    ra_ie_sdu->message.rach_ie.length =
+        DECT_PHY_MAC_CLUSTER_BEACON_RA_LENGTH_SLOTS;
+    ra_ie_sdu->message.rach_ie.start_subslot =
+        DECT_PHY_MAC_CLUSTER_BEACON_RA_START_SUBSLOT;
+    ra_ie_sdu->message.rach_ie.max_rach_length_type =
+        DECT_PHY_HEADER_PKT_LENGTH_TYPE_SLOTS;
+    ra_ie_sdu->message.rach_ie.max_rach_length = 4;
+    ra_ie_sdu->message.rach_ie.dect_delay = 1;
+    ra_ie_sdu->message.rach_ie.response_win = 10;
+    ra_ie_sdu->message.rach_ie.validity =
+        DECT_PHY_MAC_CLUSTER_BEACON_RA_VALIDITY;
+    ra_ie_sdu->message.rach_ie.repeat =
+        DECT_PHY_MAC_RA_REPEAT_TYPE_FRAMES;
+    ra_ie_sdu->message.rach_ie.repetition =
+        DECT_PHY_MAC_CLUSTER_BEACON_RA_REPETITION;
+    ra_ie_sdu->message.rach_ie.cw_min_sig = 0;
+    ra_ie_sdu->message.rach_ie.cw_max_sig = 7;
+
+    sys_dlist_append(&sdu_list, &ra_ie_sdu->dnode);
+
+    uint8_t *pdu_ptr = *target_ptr;
+
+    pdu_ptr = dect_phy_mac_pdu_type_header_encode(
+        &type_header, pdu_ptr);
+
+    pdu_ptr = dect_phy_mac_pdu_common_header_encode(
+        &common_header, pdu_ptr);
+
+    pdu_ptr = dect_phy_mac_pdu_sdus_encode(
+        pdu_ptr, &sdu_list);
+
+    uint16_t encoded_pdu_length =
+        (uint16_t)(pdu_ptr - *target_ptr);
+
+    header.packet_length =
+        dect_common_utils_phy_packet_length_calculate(
+            encoded_pdu_length,
+            header.packet_length_type,
+            header.df_mcs);
+
+    int16_t total_byte_count =
+        dect_common_utils_slots_in_bytes(
+            header.packet_length,
+            header.df_mcs);
+
+    int16_t padding_need =
+        total_byte_count - encoded_pdu_length;
+
+    if (padding_need > 0) {
+        dect_phy_mac_pdu_sdu_list_add_padding(
+            &pdu_ptr, &sdu_list, padding_need);
+    }
+
+    *target_ptr = pdu_ptr;
+
+    memcpy(&out_phy_header->type_1,
+           &header,
+           sizeof(header));
+
+    beacon_data.last_cluster_beacon_msg =
+        cluster_beacon_sdu->message.cluster_beacon;
+
+    beacon_data.last_rach_ie =
+        ra_ie_sdu->message.rach_ie;
+
+    hsa_sdu_list_free_all(&sdu_list);
+
+    return header.packet_length;
 }
 
 
@@ -393,7 +604,11 @@ int dect_phy_mac_cluster_beacon_tx_start(struct dect_phy_mac_beacon_start_params
 	memset(&beacon_data, 0, sizeof(struct dect_phy_mac_cluster_beacon_data));
 
 	/* Encode cluster beacon */
-	ret = dect_phy_mac_cluster_beacon_encode(params, &pdu_ptr, &phy_header);
+	if (dect_common_settings_ref_get()->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+		ret = hsa_dect_phy_mac_cluster_beacon_encode_fixed(params, &pdu_ptr, &phy_header);
+	} else {
+		ret = dect_phy_mac_cluster_beacon_encode(params, &pdu_ptr, &phy_header);
+	}
 	if (ret < 0) {
 		desh_error("(%s): Failed to encode beacon", __func__);
 		return ret;
@@ -615,8 +830,14 @@ void dect_phy_mac_cluster_beacon_update(void)
 	beacon_data.next_sfn++;
 
 	/* Re-encode cluster beacon */
-	int ret = dect_phy_mac_cluster_beacon_encode(&beacon_data.start_params, &pdu_ptr,
-						     &phy_header);
+	int ret;
+
+		if (dect_common_settings_ref_get()->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+			ret = hsa_dect_phy_mac_cluster_beacon_encode_fixed(&beacon_data.start_params, &pdu_ptr, &phy_header);
+		} else {
+			ret = dect_phy_mac_cluster_beacon_encode(&beacon_data.start_params, &pdu_ptr, &phy_header);
+		}
+
 	if (ret < 0) {
 		desh_error("(%s): Failed to re-encode beacon", __func__);
 		return;
@@ -697,7 +918,7 @@ static int dect_phy_mac_cluster_beacon_association_resp_pdu_encode(
 
 	sys_dlist_init(&sdu_list);
 	sys_dlist_append(&sdu_list, &data_sdu_list_item->dnode);
-		/* HS_DECT: In fixed scheduling mode, add an EXTENSION IE telling PT its assigned index
+		/* HSA_DECT: In fixed scheduling mode, add an EXTENSION IE telling PT its assigned index
 	 * and (optionally) the slot map.
 		*/
 		if (current_settings->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
@@ -737,8 +958,8 @@ static int dect_phy_mac_cluster_beacon_association_resp_pdu_encode(
 					(dect_phy_mac_sdu_t *)k_calloc(1, sizeof(dect_phy_mac_sdu_t));
 				if (ext_sdu != NULL) {
 					ext_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_16BIT_LEN;
-					ext_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_EXTENSION;
-					ext_sdu->mux_header.ie_ext = HS_DECT_IE_EXT_TYPE_SCHED_ASSIGN;
+					ext_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE;
+					ext_sdu->mux_header.ie_ext = HSA_DECT_IE_EXT_TYPE_SCHED_ASSIGN;
 					ext_sdu->mux_header.payload_length = ext_len;
 
 					ext_sdu->message_type = DECT_PHY_MAC_MESSAGE_ESCAPE;
@@ -781,7 +1002,7 @@ static int dect_phy_mac_cluster_beacon_association_resp_pdu_encode(
 	union nrf_modem_dect_phy_hdr phy_header;
 
 	memcpy(out_phy_header, &header, sizeof(phy_header.type_2));
-	hs_sdu_list_free_all(&sdu_list);
+	hsa_sdu_list_free_all(&sdu_list);
 	return header.packet_length;
 }
 

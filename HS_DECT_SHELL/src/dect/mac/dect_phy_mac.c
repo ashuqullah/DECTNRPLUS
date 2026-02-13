@@ -28,7 +28,7 @@
 
 
 /* Validate fixed scheduling settings */
-static bool hs_mode_match_required(struct dect_phy_settings *s,
+static bool hsa_mode_match_required(struct dect_phy_settings *s,
                                   bool got_pt_policy,
                                   bool pt_says_fixed)
 {
@@ -266,6 +266,24 @@ static void dect_phy_mac_message_print(dect_phy_mac_message_type_t message_type,
 		desh_print("        CW max sig:           %d", message->rach_ie.cw_max_sig);
 		break;
 	}
+
+	case DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE: {
+		desh_print("      Received Fixed Scheduling Resource IE data:");
+		desh_print("        Version:              %u", message->fixed_sched_ie.ver);
+		desh_print("        Mode:                 %u", message->fixed_sched_ie.mode);
+		desh_print("        Max PTs:              %u", message->fixed_sched_ie.max_pts);
+		desh_print("        Active PTs:            %u", message->fixed_sched_ie.active_pts);
+
+		for (uint8_t i = 0; i < message->fixed_sched_ie.max_pts; i++) {
+			desh_print("        PT[%u]: start_slot=%u, end_slot=%u, slot_count=%u",
+				i+1,
+				message->fixed_sched_ie.pt[i].start_slot,
+				message->fixed_sched_ie.pt[i].end_slot,
+				message->fixed_sched_ie.pt[i].slot_count);
+		}
+	break;
+}
+
 	case DECT_PHY_MAC_MESSAGE_PADDING: {
 		desh_print("      Received padding data, len %d, payload is not printed",
 			   message->common_msg.data_length);
@@ -346,9 +364,6 @@ static void dect_phy_mac_mux_header_print(dect_phy_mac_mux_header_t *mux_header)
 						mux_header->mac_ext, mux_header->payload_length,
 						mux_header->ie_type, tmp_str));
 	desh_print("      Payload length: %u", mux_header->payload_length);
-	if (mux_header->ie_type == DECT_PHY_MAC_IE_TYPE_EXTENSION) {
-		desh_print("      IE extension: 0x%02x", mux_header->ie_ext);
-	}
 }
 
 static void dect_phy_mac_sdu_print(dect_phy_mac_sdu_t *sdu_list_item, int sdu_nbr)
@@ -479,14 +494,20 @@ bool dect_phy_mac_handle(struct dect_phy_commmon_op_pdc_rcv_params *rcv_params)
 				association_resp = &sdu_list_item->message.association_resp;
 			}
 		}
-		/* If received cluster beacon with RA IE, store as a neighbor */
-		if (beacon_msg != NULL && ra_ie != NULL) {
+		/* Store as neighbor if we got a cluster beacon (RA IE may be absent in FIXED mode) */
+		if (beacon_msg != NULL) {
+			/* nbr module currently stores only one RA IE; in FIXED mode it may be absent */
+			dect_phy_mac_random_access_resource_ie_t ra_ie_zero = {0};
+			const dect_phy_mac_random_access_resource_ie_t *ra_store =
+				(ra_ie != NULL) ? ra_ie : &ra_ie_zero;
+
 			dect_phy_mac_nbr_info_store_n_update(
 				&rcv_params->time, rcv_params->rx_channel,
 				common_header.nw_id, rcv_params->last_received_pcc_short_nw_id,
 				common_header.transmitter_id,
-				rcv_params->last_received_pcc_transmitter_short_rd_id, beacon_msg,
-				ra_ie, /* Note: storing only the last RA IE */
+				rcv_params->last_received_pcc_transmitter_short_rd_id,
+				beacon_msg,
+				(dect_phy_mac_random_access_resource_ie_t *)ra_store, /* stores last RA IE (or zero) */
 				print);
 		}
 		if (association_resp != NULL) {
@@ -581,20 +602,20 @@ bool dect_phy_mac_direct_pdc_handle(struct dect_phy_commmon_op_pdc_rcv_params *r
 
     if (handled) {
         bool pt_says_fixed = false;
-        bool got_hs_policy = false;
+        bool got_hsa_policy = false;
         dect_phy_mac_sdu_t *sdu_list_item;
 
         SYS_DLIST_FOR_EACH_CONTAINER(&sdu_list, sdu_list_item, dnode) {
 
             /* Parse vendor extension IE for PT policy */
-            if (sdu_list_item->mux_header.ie_type == DECT_PHY_MAC_IE_TYPE_EXTENSION &&
-                sdu_list_item->mux_header.ie_ext == HS_DECT_IE_EXT_TYPE_ASSOC_POLICY &&
+            if (sdu_list_item->mux_header.ie_type == DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE &&
+                sdu_list_item->mux_header.ie_ext == HSA_DECT_IE_EXT_TYPE_ASSOC_POLICY &&
                 sdu_list_item->message.common_msg.data_length >= 2) {
 
                 const uint8_t *p = sdu_list_item->message.common_msg.data;
-                if (p != NULL && p[0] == HS_DECT_ASSOC_EXT_VER) {
-                    got_hs_policy = true;
-                    pt_says_fixed = ((p[1] & HS_DECT_ASSOC_FLAG_PT_FIXED_MODE) != 0);
+                if (p != NULL && p[0] == HSA_DECT_ASSOC_EXT_VER) {
+                    got_hsa_policy = true;
+                    pt_says_fixed = ((p[1] & HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE) != 0);
                 }
             }
 
@@ -608,14 +629,14 @@ bool dect_phy_mac_direct_pdc_handle(struct dect_phy_commmon_op_pdc_rcv_params *r
                 /* If you want this check, uncomment it:*/
                  
                   if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
-                      if (!got_hs_policy || !pt_says_fixed) {
+                      if (!got_hsa_policy || !pt_says_fixed) {
                           dect_phy_mac_cluster_beacon_association_reject_send(rcv_params, &common_header);
                           continue;
                       }
                   }
                  
 				  /* HS_DECT: enforce mode match (FIXED<->FIXED, RANDOM<->RANDOM) */
-					if (!hs_mode_match_required(s, got_hs_policy, pt_says_fixed)) {
+					if (!hsa_mode_match_required(s, got_hsa_policy, pt_says_fixed)) {
 						/* reject silently (or implement reject TX later) */
 						dect_phy_mac_cluster_beacon_association_reject_send(rcv_params, &common_header);
 						continue;

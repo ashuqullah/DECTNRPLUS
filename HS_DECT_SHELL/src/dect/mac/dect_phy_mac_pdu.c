@@ -20,20 +20,20 @@
 #include "dect_phy_mac_pdu.h"
 #include "dect_phy_mac.h"
 
-/* ===== HS_DECT Beacon Scheduling IE ===== */
+/* ===== HSA_DECT Beacon Scheduling IE ===== */
 
-#define HS_DECT_IE_EXT_ID_SCHED_BEACON   0xA2
-#define HS_DECT_IE_VERSION               1
-#define HS_DECT_SLOTS_PER_FRAME          24
+#define HSA_DECT_IE_EXT_ID_SCHED_BEACON   0xA2
+#define HSA_DECT_IE_VERSION               1
+#define HSA_DECT_SLOTS_PER_FRAME          24
 
-enum hs_dect_sched_mode {
-	HS_DECT_SCHED_RANDOM = 0,
-	HS_DECT_SCHED_FIXED  = 1,
+enum hsa_dect_sched_mode {
+	HSA_DECT_SCHED_RANDOM = 0,
+	HSA_DECT_SCHED_FIXED  = 1,
 };
 
-struct hs_dect_beacon_sched_ie {
-	uint8_t ext_id;          /* HS_DECT_IE_EXT_ID_SCHED_BEACON */
-	uint8_t version;         /* HS_DECT_IE_VERSION */
+struct hsa_dect_beacon_sched_ie {
+	uint8_t ext_id;          /* HSA_DECT_IE_EXT_ID_SCHED_BEACON */
+	uint8_t version;         /* HSA_DECT_IE_VERSION */
 	uint8_t sched_mode;      /* random / fixed */
 	uint8_t max_pts;
 	uint8_t superframe_len;  /* subslots */
@@ -41,10 +41,10 @@ struct hs_dect_beacon_sched_ie {
 	/* followed by slot map: [start,end] per PT */
 } __packed;
 
-bool hs_dect_beacon_sched_ie_parse(
+bool hsa_dect_beacon_sched_ie_parse(
 	const uint8_t *data,
 	uint16_t len,
-	struct hs_dect_beacon_sched_ie *out,
+	struct hsa_dect_beacon_sched_ie *out,
 	uint8_t *slots /* [2 * max_pts] */
 )
 {
@@ -54,8 +54,8 @@ bool hs_dect_beacon_sched_ie_parse(
 
 	memcpy(out, data, sizeof(*out));
 
-	if (out->ext_id != HS_DECT_IE_EXT_ID_SCHED_BEACON ||
-	    out->version != HS_DECT_IE_VERSION) {
+	if (out->ext_id != HSA_DECT_IE_EXT_ID_SCHED_BEACON ||
+	    out->version != HSA_DECT_IE_VERSION) {
 		return false;
 	}
 
@@ -68,7 +68,7 @@ bool hs_dect_beacon_sched_ie_parse(
 	return true;
 }
 
-/* End of HS_DECT Beacon Scheduling IE */
+/* End of HSA_DECT Beacon Scheduling IE */
 
 
 /**************************************************************************************************/
@@ -228,7 +228,7 @@ bool dect_phy_mac_pdu_ie_type_value_valid(uint8_t type_value)
 	case DECT_PHY_MAC_IE_TYPE_LOAD_INFO_IE:
 	case DECT_PHY_MAC_IE_TYPE_MEASUREMENT_REPORT:
 	case DECT_PHY_MAC_IE_TYPE_ESCAPE:
-	case DECT_PHY_MAC_IE_TYPE_EXTENSION:
+	case DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE:
 		valid = true;
 		break;
 
@@ -271,7 +271,7 @@ const char *dect_phy_mac_pdu_ie_type_to_string(dect_phy_mac_ext_field_t mac_ext,
 		{DECT_PHY_MAC_IE_TYPE_GROUP_ASSIGNMENT_IE, "Group Assignment IE"},
 		{DECT_PHY_MAC_IE_TYPE_LOAD_INFO_IE, "Load Info IE"},
 		{DECT_PHY_MAC_IE_TYPE_ESCAPE, "Escape"},
-		{DECT_PHY_MAC_IE_TYPE_EXTENSION, "IE type extension"},
+		{DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE, "Fixed Scheduling Resource IE"},
 		{-1, NULL}};
 	struct mapping_tbl_item const mapping_table2[] = {
 		{DECT_PHY_MAC_IE_TYPE_0BYTE_PADDING, "Padding (0 byte)"},
@@ -475,9 +475,7 @@ bool dect_phy_mac_pdu_mux_header_decode(uint8_t *header_ptr, uint32_t data_len,
 
 	if (mac_ext == DECT_PHY_MAC_EXT_NO_LENGTH) {
 		/* Option 'c': fixed size MAC SDU */
-		if (mux_header_out->ie_type == DECT_PHY_MAC_IE_TYPE_EXTENSION) {
-			return false;
-		}
+
 		mux_header_out->payload_length =
 			dect_phy_mac_pdu_fixed_size_ie_length_get(mux_header_out->ie_type);
 		mux_header_out->payload_ptr = p_ptr;
@@ -499,9 +497,6 @@ bool dect_phy_mac_pdu_mux_header_decode(uint8_t *header_ptr, uint32_t data_len,
 		header_size = 2;
 		mux_header_out->ie_ext = 0;
 		mux_header_out->payload_length = dect_common_utils_16bit_be_read(&p_ptr);
-		if (mux_header_out->ie_type == DECT_PHY_MAC_IE_TYPE_EXTENSION) {
-			mux_header_out->ie_ext = *p_ptr++;
-		}
 		mux_header_out->payload_ptr = p_ptr;
 		mux_header_out->mac_ext = mac_ext;
 	} else {
@@ -540,9 +535,6 @@ uint8_t *dect_phy_mac_mux_header_header_encode(dect_phy_mac_mux_header_t *mux_he
 			target_ptr = dect_common_utils_16bit_be_write(
 				target_ptr,
 				mux_header_in->payload_length);
-			if (mux_header_in->ie_type == DECT_PHY_MAC_IE_TYPE_EXTENSION) {
-				*target_ptr++ = mux_header_in->ie_ext;
-			}
 		}
 	}
 
@@ -562,9 +554,7 @@ uint8_t dect_phy_mac_pdu_mux_header_length_get(dect_phy_mac_mux_header_t *header
 		if (header_ptr->mac_ext == DECT_PHY_MAC_EXT_16BIT_LEN) {
 			length++;
 		}
-		if (header_ptr->ie_type == DECT_PHY_MAC_IE_TYPE_EXTENSION) {
-			length++;
-		}
+		
 	}
 	return length;
 }
@@ -792,6 +782,113 @@ static uint8_t *dect_phy_mac_pdu_sdu_random_access_resource_encode(
 	}
 	if (rach_ie_in->channel2_included) {
 		target_ptr = dect_common_utils_16bit_be_write(target_ptr, rach_ie_in->channel2);
+	}
+
+	return target_ptr;
+}
+/******************************************Fixed Scheduling Decode and incode Functions********************************************************/
+
+
+static uint16_t dect_phy_mac_fixed_sched_resource_ie_length_get(
+	const dect_phy_mac_fixed_sched_resource_ie_t *fach_ie_in)
+{
+	/* Fixed Scheduling IE format (as implied by your struct):
+	 *   byte0: ver
+	 *   byte1: mode
+	 *   byte2: max_pts
+	 *   byte3: active_pts
+	 *   then per PT (max_pts entries):
+	 *     start_slot, end_slot, slot_count
+	 */
+	return (uint16_t)(DECT_PHY_MAC_FIXED_SCHED_RES_IE_MIN_LEN + (fach_ie_in->max_pts * 3U));
+}
+
+static bool dect_phy_mac_sdu_fixed_sched_resource_decode(
+	const uint8_t *payload_ptr, uint32_t payload_len,
+	dect_phy_mac_fixed_sched_resource_ie_t *fach_ie_out)
+{
+	if ((payload_ptr == NULL) || (fach_ie_out == NULL)) {
+		return false;
+	}
+	if (payload_len < 4U) { /* ver + mode + max_pts + active_pts */
+		return false;
+	}
+
+	fach_ie_out->ver        = payload_ptr[0];
+	fach_ie_out->mode       = payload_ptr[1];
+	fach_ie_out->max_pts    = payload_ptr[2];
+	fach_ie_out->active_pts = payload_ptr[3];
+
+	if (fach_ie_out->max_pts == 0U || fach_ie_out->max_pts > DECT_MAX_PTS) {
+		return false;
+	}
+	if (fach_ie_out->active_pts > fach_ie_out->max_pts) {
+		return false;
+	}
+
+	const uint32_t rem = payload_len - 4U;
+	const uint32_t need_legacy = (uint32_t)fach_ie_out->max_pts * 2U;
+	const uint32_t need_new    = (uint32_t)fach_ie_out->max_pts * 3U;
+
+	const uint8_t *p = payload_ptr + 4U;
+
+	if (rem == need_legacy) {
+		/* LEGACY: start_slot + slot_count */
+		for (uint8_t i = 0; i < fach_ie_out->max_pts; i++) {
+			uint8_t start = *p++;
+			uint8_t cnt   = *p++;
+
+			if (start > 23U || cnt == 0U || cnt > 24U) {
+				return false;
+			}
+
+			uint8_t end = start + cnt - 1U;
+			if (end > 23U) {
+				return false;
+			}
+
+			fach_ie_out->pt[i].start_slot = start;
+			fach_ie_out->pt[i].end_slot   = end;
+			fach_ie_out->pt[i].slot_count = cnt;
+		}
+		return true;
+	}
+
+	if (rem == need_new) {
+		/* NEW: start_slot + end_slot + slot_count */
+		for (uint8_t i = 0; i < fach_ie_out->max_pts; i++) {
+			uint8_t start = *p++;
+			uint8_t end   = *p++;
+			uint8_t cnt   = *p++;
+
+			if (start > 23U || end > 23U || cnt == 0U || cnt > 24U) {
+				return false;
+			}
+
+			fach_ie_out->pt[i].start_slot = start;
+			fach_ie_out->pt[i].end_slot   = end;
+			fach_ie_out->pt[i].slot_count = cnt;
+		}
+		return true;
+	}
+
+	/* Unknown/unsupported payload format */
+	return false;
+}
+
+
+static uint8_t *dect_phy_mac_pdu_sdu_fixed_sched_resource_encode(
+	const dect_phy_mac_fixed_sched_resource_ie_t *fach_ie_in, uint8_t *target_ptr)
+{
+	*target_ptr++ = fach_ie_in->ver;
+	*target_ptr++ = fach_ie_in->mode;
+	*target_ptr++ = fach_ie_in->max_pts;
+	*target_ptr++ = fach_ie_in->active_pts;
+
+	for (uint8_t i = 0; i < fach_ie_in->max_pts; i++) {
+		*target_ptr++ = fach_ie_in->pt[i].start_slot;
+		*target_ptr++ = fach_ie_in->pt[i].end_slot;
+		*target_ptr++ = fach_ie_in->pt[i].slot_count;
 	}
 
 	return target_ptr;
@@ -1053,6 +1150,12 @@ uint8_t *dect_phy_mac_pdu_sdus_encode(uint8_t *target_ptr, sys_dlist_t *sdu_inpu
 				target_ptr = dect_phy_mac_pdu_sdu_random_access_resource_encode(
 					&sdu_list_item->message.rach_ie, target_ptr);
 				break;
+
+			case DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE:
+				/* Encode the Fixed Scheduling IE */
+				target_ptr = dect_phy_mac_pdu_sdu_fixed_sched_resource_encode(
+					&sdu_list_item->message.fixed_sched_ie, target_ptr);
+				break;
 			case DECT_PHY_MAC_MESSAGE_PADDING:
 				/* Encode the padding,
 				 * shall be encoded when needed to end separately
@@ -1165,6 +1268,17 @@ bool dect_phy_mac_pdu_sdus_decode(uint8_t *payload_ptr, uint32_t payload_len, sy
 					DECT_PHY_MAC_MESSAGE_RANDOM_ACCESS_RESOURCE_IE;
 			}
 			break;
+		case DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE:
+			handled = dect_phy_mac_sdu_fixed_sched_resource_decode(
+				mux_header.payload_ptr, mux_header.payload_length,
+				&sdu_list_item->message.fixed_sched_ie);
+
+			if (handled) {
+				sdu_list_item->message_type =
+					DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE;
+			}
+			break;
+
 		case DECT_PHY_MAC_IE_TYPE_ASSOCIATION_REQ:
 			handled = dect_phy_mac_pdu_sdu_association_req_decode(
 				mux_header.payload_ptr, mux_header.payload_length,
@@ -1225,13 +1339,7 @@ bool dect_phy_mac_pdu_sdus_decode(uint8_t *payload_ptr, uint32_t payload_len, sy
 			memcpy(sdu_list_item->message.common_msg.data, mux_header.payload_ptr,
 			       mux_header.payload_length);
 			break;
-		case DECT_PHY_MAC_IE_TYPE_EXTENSION:
-			/* Store raw payload; higher layers can check mux_header.ie_ext */
-			sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_ESCAPE;
-			sdu_list_item->message.common_msg.data_length = mux_header.payload_length;
-			memcpy(sdu_list_item->message.common_msg.data,
-			       mux_header.payload_ptr, mux_header.payload_length);
-			break;
+		
 
 		default:
 			sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
