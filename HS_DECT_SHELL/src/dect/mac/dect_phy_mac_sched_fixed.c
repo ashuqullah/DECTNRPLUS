@@ -4,15 +4,44 @@
 #include "dect_phy_mac_sched_fixed.h"
 #include "dect_app_time.h"  /* provides dect_app_modem_time_now() */
 #include "dect_common_utils.h"
-#ifndef DECT_SUBSLOT_BB_TICKS
-/* subslot duration in modem ticks . */
-#define DECT_SUBSLOT_BB_TICKS (28800ULL)
-#endif
-/* DECT ETSI timing constants*/
-#define DECT_ETSI_FRAME_US            10000U  /* 10 ms */
-#define DECT_ETSI_SLOT_US               416U  /* ~416 us */
-#define DECT_ETSI_SLOTS_PER_FRAME        24U  /* 24*416 */
+#include "dect_common.h"
 
+#include "dect_phy_api_scheduler.h"   /* scheduler list item types + alloc/add/dealloc */
+#include <errno.h>
+#include "desh_print.h"               /* desh_print / desh_warn (or whatever your project uses) */
+#include "dect_phy_mac.h"             /* DECT_PRIORITY2_RX and other MAC priorities/handles */
+
+/* Auto-allocation: reserve slot 0 for beacon/control, split remaining slots among PTs. */
+static void fixed_auto_pt_slot_range_compute(uint8_t pt_idx0, uint8_t max_pts,
+                                             uint8_t *start_slot, uint8_t *end_slot)
+{
+    const uint8_t first_slot = 1; /* reserve slot 0 */
+    const uint8_t total_slots = (uint8_t)DECT_RADIO_FRAME_SLOT_COUNT - first_slot; /* 23 if 24 total */
+    const uint8_t base = total_slots / max_pts;
+    const uint8_t rem  = total_slots % max_pts;
+
+    uint8_t start = first_slot;
+    for (uint8_t i = 0; i < pt_idx0; i++) {
+        start += (uint8_t)(base + ((i < rem) ? 1 : 0));
+    }
+
+    uint8_t len = (uint8_t)(base + ((pt_idx0 < rem) ? 1 : 0));
+
+    *start_slot = start;
+    *end_slot   = (uint8_t)(start + len - 1);
+}
+
+static bool fixed_table_is_configured(const struct dect_phy_settings *s)
+{
+    /* Treat table as "configured" if any PT has a non-zero range. */
+    for (int i = 0; i < s->mac_sched.max_pts; i++) {
+        if (s->mac_sched.pt_slots[i].start_subslot != 0 ||
+            s->mac_sched.pt_slots[i].end_subslot   != 0) {
+            return true;
+        }
+    }
+    return false;
+}
 
 bool dect_phy_mac_sched_fixed_enabled(void)
 {
@@ -28,14 +57,10 @@ int dect_phy_mac_sched_fixed_validate_settings(void)
         return -EINVAL;
     }
 
+    /* Not fixed scheduling -> nothing to validate here. */
     if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
-        return 0; /* Not fixed scheduling -> always valid here */
+        return 0;
     }
-
-    /* Validate fixed scheduling against a single 10ms frame of 24 slots (0..23).
-     * superframe_len may be 0 during bootstrap and must not invalidate FIXED mode.
-     */
-    const uint16_t frame_len_slots = 24;
 
     /* Role must be set in FIXED mode */
     if (s->mac_sched.role != DECT_MAC_ROLE_FT && s->mac_sched.role != DECT_MAC_ROLE_PT) {
@@ -48,10 +73,6 @@ int dect_phy_mac_sched_fixed_validate_settings(void)
         if (s->mac_sched.pt_id < 1 || s->mac_sched.pt_id > DECT_MAX_PTS) {
             return -EINVAL;
         }
-
-        /* PT does not need max_pts or slot-table validation here.
-         * Slot ownership can be derived/received from FT later.
-         */
         return 0;
     }
 
@@ -60,12 +81,20 @@ int dect_phy_mac_sched_fixed_validate_settings(void)
     if (s->mac_sched.max_pts < 1 || s->mac_sched.max_pts > DECT_MAX_PTS) {
         return -EINVAL;
     }
+	const bool table_cfg = fixed_table_is_configured(s);
 
-    /* Validate each configured PT slot range:
+
+		/* If table not configured -> accept (auto allocation will be used). */
+		if (!table_cfg) {
+			return 0;
+		}
+    /* Validate each configured PT allocation as SUBSLOT indices inside one 10 ms frame:
      * - start <= end
-     * - end within 0..23
+     * - end within frame subslot range
      * - no overlap between PT ranges
      */
+    const uint16_t frame_len_subslots = DECT_RADIO_FRAME_SUBSLOT_COUNT;
+
     for (int i = 0; i < s->mac_sched.max_pts; i++) {
         uint16_t st_i = s->mac_sched.pt_slots[i].start_subslot;
         uint16_t en_i = s->mac_sched.pt_slots[i].end_subslot;
@@ -73,11 +102,10 @@ int dect_phy_mac_sched_fixed_validate_settings(void)
         if (st_i > en_i) {
             return -EINVAL;
         }
-        if (en_i >= frame_len_slots) {
+        if (en_i >= frame_len_subslots) {
             return -EINVAL;
         }
 
-        /* overlap check with later entries */
         for (int j = i + 1; j < s->mac_sched.max_pts; j++) {
             uint16_t st_j = s->mac_sched.pt_slots[j].start_subslot;
             uint16_t en_j = s->mac_sched.pt_slots[j].end_subslot;
@@ -85,7 +113,7 @@ int dect_phy_mac_sched_fixed_validate_settings(void)
             if (st_j > en_j) {
                 return -EINVAL;
             }
-            if (en_j >= frame_len_slots) {
+            if (en_j >= frame_len_subslots) {
                 return -EINVAL;
             }
 
@@ -99,142 +127,333 @@ int dect_phy_mac_sched_fixed_validate_settings(void)
     return 0;
 }
 
-
-
-int dect_phy_mac_sched_fixed_slot_get(uint8_t pt_id, uint16_t *start, uint16_t *end)
+int dect_phy_mac_sched_fixed_pt_slot_range_get(uint8_t pt_id,
+                                               uint8_t max_pts,
+                                               uint8_t *start_slot,
+                                               uint8_t *end_slot)
 {
-	struct dect_phy_settings *s = dect_common_settings_ref_get();
-	if (!start || !end) {
-		return -EINVAL;
-	}
-	if (pt_id == 0 || pt_id > s->mac_sched.max_pts) {
-		return -EINVAL;
-	}
-	int idx = (int)pt_id - 1;
-	*start = s->mac_sched.pt_slots[idx].start_subslot;
-	*end = s->mac_sched.pt_slots[idx].end_subslot;
-	return 0;
+    ARG_UNUSED(max_pts);
+
+    if (!start_slot || !end_slot) {
+        return -EINVAL;
+    }
+
+    /* dect_phy_mac_sched_fixed_slot_get() returns start/end in the configured unit.
+     * Today your settings may store either:
+     *  - slots  (0..DECT_RADIO_FRAME_SLOT_COUNT-1), OR
+     *  - subslots (0..DECT_RADIO_FRAME_SUBSLOT_COUNT-1)
+     *
+     * Option B: detect which one and convert consistently to slots.
+     */
+    uint16_t start_cfg = 0;
+    uint16_t end_cfg   = 0;
+
+    int ret = dect_phy_mac_sched_fixed_slot_get(pt_id, &start_cfg, &end_cfg);
+    if (ret) {
+        return ret;
+    }
+
+    if (end_cfg < start_cfg) {
+        return -EINVAL;
+    }
+
+    /* Heuristic: if both values fit in slot domain, treat as slots (no division). */
+    if (end_cfg < DECT_RADIO_FRAME_SLOT_COUNT && start_cfg < DECT_RADIO_FRAME_SLOT_COUNT) {
+        *start_slot = (uint8_t)start_cfg;
+        *end_slot   = (uint8_t)end_cfg;
+        return 0;
+    }
+
+    /* Otherwise treat as subslots and convert to slots. */
+    if (end_cfg >= DECT_RADIO_FRAME_SUBSLOT_COUNT || start_cfg >= DECT_RADIO_FRAME_SUBSLOT_COUNT) {
+        return -EINVAL;
+    }
+
+    *start_slot = (uint8_t)(start_cfg / DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT);
+    *end_slot   = (uint8_t)(end_cfg   / DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT);
+
+    if (*end_slot >= DECT_RADIO_FRAME_SLOT_COUNT) {
+        return -EINVAL;
+    }
+
+    return 0;
 }
 
-int dect_phy_mac_sched_fixed_next_ul_start_time_get(uint64_t *start_time_bb)
+
+
+int dect_phy_mac_sched_fixed_slot_get(uint8_t pt_id, uint16_t *start_subslot, uint16_t *end_subslot)
 {
-	if (!start_time_bb) {
-		return -EINVAL;
-	}
+    struct dect_phy_settings *s = dect_common_settings_ref_get();
+    if (!s || !start_subslot || !end_subslot) {
+        return -EINVAL;
+    }
 
-	struct dect_phy_settings *s = dect_common_settings_ref_get();
+    if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
+        return -EINVAL;
+    }
 
-	/* Only valid in fixed scheduling mode and on PT side */
-	if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
-		return -EINVAL;
-	}
-	if (s->mac_sched.pt_id == 0) {
-		/* FT does not use PT UL scheduling */
-		return -EINVAL;
-	}
+    if (pt_id < 1 || pt_id > s->mac_sched.max_pts) {
+        return -EINVAL;
+    }
 
-	/* Convert ETSI timing to modem BB ticks */
-	const uint64_t frame_ticks = dect_app_time_us_to_mdm_ticks(DECT_ETSI_FRAME_US);
-	const uint64_t slot_ticks  = dect_app_time_us_to_mdm_ticks(DECT_ETSI_SLOT_US);
+    const uint8_t idx0 = (uint8_t)(pt_id - 1);
 
-	if (frame_ticks == 0 || slot_ticks == 0) {
-		return -EINVAL;
-	}
+    /* If table configured, use it. */
+    if (fixed_table_is_configured(s)) {
+        *start_subslot = s->mac_sched.pt_slots[idx0].start_subslot;
+        *end_subslot   = s->mac_sched.pt_slots[idx0].end_subslot;
+        return 0;
+    }
 
-	/* Read PT slot assignment (interpreted as SLOT INDICES inside a 10ms frame) */
-	uint16_t slot_start = 0, slot_end = 0;
-	int ret = dect_phy_mac_sched_fixed_slot_get(s->mac_sched.pt_id, &slot_start, &slot_end);
-	if (ret) {
-		return ret;
-	}
+    /* Auto allocation: compute slot range and convert to subslots. */
+    uint8_t st_slot, en_slot;
+    fixed_auto_pt_slot_range_compute(idx0, s->mac_sched.max_pts, &st_slot, &en_slot);
 
-	/* Validate slot range fits inside one ETSI frame */
-	if (slot_start > slot_end ||
-	    slot_end >= DECT_ETSI_SLOTS_PER_FRAME) {
-		return -EINVAL;
-	}
+    *start_subslot = (uint16_t)(st_slot * DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT);
+    *end_subslot   = (uint16_t)(((en_slot + 1) * DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT) - 1);
 
-	/* Choose which slot to use.
-	 * Minimal deterministic behavior: always transmit at slot_start.
-	 * (Later you can rotate between slot_start..slot_end.)
-	 */
-	const uint16_t chosen_slot = slot_start;
+    /* Final safety */
+    if (*end_subslot >= DECT_RADIO_FRAME_SUBSLOT_COUNT) {
+        return -EINVAL;
+    }
 
-	uint64_t now = dect_app_modem_time_now();
-
-	/* Align to 10 ms frame boundary */
-	uint64_t frame_start = now - (now % frame_ticks);
-
-	/* Compute the next TX time at the chosen slot boundary */
-	uint64_t tx_time = frame_start + ((uint64_t)chosen_slot * slot_ticks);
-
-	/* If already passed in this frame, schedule in next frame */
-	if (tx_time <= now) {
-		tx_time += frame_ticks;
-	}
-
-	*start_time_bb = tx_time;
-	return 0;
+    return 0;
 }
-int dect_phy_mac_sched_fixed_build_beacon_payload(uint8_t *buf,
-                                                  size_t buf_size)
+
+
+int dect_phy_mac_sched_fixed_next_ul_start_time_get(uint64_t *start_time_mdm_ticks)
 {
-    struct dect_phy_settings *settings = dect_common_settings_ref_get();
-    if (!settings || !buf)
+    if (!start_time_mdm_ticks) {
         return -EINVAL;
+    }
 
-    if (settings->mac_sched.mode != DECT_MAC_SCHED_FIXED)
+    struct dect_phy_settings *s = dect_common_settings_ref_get();
+    if (!s) {
         return -EINVAL;
+    }
 
-    uint8_t max_pts = settings->mac_sched.max_pts;
-
-    if (max_pts == 0 || max_pts > DECT_MAX_PTS)
+    /* Only valid in fixed scheduling mode and on PT side */
+    if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
         return -EINVAL;
+    }
+    if (s->mac_sched.role != DECT_MAC_ROLE_PT || s->mac_sched.pt_id == 0) {
+        return -EINVAL;
+    }
+
+    /* Use project "source of truth" (modem ticks) from dect_common.h */
+    const uint64_t frame_ticks   = DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS;
+    const uint64_t subslot_ticks = DECT_RADIO_SUBSLOT_DURATION_IN_MODEM_TICKS;
+
+    if (frame_ticks == 0 || subslot_ticks == 0) {
+        return -EINVAL;
+    }
+
+    /* Read PT allocation as SUBSLOT indices inside a 10 ms frame */
+    uint16_t start_subslot = 0;
+    uint16_t end_subslot = 0;
+    int ret = dect_phy_mac_sched_fixed_slot_get(s->mac_sched.pt_id, &start_subslot, &end_subslot);
+    if (ret) {
+        return ret;
+    }
+
+    /* Validate allocation fits inside one frame */
+    if (start_subslot > end_subslot || end_subslot >= DECT_RADIO_FRAME_SUBSLOT_COUNT) {
+        return -EINVAL;
+    }
+
+    /* Deterministic choice: transmit at the first subslot of the allocation. */
+    const uint16_t chosen_subslot = start_subslot;
+
+    uint64_t now = dect_app_modem_time_now();
+
+    /* Align to 10 ms frame boundary */
+    uint64_t frame_start = now - (now % frame_ticks);
+
+    /* Compute next TX time at chosen subslot boundary */
+    uint64_t tx_time = frame_start + ((uint64_t)chosen_subslot * subslot_ticks);
+
+    if (tx_time <= now) {
+        tx_time += frame_ticks;
+    }
+
+    *start_time_mdm_ticks = tx_time;
+    return 0;
+}
+int dect_phy_mac_sched_fixed_build_beacon_payload(uint8_t *buf, size_t buf_size)
+{
+    struct dect_phy_settings *s = dect_common_settings_ref_get();
+    if (!s || !buf) {
+        return -EINVAL;
+    }
+
+    if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED || s->mac_sched.role != DECT_MAC_ROLE_FT) {
+        return -EINVAL;
+    }
+
+    uint8_t max_pts = s->mac_sched.max_pts;
+    if (max_pts == 0 || max_pts > DECT_MAX_PTS) {
+        return -EINVAL;
+    }
 
     /* Layout:
      * [0] version
      * [1] mode (1=fixed)
      * [2] max_pts
-     * [3] total_slots
-     * [4..] PT slot allocations (start,end per PT)
+     * [3] slots_per_frame
+     * [4..] PT slot allocations (start_slot,end_slot per PT)
      */
+    const uint8_t slots_per_frame = DECT_RADIO_FRAME_SLOT_COUNT;
+    const size_t required_len = 4 + ((size_t)max_pts * 2);
 
-    uint8_t total_slots = DECT_ETSI_SLOTS_PER_FRAME;
-    size_t required_len = 4 + (max_pts * 2);
-
-    if (buf_size < required_len)
+    if (buf_size < required_len) {
         return -ENOMEM;
+    }
 
     buf[0] = 1; /* version */
     buf[1] = 1; /* fixed mode */
     buf[2] = max_pts;
-    buf[3] = total_slots;
+    buf[3] = slots_per_frame;
 
-    /* ---- Dynamic Slot Distribution ---- */
+    /* Encode allocations from settings table (subslots -> slots). */
+	for (uint8_t i = 0; i < max_pts; i++) {
+		uint16_t st_sub, en_sub;
+		int ret = dect_phy_mac_sched_fixed_slot_get((uint8_t)(i + 1), &st_sub, &en_sub);
+		if (ret) {
+			return ret;
+		}
 
-    uint8_t base_slots = total_slots / max_pts;
-    uint8_t remainder  = total_slots % max_pts;
+		uint8_t st_slot = (uint8_t)(st_sub / DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT);
+		uint8_t en_slot = (uint8_t)(en_sub / DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT);
 
-    uint8_t current_slot = 0;
+		buf[4 + (i * 2)]     = st_slot;
+		buf[4 + (i * 2) + 1] = en_slot;
+	}
 
-    for (uint8_t i = 0; i < max_pts; i++) {
+    return (int)required_len;
+}
 
-        uint8_t this_pt_slots = base_slots;
 
-        /* distribute remainder to first PTs */
-        if (remainder > 0) {
-            this_pt_slots++;
-            remainder--;
-        }
 
-        uint8_t start = current_slot;
-        uint8_t end   = current_slot + this_pt_slots - 1;
 
-        buf[4 + (i * 2)]     = start;
-        buf[4 + (i * 2) + 1] = end;
+int dect_phy_mac_ft_fixed_join_rx_schedule_start(uint64_t beacon_frame_time,
+                                                 uint16_t channel,
+                                                 uint32_t beacon_interval_mdm_ticks)
+{
+    static bool join_rx_already_scheduled;
 
-        current_slot += this_pt_slots;
+    if (join_rx_already_scheduled) {
+        return 0;
+    }
+    join_rx_already_scheduled = true;
+
+    struct dect_phy_settings *s = dect_common_settings_ref_get();
+    if (!s) {
+        return -EINVAL;
     }
 
-    return required_len;
+    const uint32_t frame_ticks = DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS;
+
+    /* Start JOIN listen this many frames after beacon */
+    const uint32_t join_offset_frames = 20;
+
+    /* How many consecutive frames to listen */
+    const uint32_t join_window_frames = DECT_PHY_MAC_FIXED_JOIN_RX_FRAMES_DEFAULT; /* e.g. 20 */
+
+    if (beacon_interval_mdm_ticks < frame_ticks) {
+        return -EINVAL;
+    }
+
+    /* Remove any old JOIN RX items */
+    (void)dect_phy_api_scheduler_list_item_remove_dealloc_by_phy_op_handle_range(
+        DECT_PHY_MAC_BEACON_RX_FIXED_JOIN_HANDLE_START,
+        DECT_PHY_MAC_BEACON_RX_FIXED_JOIN_HANDLE_END);
+
+    if ((DECT_PHY_MAC_BEACON_RX_FIXED_JOIN_HANDLE_START + join_window_frames) >
+        (DECT_PHY_MAC_BEACON_RX_FIXED_JOIN_HANDLE_END + 1)) {
+        return -ENOMEM;
+    }
+
+    /* Compute a base time in the future */
+    uint64_t join_base_time = beacon_frame_time + ((uint64_t)join_offset_frames * frame_ticks);
+
+    uint64_t now = dect_app_modem_time_now();
+    uint64_t min_start = now + (2ULL * frame_ticks);
+    while (join_base_time < min_start) {
+        join_base_time += beacon_interval_mdm_ticks;
+    }
+
+    /* ---- IMPORTANT CHANGE ----
+     * Don't listen whole frame (24 slots). That causes (a) RX-to-RX overlap due to scheduler margin,
+     * and (b) blocks association response TX.
+     *
+     * Instead: listen a short JOIN window (PT1 range + guard).
+     */
+    uint8_t start_slot = 0;
+    uint8_t end_slot = 0;
+
+    /* Use PT1 advertised range if available; fallback to 0..5 */
+    if (dect_phy_mac_sched_fixed_pt_slot_range_get(1, s->mac_sched.max_pts, &start_slot, &end_slot) != 0) {
+        start_slot = 0;
+        end_slot = 5;
+    }
+
+    /* Add a guard slot (but keep within frame) */
+    if (end_slot + 1 < DECT_RADIO_FRAME_SLOT_COUNT) {
+        end_slot++;
+    }
+
+    uint8_t length_slots = (uint8_t)(end_slot - start_slot + 1);
+
+    for (uint32_t i = 0; i < join_window_frames; i++) {
+        struct dect_phy_api_scheduler_list_item_config *conf;
+        struct dect_phy_api_scheduler_list_item *item =
+            dect_phy_api_scheduler_list_item_alloc_rx_element(&conf);
+
+        if (!item || !conf) {
+            if (item) {
+                dect_phy_api_scheduler_list_item_dealloc(item);
+            }
+            return -ENOMEM;
+        }
+
+        conf->cb_op_completed = NULL;
+        conf->channel = channel;
+
+        conf->frame_time = join_base_time + ((uint64_t)i * frame_ticks);
+
+        /* ---- IMPORTANT CHANGE ----
+         * No repeating JOIN RX while debugging association. Avoid long-term conflicts.
+         */
+        conf->interval_mdm_ticks = beacon_interval_mdm_ticks ; /* effectively disable repeating */
+
+        conf->start_slot = start_slot;
+        conf->length_slots = length_slots;
+        conf->length_subslots = 0;
+
+        conf->rx.mode = NRF_MODEM_DECT_PHY_RX_MODE_CONTINUOUS;
+        conf->rx.expected_rssi_level = s->rx.expected_rssi_level;
+        conf->rx.duration = 0; /* use length_slots */
+        conf->rx.network_id = s->common.network_id;
+
+        conf->rx.filter.is_short_network_id_used = true;
+        conf->rx.filter.short_network_id = (uint8_t)(s->common.network_id & 0xFF);
+        conf->rx.filter.receiver_identity = s->common.short_rd_id;
+
+        /* Keep JOIN RX lower priority so TX responses can be scheduled */
+        item->priority = DECT_PRIORITY2_RX;
+
+        item->phy_op_handle =
+            (uint32_t)(DECT_PHY_MAC_BEACON_RX_FIXED_JOIN_HANDLE_START + i);
+
+        if (!dect_phy_api_scheduler_list_item_add(item)) {
+            dect_phy_api_scheduler_list_item_dealloc(item);
+            return -EBUSY;
+        }
+    }
+
+    desh_print("FIXED JOIN RX scheduled: %u frames @ +%u frames after beacon, repeat %u ticks, ch %u, slots %u..%u (len %u)",
+           join_window_frames, join_offset_frames, beacon_interval_mdm_ticks,
+           channel, start_slot, end_slot, length_slots);
+
+    return 0;
 }

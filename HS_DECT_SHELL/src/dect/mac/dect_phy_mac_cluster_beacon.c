@@ -575,224 +575,260 @@ void dect_phy_mac_ctrl_cluster_beacon_phy_api_direct_rssi_cb(
 static void dect_phy_mac_cluster_beacon_to_mdm_cb(
 	struct dect_phy_common_op_completed_params *params, uint64_t frame_time)
 {
-	if (params->status == NRF_MODEM_DECT_PHY_SUCCESS) {
-		beacon_data.last_tx_frame_time = frame_time;
+	if (params->status != NRF_MODEM_DECT_PHY_SUCCESS) {
+		return;
+	}
+
+	beacon_data.last_tx_frame_time = frame_time;
+
+	/* Re-arm FIXED JOIN RX each beacon TX so PT can associate at any time */
+	if (dect_common_settings_ref_get()->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+		const uint32_t interval_mdm_ticks =
+			MS_TO_MODEM_TICKS(DECT_PHY_MAC_CLUSTER_BEACON_INTERVAL_MS);
+
+		(void)dect_phy_mac_ft_fixed_join_rx_schedule_start(
+			frame_time,
+			beacon_data.start_params.beacon_channel,
+			interval_mdm_ticks);
 	}
 }
+
 
 uint64_t dect_phy_mac_cluster_beacon_last_tx_frame_time_get(void)
 {
 	return beacon_data.last_tx_frame_time;
 }
-
-int dect_phy_mac_cluster_beacon_tx_start(struct dect_phy_mac_beacon_start_params *params)
+int dect_phy_mac_cluster_beacon_tx_start(
+	struct dect_phy_mac_beacon_start_params *params)
 {
-
 	if (beacon_data.running) {
 		desh_error("(%s): Beacon already running", __func__);
 		return -EINVAL;
 	}
-	struct dect_phy_settings *current_settings = dect_common_settings_ref_get();
-	uint32_t interval_mdm_ticks = MS_TO_MODEM_TICKS(DECT_PHY_MAC_CLUSTER_BEACON_INTERVAL_MS);
+
+	struct dect_phy_settings *current_settings =
+		dect_common_settings_ref_get();
+
+	const bool fixed_mode =
+		(current_settings->mac_sched.mode == DECT_MAC_SCHED_FIXED);
+
+	uint32_t interval_mdm_ticks =
+		MS_TO_MODEM_TICKS(DECT_PHY_MAC_CLUSTER_BEACON_INTERVAL_MS);
+
 	uint8_t encoded_beacon_pdu[DECT_DATA_MAX_LEN];
 	union nrf_modem_dect_phy_hdr phy_header;
 	uint8_t slot_count = 0;
 	uint8_t *pdu_ptr = encoded_beacon_pdu;
 	int ret;
 
-	memset(encoded_beacon_pdu, 0, DECT_DATA_MAX_LEN);
-	memset(&beacon_data, 0, sizeof(struct dect_phy_mac_cluster_beacon_data));
+	memset(encoded_beacon_pdu, 0, sizeof(encoded_beacon_pdu));
+	memset(&beacon_data, 0, sizeof(beacon_data));
 
-	/* Encode cluster beacon */
-	if (dect_common_settings_ref_get()->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
-		ret = hsa_dect_phy_mac_cluster_beacon_encode_fixed(params, &pdu_ptr, &phy_header);
+	/* Encode beacon */
+	if (fixed_mode) {
+		ret = hsa_dect_phy_mac_cluster_beacon_encode_fixed(
+			params, &pdu_ptr, &phy_header);
 	} else {
-		ret = dect_phy_mac_cluster_beacon_encode(params, &pdu_ptr, &phy_header);
+		ret = dect_phy_mac_cluster_beacon_encode(
+			params, &pdu_ptr, &phy_header);
 	}
+
 	if (ret < 0) {
 		desh_error("(%s): Failed to encode beacon", __func__);
 		return ret;
 	}
+
 	slot_count = ret + 1;
 	beacon_data.start_params = *params;
 
 	dect_phy_mac_ctrl_lms_rssi_scan_data_init(slot_count);
 
-	/* Schedule beaconing */
-	uint64_t first_possible_tx;
 	uint64_t time_now = dect_app_modem_time_now();
-	uint64_t start_time = 0;
+	uint64_t start_time = time_now + SECONDS_TO_MODEM_TICKS(1);
 
-	first_possible_tx = time_now + (SECONDS_TO_MODEM_TICKS(1));
-	start_time = first_possible_tx;
+	/* ------------------------------------------------- */
+	/* LMS RSSI before beacon */
+	/* ------------------------------------------------- */
 
-	/* Schedule Last Minute Scannings (LMS) before beacon TX and
-	 * announcing random access resources.
-	 * Due to scheduling delays and lack of stopping of a scheduled TX operation in phy api.
-	 * LMS is done 2 frames before beacon TX but all slots at that frame are covered where
-	 * we are TX/RA.
-	 * Note: this is not exactly compliant with the LMS in MAC spec (which requires
-	 * the scan to be 1 and/or 0.5 frames before resources being announced or own transmission).
-	 */
-	struct dect_phy_api_scheduler_list_item_config *rssi_list_item_conf;
-	struct dect_phy_api_scheduler_list_item *rssi_list_item =
-		dect_phy_api_scheduler_list_item_alloc_rssi_element(&rssi_list_item_conf);
+	struct dect_phy_api_scheduler_list_item_config *rssi_conf;
+	struct dect_phy_api_scheduler_list_item *rssi_item =
+		dect_phy_api_scheduler_list_item_alloc_rssi_element(&rssi_conf);
 
-	if (!rssi_list_item) {
-		desh_error("(%s): dect_phy_api_scheduler_list_item_alloc_tx_element failed: No "
-			   "memory to TX a beacon");
+	if (!rssi_item) {
+		desh_error("(%s): No memory for LMS RSSI", __func__);
 		return -ENOMEM;
 	}
-	rssi_list_item->phy_op_handle = DECT_PHY_MAC_BEACON_LMS_RSSI_SCAN_HANDLE;
 
-	rssi_list_item_conf->channel = params->beacon_channel;
-	rssi_list_item_conf->frame_time =
+	rssi_item->phy_op_handle = DECT_PHY_MAC_BEACON_LMS_RSSI_SCAN_HANDLE;
+
+	rssi_conf->channel = params->beacon_channel;
+	rssi_conf->frame_time =
 		start_time - (2 * DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS);
-	rssi_list_item_conf->start_slot = 0;
+	rssi_conf->start_slot = 0;
+	rssi_conf->interval_mdm_ticks = interval_mdm_ticks;
 
-	/* Let it run in intervals in a scheduler */
-	rssi_list_item_conf->interval_mdm_ticks = interval_mdm_ticks;
-	rssi_list_item_conf->rssi.rssi_op_params.start_time = rssi_list_item_conf->frame_time;
-	rssi_list_item_conf->rssi.rssi_op_params.handle = rssi_list_item->phy_op_handle;
-	rssi_list_item_conf->rssi.rssi_op_params.carrier = rssi_list_item_conf->channel;
-	rssi_list_item_conf->rssi.rssi_op_params.duration = DECT_RADIO_FRAME_SUBSLOT_COUNT;
-	rssi_list_item_conf->rssi.rssi_op_params.reporting_interval =
+	rssi_conf->rssi.rssi_op_params.start_time = rssi_conf->frame_time;
+	rssi_conf->rssi.rssi_op_params.handle = rssi_item->phy_op_handle;
+	rssi_conf->rssi.rssi_op_params.carrier = rssi_conf->channel;
+	rssi_conf->rssi.rssi_op_params.duration =
+		DECT_RADIO_FRAME_SUBSLOT_COUNT;
+	rssi_conf->rssi.rssi_op_params.reporting_interval =
 		NRF_MODEM_DECT_PHY_RSSI_INTERVAL_24_SLOTS;
 
-	/* Add RSSI measurement operation to scheduler list */
-	if (!dect_phy_api_scheduler_list_item_add(rssi_list_item)) {
-		desh_error("(%s): dect_phy_api_scheduler_list_item_add failed for RSSI "
-			   "measurement -- continue",
-			(__func__));
-		dect_phy_api_scheduler_list_item_dealloc(rssi_list_item);
+	if (!dect_phy_api_scheduler_list_item_add(rssi_item)) {
+		dect_phy_api_scheduler_list_item_dealloc(rssi_item);
 	}
 
-	struct dect_phy_api_scheduler_list_item_config *sched_list_item_conf;
-	struct dect_phy_api_scheduler_list_item *sched_list_item =
-		dect_phy_api_scheduler_list_item_alloc_tx_element(&sched_list_item_conf);
-	uint64_t beacon_frame_time = start_time;
+	/* ------------------------------------------------- */
+	/* Beacon TX */
+	/* ------------------------------------------------- */
 
-	if (!sched_list_item) {
-		desh_error("(%s): dect_phy_api_scheduler_list_item_alloc_tx_element failed: No "
-			   "memory to TX a beacon");
+	struct dect_phy_api_scheduler_list_item_config *tx_conf;
+	struct dect_phy_api_scheduler_list_item *tx_item =
+		dect_phy_api_scheduler_list_item_alloc_tx_element(&tx_conf);
+
+	if (!tx_item) {
+		desh_error("(%s): No memory for beacon TX", __func__);
 		return -ENOMEM;
 	}
-	uint16_t encoded_pdu_length = pdu_ptr - encoded_beacon_pdu;
 
-	sched_list_item_conf->address_info.network_id = current_settings->common.network_id;
-	sched_list_item_conf->address_info.transmitter_long_rd_id =
+	uint16_t encoded_pdu_length =
+		(uint16_t)(pdu_ptr - encoded_beacon_pdu);
+
+	tx_conf->address_info.network_id =
+		current_settings->common.network_id;
+	tx_conf->address_info.transmitter_long_rd_id =
 		current_settings->common.transmitter_id;
-	sched_list_item_conf->address_info.receiver_long_rd_id = DECT_LONG_RD_ID_BROADCAST;
+	tx_conf->address_info.receiver_long_rd_id =
+		DECT_LONG_RD_ID_BROADCAST;
 
-	sched_list_item_conf->cb_op_to_mdm = dect_phy_mac_cluster_beacon_to_mdm_cb;
-	sched_list_item_conf->cb_op_completed = NULL;
+	tx_conf->cb_op_to_mdm =
+		dect_phy_mac_cluster_beacon_to_mdm_cb;
+	tx_conf->cb_op_completed = NULL;
 
-	sched_list_item_conf->channel = params->beacon_channel;
-	sched_list_item_conf->frame_time = start_time;
-	beacon_frame_time = sched_list_item_conf->frame_time;
+	tx_conf->channel = params->beacon_channel;
+	tx_conf->frame_time = start_time;
+	tx_conf->start_slot = 0;
+	tx_conf->interval_mdm_ticks = interval_mdm_ticks;
 
-	sched_list_item_conf->start_slot = 0;
+	tx_conf->length_slots = slot_count;
+	tx_conf->length_subslots = 0;
+	tx_conf->tx.phy_lbt_period = 0;
 
-	/* Let it run in intervals in a scheduler */
-	sched_list_item_conf->interval_mdm_ticks = interval_mdm_ticks;
-	sched_list_item_conf->length_slots = slot_count;
-	sched_list_item_conf->length_subslots = 0;
+	tx_item->priority = DECT_PRIORITY1_TX;
+	tx_item->phy_op_handle = DECT_PHY_MAC_BEACON_TX_HANDLE;
 
-	sched_list_item_conf->tx.phy_lbt_period = 0;
+	tx_item->sched_config.tx.encoded_payload_pdu_size =
+		encoded_pdu_length;
 
-	sched_list_item->priority = DECT_PRIORITY1_TX;
+	memcpy(tx_item->sched_config.tx.encoded_payload_pdu,
+	       encoded_beacon_pdu,
+	       encoded_pdu_length);
 
-	sched_list_item->sched_config.tx.encoded_payload_pdu_size = encoded_pdu_length;
-	memcpy(sched_list_item->sched_config.tx.encoded_payload_pdu, encoded_beacon_pdu,
-	       sched_list_item->sched_config.tx.encoded_payload_pdu_size);
+	memcpy(beacon_data.encoded_cluster_beacon_pdu,
+	       encoded_beacon_pdu,
+	       encoded_pdu_length);
 
-	memcpy(beacon_data.encoded_cluster_beacon_pdu, encoded_beacon_pdu, encoded_pdu_length);
-	beacon_data.encoded_cluster_beacon_pdu_len = encoded_pdu_length;
+	beacon_data.encoded_cluster_beacon_pdu_len =
+		encoded_pdu_length;
 
-	sched_list_item->sched_config.tx.header_type = DECT_PHY_HEADER_TYPE1;
+	tx_item->sched_config.tx.header_type =
+		DECT_PHY_HEADER_TYPE1;
 
-	memcpy(&sched_list_item->sched_config.tx.phy_header.type_1, &phy_header.type_1,
+	memcpy(&tx_item->sched_config.tx.phy_header.type_1,
+	       &phy_header.type_1,
 	       sizeof(phy_header.type_1));
 
-	sched_list_item->phy_op_handle = DECT_PHY_MAC_BEACON_TX_HANDLE;
-
-	/* Add beacon tx operation to scheduler list */
-	if (!dect_phy_api_scheduler_list_item_add(sched_list_item)) {
-		desh_error("(%s): dect_phy_api_scheduler_list_item_add failed\n", (__func__));
-		dect_phy_api_scheduler_list_item_dealloc(sched_list_item);
+	if (!dect_phy_api_scheduler_list_item_add(tx_item)) {
+		dect_phy_api_scheduler_list_item_dealloc(tx_item);
 		return -EBUSY;
 	}
 
-	/* Schedule RACH RXes. Note: no specific LMS for all of these, ie. not strictly
-	 * as mac spec intended. However, LBT shall be used and is used in desh when sending
-	 * to random access resource.
-	 */
-	uint32_t rach_handle = DECT_PHY_MAC_BEACON_RX_RACH_HANDLE_START;
-	uint64_t rach_frame_time = beacon_frame_time;
+	/* ------------------------------------------------- */
+	/* RANDOM mode only: schedule RACH */
+	/* ------------------------------------------------- */
 
-	uint64_t last_valid_rach_rx_frame_time =
-		rach_frame_time + (DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS *
-				   DECT_PHY_MAC_CLUSTER_BEACON_RA_VALIDITY);
+	if (!fixed_mode) {
 
-	while (rach_frame_time <= last_valid_rach_rx_frame_time) {
-		struct dect_phy_api_scheduler_list_item_config *rach_list_item_conf;
-		struct dect_phy_api_scheduler_list_item *rach_list_item =
-			dect_phy_api_scheduler_list_item_alloc_rx_element(&rach_list_item_conf);
+		uint32_t rach_handle =
+			DECT_PHY_MAC_BEACON_RX_RACH_HANDLE_START;
 
-		if (!rach_list_item) {
-			break;
-		}
+		uint64_t rach_frame_time = start_time;
 
-		rach_list_item_conf->cb_op_completed = NULL;
+		uint64_t last_valid =
+			rach_frame_time +
+			(DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS *
+			 DECT_PHY_MAC_CLUSTER_BEACON_RA_VALIDITY);
 
-		rach_list_item_conf->channel = params->beacon_channel;
-		rach_list_item_conf->frame_time = rach_frame_time;
-		rach_list_item_conf->interval_mdm_ticks = interval_mdm_ticks;
+		while (rach_frame_time <= last_valid) {
 
-		rach_list_item_conf->start_slot = (DECT_PHY_MAC_CLUSTER_BEACON_RA_START_SUBSLOT /
-						   DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT);
-		rach_list_item_conf->length_slots = DECT_PHY_MAC_CLUSTER_BEACON_RA_LENGTH_SLOTS;
-		rach_list_item_conf->length_subslots = 0;
+			struct dect_phy_api_scheduler_list_item_config *rach_conf;
+			struct dect_phy_api_scheduler_list_item *rach_item =
+				dect_phy_api_scheduler_list_item_alloc_rx_element(&rach_conf);
 
-		rach_list_item_conf->rx.mode = NRF_MODEM_DECT_PHY_RX_MODE_CONTINUOUS;
-		rach_list_item_conf->rx.expected_rssi_level =
-			current_settings->rx.expected_rssi_level;
-		rach_list_item_conf->rx.duration =
-			0; /* length_slots used instead duration variable */
-		rach_list_item_conf->rx.network_id = current_settings->common.network_id;
+			if (!rach_item) {
+				break;
+			}
 
-		/* Only receive the ones destinated to this beacon: */
-		rach_list_item_conf->rx.filter.is_short_network_id_used = true;
-		rach_list_item_conf->rx.filter.short_network_id =
-			(uint8_t)(current_settings->common.network_id & 0xFF);
-		rach_list_item_conf->rx.filter.receiver_identity =
-			current_settings->common.short_rd_id;
+			rach_conf->cb_op_completed = NULL;
+			rach_conf->channel = params->beacon_channel;
+			rach_conf->frame_time = rach_frame_time;
+			rach_conf->interval_mdm_ticks = interval_mdm_ticks;
 
-		rach_list_item->priority = DECT_PRIORITY2_RX;
-		rach_list_item->phy_op_handle = rach_handle;
+			rach_conf->start_slot =
+				(DECT_PHY_MAC_CLUSTER_BEACON_RA_START_SUBSLOT /
+				 DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT);
 
-		if (!dect_phy_api_scheduler_list_item_add(rach_list_item)) {
-			desh_error("(%s): dect_phy_api_scheduler_list_item_add for RACH failed",
-				   (__func__));
-			ret = -EBUSY;
-			dect_phy_api_scheduler_list_item_dealloc(rach_list_item);
-			break;
-		}
+			rach_conf->length_slots =
+				DECT_PHY_MAC_CLUSTER_BEACON_RA_LENGTH_SLOTS;
 
-		rach_frame_time = rach_frame_time + (DECT_PHY_MAC_CLUSTER_BEACON_RA_REPETITION *
-						     DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS);
-		rach_handle++;
-		if (rach_handle > DECT_PHY_MAC_BEACON_RX_RACH_HANDLE_END) {
-			rach_handle = DECT_PHY_MAC_BEACON_RX_RACH_HANDLE_START;
+			rach_conf->length_subslots = 0;
+
+			rach_conf->rx.mode =
+				NRF_MODEM_DECT_PHY_RX_MODE_CONTINUOUS;
+
+			rach_conf->rx.expected_rssi_level =
+				current_settings->rx.expected_rssi_level;
+
+			rach_conf->rx.duration = 0;
+
+			rach_conf->rx.network_id =
+				current_settings->common.network_id;
+
+			rach_conf->rx.filter.is_short_network_id_used = true;
+			rach_conf->rx.filter.short_network_id =
+				(uint8_t)(current_settings->common.network_id & 0xFF);
+
+			rach_conf->rx.filter.receiver_identity =
+				current_settings->common.short_rd_id;
+
+			rach_item->priority = DECT_PRIORITY2_RX;
+			rach_item->phy_op_handle = rach_handle;
+
+			if (!dect_phy_api_scheduler_list_item_add(rach_item)) {
+				dect_phy_api_scheduler_list_item_dealloc(rach_item);
+				break;
+			}
+
+			rach_frame_time +=
+				(DECT_PHY_MAC_CLUSTER_BEACON_RA_REPETITION *
+				 DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS);
+
+			rach_handle++;
+			if (rach_handle > DECT_PHY_MAC_BEACON_RX_RACH_HANDLE_END) {
+				rach_handle =
+					DECT_PHY_MAC_BEACON_RX_RACH_HANDLE_START;
+			}
 		}
 	}
 
 	beacon_data.running = true;
 
-	desh_print("Scheduled beacon TX: "
-		   "interval %dms, tx pwr %d dbm, channel %d, payload PDU byte count: %d",
-		   DECT_PHY_MAC_CLUSTER_BEACON_INTERVAL_MS, params->tx_power_dbm,
-		   params->beacon_channel, encoded_pdu_length);
+	desh_print("Scheduled beacon TX: interval %dms, tx pwr %d dbm, channel %d, payload PDU byte count: %d",
+		   DECT_PHY_MAC_CLUSTER_BEACON_INTERVAL_MS,
+		   params->tx_power_dbm,
+		   params->beacon_channel,
+		   encoded_pdu_length);
 
 	return 0;
 }

@@ -354,6 +354,23 @@ int dect_phy_mac_ctrl_associate_fixed(struct dect_phy_mac_associate_params *para
 
 	return ret;
 }
+int dect_phy_mac_ctrl_dissociate_fixed(struct dect_phy_mac_associate_params *params)
+{
+    struct dect_phy_mac_nbr_info_list_item *target_nbr;
+
+    if (!params) {
+        return -EINVAL;
+    }
+
+    target_nbr = dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
+    if (!target_nbr) {
+        desh_error("(%s): target nbr (long rd id %u) not found",
+                   __func__, params->target_long_rd_id);
+        return -ENOENT;
+    }
+
+    return 0;
+}
 
 
 /**************************************************************************************************/

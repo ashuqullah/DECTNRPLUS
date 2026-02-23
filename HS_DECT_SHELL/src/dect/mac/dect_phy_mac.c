@@ -29,14 +29,14 @@
 
 /* Validate fixed scheduling settings */
 static bool hsa_mode_match_required(struct dect_phy_settings *s,
-                                  bool got_pt_policy,
-                                  bool pt_says_fixed)
+                                    bool got_pt_policy,
+                                    bool pt_says_fixed)
 {
-    /* If we don't get policy IE, treat as RANDOM (backward compatible). */
-    bool pt_fixed = got_pt_policy ? pt_says_fixed : false;
+    if (!got_pt_policy) {
+        return true; /* accept if PT didn't include policy */
+    }
     bool ft_fixed = (s->mac_sched.mode == DECT_MAC_SCHED_FIXED);
-
-    return (ft_fixed == pt_fixed);
+    return (ft_fixed == pt_says_fixed);
 }
 /**************************************************************************************************/
 
@@ -626,14 +626,7 @@ bool dect_phy_mac_direct_pdc_handle(struct dect_phy_commmon_op_pdc_rcv_params *r
                     continue;
                 }
 
-                /* If you want this check, uncomment it:*/
-                 
-                  if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
-                      if (!got_hsa_policy || !pt_says_fixed) {
-                          dect_phy_mac_cluster_beacon_association_reject_send(rcv_params, &common_header);
-                          continue;
-                      }
-                  }
+            
                  
 				  /* HS_DECT: enforce mode match (FIXED<->FIXED, RANDOM<->RANDOM) */
 					if (!hsa_mode_match_required(s, got_hsa_policy, pt_says_fixed)) {

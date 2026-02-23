@@ -39,4 +39,5 @@ int dect_phy_mac_client_associate_fixed(struct dect_phy_mac_nbr_info_list_item *
 					struct dect_phy_mac_associate_params *params);
 
 
+
 #endif /* DECT_PHY_MAC_CLIENT_H */
