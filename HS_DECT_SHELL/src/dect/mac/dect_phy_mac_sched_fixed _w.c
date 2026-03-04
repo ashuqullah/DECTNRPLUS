@@ -48,16 +48,7 @@ bool dect_phy_mac_sched_fixed_enabled(void)
 	struct dect_phy_settings *s = dect_common_settings_ref_get();
 	return (s->mac_sched.mode == DECT_MAC_SCHED_FIXED);
 }
-bool dect_phy_mac_sched_reallocation_enabled(void)
-{
-	struct dect_phy_settings *s = dect_common_settings_ref_get();
-	return (s->mac_sched.mode == DECT_MAC_SCHED_RALLOCATE);
-}
-bool dect_phy_mac_sched_random_enabled(void)
-{
-	struct dect_phy_settings *s = dect_common_settings_ref_get();
-	return (s->mac_sched.mode == DECT_MAC_SCHED_RANDOM);
-}
+
 int dect_phy_mac_sched_fixed_validate_settings(void)
 {
     struct dect_phy_settings *s = dect_common_settings_ref_get();
@@ -465,69 +456,4 @@ int dect_phy_mac_ft_fixed_join_rx_schedule_start(uint64_t beacon_frame_time,
            channel, start_slot, end_slot, length_slots);
 
     return 0;
-}
-
-
-
-/* Convert slot range (0..23) to subslot range (0..47):
- * slot N => UL/DL subslots are (2*N) and (2*N + 1)
- */
-static inline uint8_t slot_to_start_subslot(uint8_t slot)
-{
-	return (uint8_t)(slot * 2U);
-}
-
-static inline uint8_t slot_to_end_subslot(uint8_t slot)
-{
-	return (uint8_t)(slot * 2U + 1U);
-}
-
-void dect_phy_mac_fixed_sched_resource_ie_handle(
-	const dect_phy_mac_common_header_t *common_header,
-	const dect_phy_mac_fixed_sched_resource_ie_t *ie)
-{
-	ARG_UNUSED(common_header);
-
-	struct dect_phy_settings *s = dect_common_settings_ref_get();
-	if (!s || !ie) {
-		return;
-	}
-
-	/* Apply only when we are in FIXED mode (your current concept) */
-	if (s->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
-		return;
-	}
-
-	/* Clamp max_pts to our local table size */
-	uint8_t max_pts = ie->max_pts;
-	if (max_pts == 0U) {
-		return;
-	}
-	if (max_pts > DECT_MAX_PTS) {
-		max_pts = DECT_MAX_PTS;
-	}
-
-	/* Store advertised max_pts/active_pts if you want */
-	s->mac_sched.max_pts = max_pts;
-
-	/* Copy allocation into existing scheduler table:
-	 * Your settings table uses start_subslot/end_subslot (0..47).
-	 */
-	for (uint8_t i = 0; i < max_pts; i++) {
-		uint8_t start_slot = ie->pt[i].start_slot;
-		uint8_t end_slot   = ie->pt[i].end_slot;
-
-		/* Defensive clamp */
-		if (start_slot > 23U) start_slot = 23U;
-		if (end_slot > 23U)   end_slot = 23U;
-		if (end_slot < start_slot) {
-			end_slot = start_slot;
-		}
-
-		s->mac_sched.pt_slots[i].start_subslot = slot_to_start_subslot(start_slot);
-		s->mac_sched.pt_slots[i].end_subslot   = slot_to_end_subslot(end_slot);
-	}
-
-	/* Optional debug */
-	/* desh_info("FixedSched IE applied: max_pts=%u", max_pts); */
 }

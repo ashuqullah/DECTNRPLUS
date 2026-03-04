@@ -58,6 +58,19 @@ static struct dect_phy_mac_client_data {
 	.client_seq_nbr = 0,
 	.last_tx_time_mdm_ticks = 0,
 };
+
+/* Last received ETSI Resource Allocation IE (UL grant) for scheduled TX (reach_tx). */
+static struct dect_phy_mac_client_ralloc_state {
+	bool valid;
+	uint32_t ft_long_rd_id;
+	dect_phy_mac_resource_allocation_ie_t ra;
+	uint64_t rx_time_mdm_ticks;
+} client_ralloc = {
+	.valid = false,
+	.ft_long_rd_id = 0,
+	.rx_time_mdm_ticks = 0,
+};
+
 /*	New HELPER Function*/
 static int dect_phy_mac_client_association_req_pdu_encode(
 	struct dect_phy_mac_associate_params *params,
@@ -69,6 +82,73 @@ static int dect_phy_mac_client_association_req_pdu_encode(
 
 /**************************************************************************************************/
 
+#include "dect_common.h"  /* for DECT_RADIO_FRAME_SUBSLOT_COUNT */
+
+/* Apply ETSI Resource Allocation IE to your existing FIXED scheduler table.
+ * Your mac_sched has only: start_subslot/end_subslot per PT.
+ */
+#include "dect_phy_mac_client.h"  /* make sure this is included */
+
+void dect_phy_mac_client_resource_allocation_handle(
+	dect_phy_mac_common_header_t *common_header,
+	const dect_phy_mac_resource_allocation_ie_t *ra)
+{
+	struct dect_phy_settings *s = dect_common_settings_ref_get();
+	if (!s || !ra) {
+		return;
+	}
+
+	/* Store last received allocation for reach_tx (PT scheduled UL) */
+	client_ralloc.ra = *ra;
+	client_ralloc.rx_time_mdm_ticks = dect_app_modem_time_now();
+	client_ralloc.ft_long_rd_id = common_header ? common_header->transmitter_id : 0;
+	client_ralloc.valid = (ra->allocation_type != 0x00);
+
+
+	/* Only apply in RALLOCATE mode + PT role */
+	if (s->mac_sched.mode != DECT_MAC_SCHED_RALLOCATE) {
+		return;
+	}
+	if (s->mac_sched.role != DECT_MAC_ROLE_PT) {
+		return;
+	}
+
+	/* Use existing pt_id (1..max_pts) from your settings */
+	uint8_t pt_id = s->mac_sched.pt_id;
+	if (pt_id == 0U || pt_id > s->mac_sched.max_pts) {
+		pt_id = 1U; /* fallback */
+	}
+
+	uint8_t idx = (uint8_t)(pt_id - 1U);
+
+	/* Handle "release all" */
+	if (ra->allocation_type == 0x00) {
+		s->mac_sched.pt_slots[idx].start_subslot = 0;
+		s->mac_sched.pt_slots[idx].end_subslot   = 0;
+		return;
+	}
+
+	/* Use allocation #1 window (DL in DL/DL+UL, UL in UL-only) */
+	uint8_t start = ra->start_subslot;
+	uint8_t len   = ra->length;
+
+	if (len == 0U) {
+		return;
+	}
+
+	uint16_t end = (uint16_t)start + (uint16_t)len - 1U;
+
+	/* Clamp to 48 subslots: 0..47 */
+	if (end > 47U) {
+		end = 47U;
+	}
+
+	s->mac_sched.pt_slots[idx].start_subslot = start;
+	s->mac_sched.pt_slots[idx].end_subslot   = (uint8_t)end;
+
+	/* Optional: debug print */
+	/* desh_info("RA applied: pt_id=%u start_ss=%u end_ss=%u", pt_id, start, (uint8_t)end); */
+} 
 static int dect_phy_mac_client_data_pdu_encode(struct dect_phy_mac_rach_tx_params *params,
 					       uint32_t nw_id_24msb, uint8_t nw_id_8lsb,
 					       uint16_t target_short_rd_id,
@@ -317,6 +397,129 @@ uint64_t dect_phy_mac_client_next_fixed_join_tx_time_get(uint64_t beacon_rx_time
 	return t;
 }
 
+
+static bool dect_phy_mac_client_ralloc_is_valid_for_target(uint32_t target_long_rd_id)
+{
+	struct dect_phy_settings *s = dect_common_settings_ref_get();
+
+	if (!s) {
+		return false;
+	}
+	if (s->mac_sched.mode != DECT_MAC_SCHED_RALLOCATE) {
+		return false;
+	}
+	if (!client_ralloc.valid) {
+		return false;
+	}
+	/* If we know which FT sent it, require match. If unknown (0), accept. */
+	if (client_ralloc.ft_long_rd_id != 0 && client_ralloc.ft_long_rd_id != target_long_rd_id) {
+		return false;
+	}
+	return true;
+}
+
+static uint64_t dect_phy_mac_client_next_ralloc_ul_tx_time_get(
+	struct dect_phy_mac_nbr_info_list_item *target_nbr)
+{
+	struct dect_phy_settings *current_settings = dect_common_settings_ref_get();
+
+	if (!dect_phy_mac_client_ralloc_is_valid_for_target(target_nbr->long_rd_id)) {
+		return 0;
+	}
+
+	uint64_t time_now = dect_app_modem_time_now();
+	uint64_t beacon_received = target_nbr->time_rcvd_mdm_ticks;
+
+	uint64_t first_possible_tx = time_now +
+		dect_phy_ctrl_modem_latency_for_next_op_get(true) +
+		(US_TO_MODEM_TICKS(current_settings->scheduler.scheduling_delay_us));
+
+	uint64_t next_beacon_frame_start, beacon_interval_mdm_ticks;
+	uint64_t ul_start_mdm_ticks, ul_interval_mdm_ticks, last_valid_frame_time;
+
+	int32_t beacon_interval_ms = dect_phy_mac_pdu_cluster_beacon_period_in_ms(
+		target_nbr->beacon_msg.cluster_beacon_period);
+	if (beacon_interval_ms < 0) {
+		return 0;
+	}
+
+	/* If our beacon is running, avoid scheduling collisions (same as RACH path). */
+	if (dect_phy_mac_cluster_beacon_is_running()) {
+		first_possible_tx += MS_TO_MODEM_TICKS(DECT_PHY_API_SCHEDULER_OP_TIME_WINDOW_MS);
+	}
+
+	beacon_interval_mdm_ticks = MS_TO_MODEM_TICKS(beacon_interval_ms);
+
+	/* Align to next beacon frame start >= first_possible_tx */
+	next_beacon_frame_start = beacon_received;
+	while (next_beacon_frame_start < first_possible_tx) {
+		next_beacon_frame_start += beacon_interval_mdm_ticks;
+	}
+
+	/* Compute UL repetition interval and last-valid limit */
+	if (client_ralloc.ra.repeat == DECT_PHY_MAC_RA_REPEAT_TYPE_SINGLE) {
+		ul_interval_mdm_ticks = beacon_interval_mdm_ticks;
+		last_valid_frame_time = next_beacon_frame_start;
+	} else if (client_ralloc.ra.repeat == DECT_PHY_MAC_RA_REPEAT_TYPE_FRAMES) {
+		ul_interval_mdm_ticks =
+			client_ralloc.ra.repetition * DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS;
+		last_valid_frame_time =
+			next_beacon_frame_start +
+			(client_ralloc.ra.validity * DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS);
+	} else {
+		/* SUBSLOTS */
+		ul_interval_mdm_ticks =
+			client_ralloc.ra.repetition * DECT_RADIO_SUBSLOT_DURATION_IN_MODEM_TICKS;
+		last_valid_frame_time =
+			next_beacon_frame_start +
+			(client_ralloc.ra.validity * DECT_RADIO_FRAME_DURATION_IN_MODEM_TICKS);
+	}
+
+	/* Avoid sending before our last TX */
+	if (client_data.last_tx_time_mdm_ticks > first_possible_tx) {
+		first_possible_tx = client_data.last_tx_time_mdm_ticks + 1;
+	}
+
+	/* Avoid collision with our own beacon TX */
+	uint64_t next_our_beacon_frame_time = 0;
+
+	if (dect_phy_mac_cluster_beacon_is_running()) {
+		next_our_beacon_frame_time =
+			dect_phy_mac_cluster_beacon_last_tx_frame_time_get();
+		uint32_t our_beacon_interval_mdm_ticks =
+			MS_TO_MODEM_TICKS(DECT_PHY_MAC_CLUSTER_BEACON_INTERVAL_MS);
+
+		while (next_our_beacon_frame_time < first_possible_tx) {
+			next_our_beacon_frame_time += our_beacon_interval_mdm_ticks;
+		}
+	}
+
+	/* Schedule at UL start subslot (add 2 subslots margin like RACH). */
+	ul_start_mdm_ticks = next_beacon_frame_start +
+		((client_ralloc.ra.start_subslot + 2) *
+		 DECT_RADIO_SUBSLOT_DURATION_IN_MODEM_TICKS);
+
+	while (ul_start_mdm_ticks < first_possible_tx &&
+	       ul_start_mdm_ticks < last_valid_frame_time) {
+		ul_start_mdm_ticks += ul_interval_mdm_ticks;
+
+		if (next_our_beacon_frame_time &&
+		    dect_common_utils_mdm_ticks_is_in_range(ul_start_mdm_ticks,
+						  next_our_beacon_frame_time,
+						  next_our_beacon_frame_time +
+						  MS_TO_MODEM_TICKS(DECT_PHY_MAC_CLUSTER_BEACON_INTERVAL_MS))) {
+			ul_start_mdm_ticks = next_our_beacon_frame_time +
+				MS_TO_MODEM_TICKS(DECT_PHY_MAC_CLUSTER_BEACON_INTERVAL_MS);
+		}
+	}
+
+	if (ul_start_mdm_ticks >= last_valid_frame_time) {
+		return 0;
+	}
+
+	return ul_start_mdm_ticks;
+}
+
 static int dect_phy_mac_client_associate_msg_send_fixed(
 	struct dect_phy_mac_nbr_info_list_item *target_nbr,
 	struct dect_phy_mac_associate_params *params)
@@ -552,6 +755,81 @@ void dect_mac_client_rach_tx_stop(void)
 	k_work_cancel_delayable(&client_rach_tx_work_data.work);
 }
 
+
+/**************************************************************************************************/
+/* reach_tx: scheduled UL TX (Resource Allocation now; FIXED later) */
+
+static int dect_phy_mac_client_reach_tx(struct dect_phy_mac_nbr_info_list_item *target_nbr,
+					struct dect_phy_mac_rach_tx_params *params);
+
+struct dect_phy_mac_client_reach_tx_data {
+	struct k_work_delayable work;
+	struct dect_phy_mac_rach_tx_params cmd_params;
+	struct dect_phy_mac_nbr_info_list_item target_nbr;
+};
+static struct dect_phy_mac_client_reach_tx_data client_reach_tx_work_data;
+
+static void dect_phy_mac_client_reach_tx_worker(struct k_work *work_item)
+{
+	struct k_work_delayable *delayable_work = k_work_delayable_from_work(work_item);
+	struct dect_phy_mac_client_reach_tx_data *data =
+		CONTAINER_OF(delayable_work, struct dect_phy_mac_client_reach_tx_data, work);
+	struct dect_phy_mac_rach_tx_params cmd_params;
+	int err;
+
+	cmd_params = data->cmd_params;
+
+	if (data->cmd_params.get_mdm_temp) {
+		char tmp_str[DECT_DATA_MAX_LEN * 2] = {0};
+		int mdm_temperature = dect_phy_ctrl_modem_temperature_get();
+
+		if (mdm_temperature == NRF_MODEM_DECT_PHY_TEMP_NOT_MEASURED) {
+			sprintf(tmp_str, "{\"data\":\"%s\",\"m_tmp\":\"N/A\"}",
+				cmd_params.tx_data_str);
+		} else {
+			sprintf(tmp_str, "{\"data\":\"%s\",\"m_tmp\":\"%d\"}",
+				cmd_params.tx_data_str, mdm_temperature);
+		}
+		memset(cmd_params.tx_data_str, 0, DECT_DATA_MAX_LEN);
+		strncpy(cmd_params.tx_data_str, tmp_str, DECT_DATA_MAX_LEN - 1);
+	}
+
+	struct dect_phy_mac_nbr_info_list_item *scan_info =
+		dect_phy_mac_nbr_info_get_by_long_rd_id(cmd_params.target_long_rd_id);
+	if (!scan_info) {
+		desh_warn("(%s): Beacon with long RD ID %u has not been seen in scan results",
+			  (__func__), cmd_params.target_long_rd_id);
+		return;
+	}
+
+	data->target_nbr = *scan_info;
+	err = dect_phy_mac_client_reach_tx(&data->target_nbr, &cmd_params);
+	if (err) {
+		desh_error("(%s): client_reach_tx failed: %d", (__func__), err);
+	}
+
+	if (cmd_params.interval_secs) {
+		k_work_schedule_for_queue(&dect_phy_ctrl_work_q,
+					  &client_reach_tx_work_data.work,
+					  K_SECONDS(cmd_params.interval_secs));
+	}
+}
+
+int dect_phy_mac_client_reach_tx_start(
+	struct dect_phy_mac_nbr_info_list_item *target_nbr,
+	struct dect_phy_mac_rach_tx_params *params)
+{
+	client_reach_tx_work_data.cmd_params = *params;
+	client_reach_tx_work_data.target_nbr = *target_nbr;
+	k_work_schedule_for_queue(&dect_phy_ctrl_work_q, &client_reach_tx_work_data.work, K_SECONDS(0));
+	return 0;
+}
+
+void dect_phy_mac_client_reach_tx_stop(void)
+{
+	k_work_cancel_delayable(&client_reach_tx_work_data.work);
+}
+
 static int dect_phy_mac_client_rach_tx(struct dect_phy_mac_nbr_info_list_item *target_nbr,
 				struct dect_phy_mac_rach_tx_params *params)
 {
@@ -655,6 +933,146 @@ static int dect_phy_mac_client_rach_tx(struct dect_phy_mac_nbr_info_list_item *t
 	return 0;
 }
 
+
+/**************************************************************************************************/
+
+static int dect_phy_mac_client_ralloc_ul_tx(struct dect_phy_mac_nbr_info_list_item *target_nbr,
+					   struct dect_phy_mac_rach_tx_params *params)
+{
+	struct dect_phy_settings *current_settings = dect_common_settings_ref_get();
+
+	uint64_t beacon_received = target_nbr->time_rcvd_mdm_ticks;
+	uint64_t ul_start_mdm_ticks;
+
+	int32_t beacon_interval_ms = dect_phy_mac_pdu_cluster_beacon_period_in_ms(
+		target_nbr->beacon_msg.cluster_beacon_period);
+
+	union nrf_modem_dect_phy_hdr phy_header;
+	uint8_t encoded_data_to_send[DECT_DATA_MAX_LEN];
+	uint8_t *pdu_ptr = encoded_data_to_send;
+	int ret;
+	uint8_t slot_count = 0;
+
+	memset(encoded_data_to_send, 0, DECT_DATA_MAX_LEN);
+
+	ret = dect_phy_mac_client_data_pdu_encode(params, target_nbr->nw_id_24msb,
+					  target_nbr->nw_id_8lsb, target_nbr->short_rd_id,
+					  &pdu_ptr, &phy_header);
+	if (ret < 0) {
+		desh_error("(%s): Failed to encode client data pdu", __func__);
+		return ret;
+	}
+	slot_count = ret + 1;
+
+	/* Basic sanity: ensure payload fits in granted window (approx: 1 slot ~= 2 subslots). */
+	if (client_ralloc.valid && client_ralloc.ra.length_type == 0) { /* subslots */
+		uint16_t required_subslots = (uint16_t)slot_count * 2U;
+		if (required_subslots > client_ralloc.ra.length) {
+			desh_warn("reach_tx: payload needs ~%u subslots, but allocation length is %u subslots (continuing).",
+				  required_subslots, client_ralloc.ra.length);
+		}
+	}
+
+	ul_start_mdm_ticks = dect_phy_mac_client_next_ralloc_ul_tx_time_get(target_nbr);
+	if (ul_start_mdm_ticks == 0) {
+		desh_error("(%s): Failed to get next allocated UL TX time", __func__);
+		return -EINVAL;
+	}
+
+	struct dect_phy_api_scheduler_list_item_config *sched_list_item_conf;
+	struct dect_phy_api_scheduler_list_item *sched_list_item =
+		dect_phy_api_scheduler_list_item_alloc_tx_element(&sched_list_item_conf);
+
+	if (!sched_list_item) {
+		desh_error("(%s): alloc_tx_element failed: No memory to TX a data to FT", __func__);
+		return -ENOMEM;
+	}
+
+	uint16_t encoded_pdu_length = pdu_ptr - encoded_data_to_send;
+
+	sched_list_item_conf->address_info.network_id = target_nbr->nw_id_32bit;
+	sched_list_item_conf->address_info.transmitter_long_rd_id =
+		current_settings->common.transmitter_id;
+	sched_list_item_conf->address_info.receiver_long_rd_id = params->target_long_rd_id;
+
+	sched_list_item_conf->cb_op_completed = NULL;
+	sched_list_item_conf->channel = target_nbr->channel;
+
+	/* Schedule at frame_time including subslot offset */
+	sched_list_item_conf->frame_time = ul_start_mdm_ticks;
+	sched_list_item_conf->start_slot = 0;
+
+	client_data.last_tx_time_mdm_ticks = ul_start_mdm_ticks;
+
+	sched_list_item_conf->interval_mdm_ticks = 0;
+	sched_list_item_conf->length_slots = slot_count;
+	sched_list_item_conf->length_subslots = 0;
+
+	sched_list_item_conf->tx.phy_lbt_period = NRF_MODEM_DECT_LBT_PERIOD_MIN;
+	sched_list_item_conf->tx.phy_lbt_rssi_threshold_max =
+		current_settings->rssi_scan.busy_threshold;
+
+	sched_list_item_conf->tx.harq_feedback_requested = false;
+
+	sched_list_item->sched_config.tx.encoded_payload_pdu_size = encoded_pdu_length;
+	memcpy(sched_list_item->sched_config.tx.encoded_payload_pdu, encoded_data_to_send,
+	       sched_list_item->sched_config.tx.encoded_payload_pdu_size);
+
+	sched_list_item->sched_config.tx.header_type = DECT_PHY_HEADER_TYPE2;
+	memcpy(&sched_list_item->sched_config.tx.phy_header.type_2, &phy_header.type_2,
+	       sizeof(phy_header.type_2));
+
+	sched_list_item->priority = DECT_PRIORITY0_FORCE_TX;
+	/* Reuse RA TX handles for now (keeps existing completion handling) */
+	sched_list_item->phy_op_handle = DECT_PHY_MAC_CLIENT_RA_TX_HANDLE;
+	if (params->interval_secs) {
+		sched_list_item->phy_op_handle = DECT_PHY_MAC_CLIENT_RA_TX_CONTINUOUS_HANDLE;
+	}
+
+	if (!dect_phy_api_scheduler_list_item_add(sched_list_item)) {
+		desh_error("(%s): scheduler_list_item_add failed", __func__);
+		dect_phy_api_scheduler_list_item_dealloc(sched_list_item);
+		return -EBUSY;
+	}
+
+	desh_print("Scheduled allocated UL data TX (reach_tx):\n"
+		   "  target long rd id %u (0x%08x), short rd id %u (0x%04x),\n"
+		   "  target 32bit nw id %u (0x%08x), tx pwr %d dbm,\n"
+		   "  channel %d, payload PDU byte count: %d,\n"
+		   "  beacon interval %d, frame time %lld, beacon received %lld, start_subslot %u, len %u",
+		   params->target_long_rd_id, params->target_long_rd_id, target_nbr->short_rd_id,
+		   target_nbr->short_rd_id, target_nbr->nw_id_32bit, target_nbr->nw_id_32bit,
+		   params->tx_power_dbm, target_nbr->channel, encoded_pdu_length,
+		   beacon_interval_ms, sched_list_item_conf->frame_time, beacon_received,
+		   client_ralloc.ra.start_subslot, client_ralloc.ra.length);
+
+	return 0;
+}
+
+static int dect_phy_mac_client_reach_tx(struct dect_phy_mac_nbr_info_list_item *target_nbr,
+					struct dect_phy_mac_rach_tx_params *params)
+{
+	struct dect_phy_settings *s = dect_common_settings_ref_get();
+
+	if (!s) {
+		return -EINVAL;
+	}
+
+	if (dect_phy_mac_sched_fixed_enabled() || s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+		desh_warn("reach_tx: FIXED scheduling TX not implemented yet (fach_tx later).");
+		return -ENOTSUP;
+	}
+
+	if (s->mac_sched.mode == DECT_MAC_SCHED_RALLOCATE &&
+	    dect_phy_mac_client_ralloc_is_valid_for_target(params->target_long_rd_id)) {
+		return dect_phy_mac_client_ralloc_ul_tx(target_nbr, params);
+	}
+
+	/* No allocation: warn and fall back to legacy RACH TX */
+	desh_warn("reach_tx: no valid Resource Allocation grant for FT %u; falling back to rach_tx (random access).",
+		  params->target_long_rd_id);
+	return dect_phy_mac_client_rach_tx(target_nbr, params);
+}
 /**************************************************************************************************/
 
 static int dect_phy_mac_client_association_req_pdu_encode(
@@ -726,36 +1144,43 @@ static int dect_phy_mac_client_association_req_pdu_encode(
 
 	sys_dlist_init(&sdu_list);
 	sys_dlist_append(&sdu_list, &data_sdu_list_item->dnode);
-			/* HS_DECT: advertise PT scheduler policy in an extension IE */
+	
 		{
 			struct dect_phy_settings *s = dect_common_settings_ref_get();
 
-			uint8_t ext_payload[2];
-			ext_payload[0] = HSA_DECT_ASSOC_EXT_VER;
+			if (s && s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
 
-			/* bit0 indicates "PT is in fixed scheduler mode" */
-			ext_payload[1] = 0;
-			if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
-				ext_payload[1] |= HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE;
+				uint8_t ext_payload[4];
+				memset(ext_payload, 0, sizeof(ext_payload));
+
+				/* Custom extension structure */
+				ext_payload[0] = HSA_DECT_IE_EXT_TYPE_ASSOC_POLICY;   /* extension type */
+				ext_payload[1] = 2;                                   /* length */
+				ext_payload[2] = HSA_DECT_ASSOC_EXT_VER;              /* version */
+				ext_payload[3] = HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE;   /* fixed flag */
+
+				dect_phy_mac_sdu_t *ext_sdu =
+					(dect_phy_mac_sdu_t *)k_calloc(1, sizeof(dect_phy_mac_sdu_t));
+				if (!ext_sdu) {
+					k_free(data_sdu_list_item);
+					return -ENOMEM;
+				}
+
+				ext_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_8BIT_LEN;
+				ext_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_ESCAPE;
+				ext_sdu->mux_header.payload_length = sizeof(ext_payload);
+
+				ext_sdu->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
+				ext_sdu->message.common_msg.data_length = sizeof(ext_payload);
+
+				memcpy(ext_sdu->message.common_msg.data,
+					ext_payload,
+					sizeof(ext_payload));
+
+				sys_dlist_append(&sdu_list, &ext_sdu->dnode);
 			}
-
-			dect_phy_mac_sdu_t *ext_sdu =
-				(dect_phy_mac_sdu_t *)k_calloc(1, sizeof(dect_phy_mac_sdu_t));
-			if (ext_sdu == NULL) {
-				return -ENOMEM;
-			}
-
-			ext_sdu->mux_header.mac_ext = DECT_PHY_MAC_EXT_16BIT_LEN;
-			ext_sdu->mux_header.ie_type = DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE;
-			ext_sdu->mux_header.ie_ext = HSA_DECT_IE_EXT_TYPE_ASSOC_POLICY;
-			ext_sdu->mux_header.payload_length = sizeof(ext_payload);
-
-			ext_sdu->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
-			ext_sdu->message.common_msg.data_length = sizeof(ext_payload);
-			memcpy(ext_sdu->message.common_msg.data, ext_payload, sizeof(ext_payload));
-
-			sys_dlist_append(&sdu_list, &ext_sdu->dnode);
 		}
+
 		/* Encode SDUs and fill padding if needed */
 	pdu_ptr = dect_phy_mac_pdu_sdus_encode(pdu_ptr, &sdu_list);
 
@@ -1403,7 +1828,114 @@ int dect_phy_mac_client_dissociate(struct dect_phy_mac_nbr_info_list_item *targe
 
 	return err;
 }
+static int dect_phy_mac_client_dissociate_msg_send_fixed(
+	struct dect_phy_mac_nbr_info_list_item *target_nbr,
+	struct dect_phy_mac_associate_params *params)
+{
+	struct dect_phy_settings *current_settings = dect_common_settings_ref_get();
 
+	union nrf_modem_dect_phy_hdr phy_header;
+	uint8_t encoded_data_to_send[DECT_DATA_MAX_LEN];
+	uint8_t *pdu_ptr = encoded_data_to_send;
+	int ret;
+	uint8_t slot_count = 0;
+
+	memset(encoded_data_to_send, 0, sizeof(encoded_data_to_send));
+
+	/* Encode Association Release PDU (same encoder as RANDOM, but we schedule in FIXED join window) */
+	ret = dect_phy_mac_client_association_rel_pdu_encode(
+		params,
+		target_nbr->nw_id_24msb,
+		target_nbr->nw_id_8lsb,
+		target_nbr->short_rd_id,
+		&pdu_ptr,
+		&phy_header);
+
+	if (ret < 0) {
+		desh_error("(%s): Failed to encode association release req (FIXED)", __func__);
+		return ret;
+	}
+
+	/* Keep consistent with your current FIXED association sender (it uses ret + 1) */
+	slot_count = ret + 1;
+
+	uint64_t beacon_rx_time = target_nbr->time_rcvd_mdm_ticks;
+
+	uint32_t cluster_period_ms =
+		dect_phy_mac_pdu_cluster_beacon_period_in_ms(target_nbr->beacon_msg.cluster_beacon_period);
+	uint32_t cluster_period_mdm_ticks = MS_TO_MODEM_TICKS(cluster_period_ms);
+
+	uint64_t join_start_mdm_ticks =
+		dect_phy_mac_client_next_fixed_join_tx_time_get(beacon_rx_time, cluster_period_mdm_ticks);
+
+	if (join_start_mdm_ticks == 0) {
+		desh_error("(%s): Failed to get next FIXED join TX time for dissociation", __func__);
+		return -EINVAL;
+	}
+
+	struct dect_phy_api_scheduler_list_item_config *sched_list_item_conf;
+	struct dect_phy_api_scheduler_list_item *sched_list_item =
+		dect_phy_api_scheduler_list_item_alloc_tx_element(&sched_list_item_conf);
+
+	if (!sched_list_item) {
+		desh_error("(%s): alloc TX element failed: No memory to TX dissociation (FIXED)",
+			   __func__);
+		return -ENOMEM;
+	}
+
+	uint16_t encoded_pdu_length = pdu_ptr - encoded_data_to_send;
+
+	sched_list_item_conf->address_info.network_id = target_nbr->nw_id_32bit;
+	sched_list_item_conf->address_info.transmitter_long_rd_id =
+		current_settings->common.transmitter_id;
+	sched_list_item_conf->address_info.receiver_long_rd_id = params->target_long_rd_id;
+
+	sched_list_item_conf->cb_op_completed = NULL;
+
+	sched_list_item_conf->channel = target_nbr->channel;
+	sched_list_item_conf->frame_time = join_start_mdm_ticks;
+	sched_list_item_conf->start_slot = 0;
+
+	sched_list_item_conf->interval_mdm_ticks = 0;
+	sched_list_item_conf->length_slots = slot_count;
+	sched_list_item_conf->length_subslots = 0;
+
+	/* Keep same TX settings style as your FIXED association TX */
+	sched_list_item_conf->tx.phy_lbt_period = NRF_MODEM_DECT_LBT_PERIOD_MIN;
+	sched_list_item_conf->tx.phy_lbt_rssi_threshold_max = current_settings->rssi_scan.busy_threshold;
+	
+	sched_list_item_conf->tx.harq_feedback_requested = false;
+
+	sched_list_item->sched_config.tx.encoded_payload_pdu_size = encoded_pdu_length;
+	memcpy(sched_list_item->sched_config.tx.encoded_payload_pdu,
+		encoded_data_to_send,
+		sched_list_item->sched_config.tx.encoded_payload_pdu_size);
+
+	sched_list_item->sched_config.tx.header_type = DECT_PHY_HEADER_TYPE2;
+	memcpy(&sched_list_item->sched_config.tx.phy_header.type_2,
+		&phy_header.type_2,
+		sizeof(phy_header.type_2));
+	/* Add TX operation to scheduler list */
+	if (!dect_phy_api_scheduler_list_item_add(sched_list_item)) {
+		desh_error("(%s): dect_phy_api_scheduler_list_item_add failed (FIXED dissociation)",
+			   __func__);
+		dect_phy_api_scheduler_list_item_dealloc(sched_list_item);
+		return -EBUSY;
+	}
+
+	desh_print("Scheduled FIXED dissociation TX:\n"
+		   "  target long rd id %u (0x%08x), short rd id %u (0x%04x),\n"
+		   "  target 32bit nw id %u (0x%08x), tx pwr %d dbm,\n"
+		   "  channel %d, payload PDU byte count: %d,\n"
+		   "  join frame time %lld, beacon received %lld",
+		   params->target_long_rd_id, params->target_long_rd_id,
+		   target_nbr->short_rd_id, target_nbr->short_rd_id,
+		   target_nbr->nw_id_32bit, target_nbr->nw_id_32bit,
+		   params->tx_power_dbm, target_nbr->channel, encoded_pdu_length,
+		   sched_list_item_conf->frame_time, beacon_rx_time);
+
+	return 0;
+}
 bool dect_phy_mac_client_associated_by_target_short_rd_id(uint16_t target_short_rd_id)
 {
 	for (int i = 0; i < DECT_PHY_MAC_MAX_NEIGBORS; i++) {
@@ -1418,6 +1950,42 @@ bool dect_phy_mac_client_associated_by_target_short_rd_id(uint16_t target_short_
 		}
 	}
 	return false;
+}
+
+int dect_phy_mac_client_dissociate_fixed(struct dect_phy_mac_nbr_info_list_item *target_nbr,
+					 struct dect_phy_mac_associate_params *params)
+{
+	struct dect_phy_mac_client_association_data *association_data =
+		dect_phy_mac_client_association_data_get(target_nbr->long_rd_id);
+	int err;
+
+	if (!association_data) {
+		desh_warn("(%s): Not associated with device %d", __func__, target_nbr->long_rd_id);
+		return -EINVAL;
+	}
+
+	k_work_cancel_delayable(&association_data->association_resp_wait_work);
+
+	/* FIXED mode: BG scan is disabled by design; stop only if actually running */
+	if (association_data->bg_scan_ongoing) {
+		dect_phy_mac_nbr_bg_scan_stop(association_data->bg_scan_phy_handle);
+		association_data->bg_scan_ongoing = false;
+	}
+
+	/* Send release in FIXED timing (no RACH) */
+	err = dect_phy_mac_client_dissociate_msg_send_fixed(target_nbr, params);
+	if (err) {
+		desh_error("(%s): dect_phy_mac_client_dissociate_msg_send_fixed failed: %d",
+			   __func__, err);
+		return err;
+	}
+
+	/* After scheduling TX, clear local association state */
+	association_data->state = DECT_PHY_MAC_CLIENT_ASSOCIATION_STATE_DISASSOCIATED;
+	association_data->target_nbr = NULL;
+	association_data->target_long_rd_id = 0;
+
+	return 0;
 }
 
 void dect_phy_mac_client_status_print(void)
@@ -1435,6 +2003,7 @@ void dect_phy_mac_client_status_print(void)
 static int dect_phy_mac_client_init(void)
 {
 	k_work_init_delayable(&client_rach_tx_work_data.work, dect_phy_mac_client_rach_tx_worker);
+	k_work_init_delayable(&client_reach_tx_work_data.work, dect_phy_mac_client_reach_tx_worker);
 	dect_phy_mac_client_association_data_init();
 
 	return 0;

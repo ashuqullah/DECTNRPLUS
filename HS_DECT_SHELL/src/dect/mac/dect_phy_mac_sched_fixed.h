@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
-
+#include "dect_phy_mac_pdu.h"
 /* Handle range reserved for FT "fixed join" RX windows scheduled from beaconing. */
 #define DECT_PHY_MAC_BEACON_RX_FIXED_JOIN_HANDLE_START  1600
 #define DECT_PHY_MAC_BEACON_RX_FIXED_JOIN_HANDLE_END    1699
@@ -12,6 +12,8 @@
 #define DECT_PHY_MAC_FIXED_JOIN_RX_FRAMES_DEFAULT       20
 
 bool dect_phy_mac_sched_fixed_enabled(void);
+bool dect_phy_mac_sched_reallocation_enabled(void);
+bool dect_phy_mac_sched_random_enabled(void);
 
 /* Validate fixed scheduling settings in dect_common_settings.
  * Returns 0 if valid (or not in fixed mode), negative errno otherwise.
@@ -42,3 +44,8 @@ int dect_phy_mac_sched_fixed_pt_slot_range_get(uint8_t pt_idx,
                                                uint8_t max_pts,
                                                uint8_t *start_slot,
                                                uint8_t *end_slot);
+
+
+void dect_phy_mac_fixed_sched_resource_ie_handle(
+	const dect_phy_mac_common_header_t *common_header,
+	const dect_phy_mac_fixed_sched_resource_ie_t *ie);

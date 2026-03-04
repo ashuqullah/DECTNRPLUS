@@ -46,26 +46,19 @@ static void dect_phy_mac_message_print(dect_phy_mac_message_type_t message_type,
 {
 	switch (message_type) {
 	case DECT_PHY_MAC_MESSAGE_TYPE_DATA_SDU: {
-			unsigned char ascii_data[DECT_DATA_MAX_LEN];
-			size_t copy_len = message->data_sdu.data_length;
+		unsigned char ascii_data[DECT_DATA_MAX_LEN];
 
-			if (copy_len >= DECT_DATA_MAX_LEN) {
-				copy_len = DECT_DATA_MAX_LEN - 1;
-			}
+		memcpy(ascii_data, message->data_sdu.data, message->data_sdu.data_length);
+		ascii_data[message->data_sdu.data_length] = '\0';
 
-			memcpy(ascii_data, message->data_sdu.data, copy_len);
-			ascii_data[copy_len] = '\0';
-
-			desh_print("        DLC IE type: %s (0x%02x)",
-					dect_phy_mac_dlc_pdu_ie_type_string_get(message->data_sdu.dlc_ie_type),
-					message->data_sdu.dlc_ie_type);
-
-			desh_print("        Received data, len %d (printed %u), payload as ascii string print:\n"
-					"          %s",
-					message->data_sdu.data_length, (unsigned)copy_len, ascii_data);
-			break;
-		}
-	
+		desh_print("        DLC IE type: %s (0x%02x)",
+			   dect_phy_mac_dlc_pdu_ie_type_string_get(message->data_sdu.dlc_ie_type),
+			   message->data_sdu.dlc_ie_type);
+		desh_print("        Received data, len %d, payload as ascii string print:\n"
+			   "          %s",
+			   message->data_sdu.data_length, ascii_data);
+		break;
+	}
 
 	case DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_REQ: {
 		desh_print("      Received Association Request message:");
@@ -289,58 +282,8 @@ static void dect_phy_mac_message_print(dect_phy_mac_message_type_t message_type,
 				message->fixed_sched_ie.pt[i].slot_count);
 		}
 	break;
-	}
-	case DECT_PHY_MAC_MESSAGE_RESOURCE_ALLOCATION_IE: {
-		char tmp_str[128] = {0};
+}
 
-		desh_print("      Received Resource Allocation IE:");
-		desh_print("        Allocation type:      %u", message->resource_alloc_ie.allocation_type);
-		desh_print("        Add:                  %u", message->resource_alloc_ie.add);
-		desh_print("        ID present:           %u", message->resource_alloc_ie.id_present);
-		desh_print("        Repeat:               %u", message->resource_alloc_ie.repeat);
-		desh_print("        SFN included:         %u", message->resource_alloc_ie.sfn_included);
-		desh_print("        Channel included:     %u", message->resource_alloc_ie.channel_included);
-		desh_print("        RLF included:         %u", message->resource_alloc_ie.rlf_included);
-
-		if (message->resource_alloc_ie.allocation_type != DECT_PHY_MAC_RA_ALLOC_RELEASE_ALL) {
-
-			desh_print("        Start subslot #1:     %u", message->resource_alloc_ie.start_subslot);
-			desh_print("        Length type #1:       %s",
-				dect_common_utils_packet_length_type_to_string(
-					message->resource_alloc_ie.length_type, tmp_str));
-			desh_print("        Length #1:            %u", message->resource_alloc_ie.length);
-
-			if (message->resource_alloc_ie.allocation_type == DECT_PHY_MAC_RA_ALLOC_DL_UL) {
-				desh_print("        Start subslot #2:     %u", message->resource_alloc_ie.start_subslot2);
-				desh_print("        Length type #2:       %s",
-					dect_common_utils_packet_length_type_to_string(
-						message->resource_alloc_ie.length_type2, tmp_str));
-				desh_print("        Length #2:            %u", message->resource_alloc_ie.length2);
-			}
-
-			if (message->resource_alloc_ie.id_present) {
-				desh_print("        Short RD ID:          %u", message->resource_alloc_ie.short_rd_id);
-			}
-			if (message->resource_alloc_ie.repeat != DECT_PHY_MAC_RA_REPEAT_TYPE_SINGLE) {
-				desh_print("        Repetition:           %u", message->resource_alloc_ie.repetition);
-				desh_print("        Validity:             %u", message->resource_alloc_ie.validity);
-			}
-			if (message->resource_alloc_ie.sfn_included) {
-				desh_print("        SFN value:            %u", message->resource_alloc_ie.sfn_value);
-			}
-			if (message->resource_alloc_ie.channel_included) {
-				desh_print("        Channel:              %u", message->resource_alloc_ie.channel);
-			}
-			if (message->resource_alloc_ie.rlf_included) {
-				desh_print("        Scheduled RLF:        %u", message->resource_alloc_ie.dectScheduledResourceFailure);
-			}
-
-		} else {
-			desh_print("        Release all allocations");
-		}
-
-		break;
-	}
 	case DECT_PHY_MAC_MESSAGE_PADDING: {
 		desh_print("      Received padding data, len %d, payload is not printed",
 			   message->common_msg.data_length);
@@ -513,7 +456,6 @@ bool dect_phy_mac_handle(struct dect_phy_commmon_op_pdc_rcv_params *rcv_params)
 		dect_phy_mac_cluster_beacon_t *beacon_msg = NULL;
 		dect_phy_mac_random_access_resource_ie_t *ra_ie = NULL;
 		dect_phy_mac_association_resp_t *association_resp = NULL;
-		dect_phy_mac_resource_allocation_ie_t *res_alloc_ie = NULL;
 		uint32_t sdu_count = 0;
 
 		SYS_DLIST_FOR_EACH_CONTAINER(&sdu_list, sdu_list_item, dnode) {
@@ -550,13 +492,6 @@ bool dect_phy_mac_handle(struct dect_phy_commmon_op_pdc_rcv_params *rcv_params)
 			} else if (sdu_list_item->message_type ==
 				   DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_RESP) {
 				association_resp = &sdu_list_item->message.association_resp;
-			} else if (sdu_list_item->message_type ==
-					DECT_PHY_MAC_MESSAGE_RESOURCE_ALLOCATION_IE) {
-				res_alloc_ie = &sdu_list_item->message.resource_alloc_ie;
-			}else if (sdu_list_item->message_type ==
-					DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE) {
-				/* Handle FT Fixed scheduling resource IE for FT sched role decision */
-				dect_phy_mac_fixed_sched_resource_ie_handle(&sdu_list_item->message.fixed_sched_ie);
 			}
 		}
 		/* Store as neighbor if we got a cluster beacon (RA IE may be absent in FIXED mode) */
@@ -576,9 +511,6 @@ bool dect_phy_mac_handle(struct dect_phy_commmon_op_pdc_rcv_params *rcv_params)
 				print);
 		}
 		if (association_resp != NULL) {
-			if (res_alloc_ie != NULL) {
-				dect_phy_mac_client_resource_allocation_handle(&common_header, res_alloc_ie);
-			}
 			dect_phy_mac_client_associate_resp_handle(&common_header, association_resp);
 		}
 	}

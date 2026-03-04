@@ -28,7 +28,8 @@ int dect_phy_mac_ctrl_associate(struct dect_phy_mac_associate_params *params);
 int dect_phy_mac_ctrl_dissociate(struct dect_phy_mac_associate_params *params);
 int dect_phy_mac_ctrl_dissociate_fixed(struct dect_phy_mac_associate_params *params);
 int dect_phy_mac_ctrl_associate_fixed(struct dect_phy_mac_associate_params *params);
-
+int dect_phy_mac_ctrl_reach_tx_start(struct dect_phy_mac_rach_tx_params *params);
+int dect_phy_mac_ctrl_reach_tx_stop(void);
 
 /******************************************************************************/
 

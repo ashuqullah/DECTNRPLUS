@@ -12,7 +12,7 @@
 #include "dect_common_settings.h"
 /******************************************************************************/
 
-/* MAC spec: ETSI TS 103 636-4 v1.5.1 */
+/* MAC spec: ETSI TS 103 636-4 V2.1.1 (Release 2) */
 
 /* MAC spec: Table 6.3.2-1: MAC Security */
 typedef enum {
@@ -67,9 +67,11 @@ typedef struct {
 
 /* HSA_DECT flags (keep single source of truth if already defined elsewhere) */
 #ifndef HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE
-#define HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE   (1U << 1)
+#define HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE   (1U << 0)
 #endif
 #define DECT_PHY_MAC_FIXED_SCHED_RES_IE_MIN_LEN 4 /* ver + mode + max_pts + active_pts */
+/* Keep the name, but implement it via IE_TYPE_EXTENSION (63) */
+
 /* ================================================================ */
 
 /* MAC spec: Table 6.3.4-1: MAC extension field encoding */
@@ -104,16 +106,20 @@ typedef enum {
 	DECT_PHY_MAC_IE_TYPE_ROUTE_INFO_IE = 17,	     /* 0b010001 */
 	DECT_PHY_MAC_IE_TYPE_RESOURCE_ALLOCATION_IE = 18,    /* 0b010010 */
 	DECT_PHY_MAC_IE_TYPE_RANDOM_ACCESS_RESOURCE_IE = 19, /* 0b010011 */
-	DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE = 26,
+	
 	DECT_PHY_MAC_IE_TYPE_RD_CAPABILITY_IE = 20,	     /* 0b010100 */
 	DECT_PHY_MAC_IE_TYPE_NEIGHBOURING_IE = 21,	     /* 0b010101 */
 	DECT_PHY_MAC_IE_TYPE_BROADCAST_IND_IE = 22,	     /* 0b010110 */
 	DECT_PHY_MAC_IE_TYPE_GROUP_ASSIGNMENT_IE = 23,	     /* 0b010111 */
 	DECT_PHY_MAC_IE_TYPE_LOAD_INFO_IE = 24,		     /* 0b011000 */
 	DECT_PHY_MAC_IE_TYPE_MEASUREMENT_REPORT = 25,	     /* 0b011001 */
+	DECT_PHY_MAC_IE_TYPE_SOURCE_ROUTING_IE = 26,       /* 0b011010 */
+	DECT_PHY_MAC_IE_TYPE_JOINING_BEACON = 27,          /* 0b011011 */
+	DECT_PHY_MAC_IE_TYPE_JOINING_INFORMATION_IE = 28,  /* 0b011100 */
+
 	/* Reserved */
 	DECT_PHY_MAC_IE_TYPE_ESCAPE = 62,    /* 0b111110 */
-
+	DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE = 63,
 	/* MAC spec, Table 6.3.4-3: IE type field encoding
 	 * for MAC extension field encoding 11 and payload length 0 byte
 	 */
@@ -165,7 +171,7 @@ typedef enum {
 	DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_REQ,
 	DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_RESP,
 	DECT_PHY_MAC_MESSAGE_TYPE_ASSOCIATION_REL,
-
+	DECT_PHY_MAC_MESSAGE_RESOURCE_ALLOCATION_IE,
 	DECT_PHY_MAC_MESSAGE_RANDOM_ACCESS_RESOURCE_IE,
 	DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE,
 	DECT_PHY_MAC_MESSAGE_ESCAPE,
@@ -237,8 +243,98 @@ typedef struct {
     } pt[DECT_MAX_PTS];
 } dect_phy_mac_fixed_sched_resource_ie_t;
 
-/**************************************************************************************************/
 
+/* ETSI TS 103 636-4: Resource allocation IE (6.4.3.3) */
+typedef enum {
+	DECT_PHY_MAC_RA_ALLOC_RELEASE_ALL = 0, /* 00 */
+	DECT_PHY_MAC_RA_ALLOC_DL          = 1, /* 01 */
+	DECT_PHY_MAC_RA_ALLOC_UL          = 2, /* 10 */
+	DECT_PHY_MAC_RA_ALLOC_DL_UL       = 3, /* 11 */
+} dect_phy_mac_res_alloc_type_t;
+
+typedef enum {
+	DECT_PHY_MAC_RA_REPEAT_SINGLE            = 0, /* 000 */
+	DECT_PHY_MAC_RA_REPEAT_FRAMES            = 1, /* 001 */
+	DECT_PHY_MAC_RA_REPEAT_SUBSLOTS          = 2, /* 010 */
+	DECT_PHY_MAC_RA_REPEAT_FRAMES_GROUP_ASGN = 3, /* 011 */
+	DECT_PHY_MAC_RA_REPEAT_SUBSLOTS_GROUP_ASGN = 4, /* 100 */
+} dect_phy_mac_res_alloc_repeat_t;
+
+/* “bitmap” is the first 2 octets in Figure 6.4.3.3-1 */
+typedef struct {
+	uint8_t alloc_type : 2;  /* Allocation Type */
+	uint8_t add        : 1;  /* Add */
+	uint8_t id         : 1;  /* ID (Short RD present when in beacon) */
+	uint8_t repeat     : 3;  /* Repeat */
+	uint8_t sfn        : 1;  /* SFN field present */
+
+	uint8_t channel    : 1;  /* Channel field present */
+	uint8_t rlf        : 1;  /* dectScheduledResourceFailure present */
+	uint8_t reserved   : 6;
+} __packed dect_phy_mac_res_alloc_bitmap_t;
+
+/* Parsed “content” your code will use */
+/* ETSI TS 103 636-4, clause 6.4.3.3 Resource allocation IE
+ * Minimal implementation for μ <= 4 (8-bit start_subslot).
+ *
+ * Bitmap is 1..2 octets:
+ *  - If Allocation Type = 00 (release all): IE length is 1 octet (bitmap0 only).
+ *  - Else: IE length >= 4 octets (bitmap0 + bitmap1 + start_subslot + length_octet).
+ *
+ * NOTE: This struct is a decoded representation (not packed on-air).
+ */
+	/* Full ETSI support: Start subslot is 8 bits when μ <= 4, otherwise 9 bits. */
+typedef struct {
+	/* Bitmap fields */
+	uint8_t allocation_type;     /* 2 bits: 00 release all, 01 DL, 10 UL, 11 DL+UL */
+	uint8_t add;                 /* 1 bit */
+	uint8_t id_present;          /* 1 bit: Short RD ID present (beacon use) */
+	uint8_t repeat;              /* 3 bits */
+	uint8_t sfn_included;        /* 1 bit */
+
+	uint8_t channel_included;    /* 1 bit (bitmap1) */
+	uint8_t rlf_included;        /* 1 bit (bitmap1) */
+
+	/* Allocation #1 (DL if allocation_type==01 or 11; UL if allocation_type==10) */
+	uint16_t start_subslot;        /* 8 bits when μ<=4, 9 bits otherwise */
+	uint8_t length_type;         /* 1 bit: 0=subslots, 1=slots */
+	uint8_t length;              /* 7 bits */
+
+	/* Allocation #2 (UL) only when allocation_type==11 */
+	uint16_t start_subslot2;
+	uint8_t length_type2;
+	uint8_t length2;
+
+	/* Optional fields */
+	uint16_t short_rd_id;        /* present if id_present==1 */
+	uint8_t repetition;          /* present if repeat != 000 */
+	uint8_t validity;            /* present if repeat != 000 */
+	uint8_t sfn_value;           /* present if sfn_included==1 */
+	uint16_t channel;            /* 13 bits; stored in 16-bit container */
+	uint8_t dectScheduledResourceFailure; /* 4 bits; store in uint8 */
+} dect_phy_mac_resource_allocation_ie_t;
+
+/**************************************************************************************************/
+/* ETSI TS 103 636-4: Group Assignment IE (6.4.3.9)
+ *
+ * NOTE: This is a decoded representation (not packed on-air). On-air format:
+ *  Octet0: Single(1) | Group ID(7)
+ *  Octet1..N: Direct(1) | Resource Tag(7) repeated
+ *
+ * Resource Tag 0x7F indicates broadcast (all group members).
+ */
+#ifndef DECT_PHY_MAC_MAX_GROUP_ASSIGNMENT_TAGS
+#define DECT_PHY_MAC_MAX_GROUP_ASSIGNMENT_TAGS 32
+#endif
+
+typedef struct {
+	uint8_t single; /* 1 bit */
+	uint8_t group_id; /* 7 bits */
+
+	uint8_t direct; /* 1 bit (applies to all tags in this IE) */
+	uint8_t resource_tag_count;
+	uint8_t resource_tag[DECT_PHY_MAC_MAX_GROUP_ASSIGNMENT_TAGS]; /* each 7 bits, 0x7F=broadcast */
+} dect_phy_mac_group_assignment_ie_t;
 /* MAC spec: Table 6.4.2.4-2: Association Setup Cause IE */
 
 typedef enum {
@@ -402,7 +498,7 @@ typedef union {
 	dect_phy_mac_association_resp_t association_resp;
 	dect_phy_mac_association_rel_t association_rel;
 	dect_phy_mac_fixed_sched_resource_ie_t fixed_sched_ie;
-
+	dect_phy_mac_resource_allocation_ie_t resource_alloc_ie;
 	/* A container for others */
 	dect_phy_mac_common_sdu_t common_msg;
 } dect_phy_mac_message_t;
@@ -471,6 +567,16 @@ dect_phy_mac_pdu_sdu_association_resp_encode(const dect_phy_mac_association_resp
 bool dect_phy_mac_pdu_sdus_decode(uint8_t *payload_ptr, uint32_t payload_len,
 				  sys_dlist_t *sdu_list);
 uint8_t *dect_phy_mac_pdu_sdus_encode(uint8_t *target_ptr, sys_dlist_t *sdu_input_list);
+
+bool dect_phy_mac_sdu_resource_allocation_decode(
+    const uint8_t *payload_ptr, uint32_t payload_len,
+    dect_phy_mac_resource_allocation_ie_t *out);
+
+uint8_t *dect_phy_mac_pdu_sdu_resource_allocation_encode(
+    const dect_phy_mac_resource_allocation_ie_t *in, uint8_t *target_ptr);
+
+uint16_t dect_phy_mac_resource_allocation_ie_len_get(
+    const dect_phy_mac_resource_allocation_ie_t *in);
 
 int dect_phy_mac_pdu_nw_beacon_period_in_ms(dect_phy_mac_nw_beacon_period_t period);
 int dect_phy_mac_pdu_cluster_beacon_period_in_ms(dect_phy_mac_cluster_beacon_period_t period);

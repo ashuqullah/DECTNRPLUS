@@ -44,7 +44,19 @@ static int dect_phy_dect_cmd_print_help(const struct shell *shell, size_t argc, 
 
 	return ret;
 }
-
+static const char *hs_dect_sched_mode_to_str(int mode)
+{
+	switch (mode) {
+	case DECT_MAC_SCHED_RANDOM:
+		return "random";
+	case DECT_MAC_SCHED_FIXED:
+		return "fixed";
+	case DECT_MAC_SCHED_RALLOCATE:
+		return "rallocate";
+	default:
+		return "unknown";
+	}
+}
 static int dect_phy_dect_cmd(const struct shell *shell, size_t argc, char **argv)
 {
 	return dect_phy_dect_cmd_print_help(shell, argc, argv);
@@ -104,10 +116,16 @@ static void hs_dect_assign_default_pt_slots(struct dect_phy_settings *s)
 		n = DECT_MAX_PTS;
 	}
 
-	int base = HS_DECT_SLOTS_PER_FRAME / n;
-	int rem  = HS_DECT_SLOTS_PER_FRAME % n;
+	/* Reserve index 0 to avoid frame-boundary / beacon / LBT busy */
+	const int reserved = 1;
+	const int total = HS_DECT_SLOTS_PER_FRAME;
+	const int usable = total - reserved;
 
-	int start = 0;
+	int base = usable / n;
+	int rem  = usable % n;
+
+	/* Start from 1 instead of 0 */
+	int start = reserved;
 
 	for (int i = 0; i < n; i++) {
 		int count = base + ((i < rem) ? 1 : 0);
@@ -118,7 +136,6 @@ static void hs_dect_assign_default_pt_slots(struct dect_phy_settings *s)
 
 		start = end + 1;
 	}
-
 	/* Clear unused entries */
 	for (int i = n; i < DECT_MAX_PTS; i++) {
 		s->mac_sched.pt_slots[i].start_subslot = 0;
@@ -1656,6 +1673,7 @@ static const char dect_phy_sett_cmd_usage_str[] =
 "      --sched_mode <mode>,         MAC scheduling mode.\n"
 "                                   random : legacy random access (default).\n"
 "                                   fixed  : fixed, slot-based scheduling.\n"
+"									rallocate : ETSI Resource Allocation IE scheduling.\n"
 "      --pt_id <id>,                Portable Terminal (PT) identifier.\n"
 "                                   0 = Fixed Terminal (FT).\n"
 "                                   1..N = PT index in fixed scheduling.\n"
@@ -1782,9 +1800,9 @@ static void dect_phy_sett_cmd_print(struct dect_phy_settings *dect_sett)
 		   dect_sett->harq.harq_feedback_tx_delay_subslot_count);
 	desh_print("HS_DECT MAC scheduling settings:");
 	desh_print("  sched_mode.....................................%s",
-		   (dect_sett->mac_sched.mode == DECT_MAC_SCHED_FIXED) ? "fixed" : "random");
-	if (dect_sett->mac_sched.mode != DECT_MAC_SCHED_FIXED) {
-	desh_print("  (fixed schedule disabled; slot settings ignored)");
+	   hs_dect_sched_mode_to_str(dect_sett->mac_sched.mode));
+	if (dect_sett->mac_sched.mode == DECT_MAC_SCHED_RANDOM) {
+	desh_print("  (scheduler=random; role/max_pts/pt_slots ignored)");
 	return;
 	}else{
 	desh_print("  role...........................................%s (%d)",
@@ -1997,14 +2015,16 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 
 		/* ===== HS_DECT MAC scheduling extensions ===== */
 
-		case 1001: /* --sched_mode fixed|random */
+		case 1001: /* --sched_mode fixed|random|rallocate */
 			sched_mode_set = true;
 			if (!strcmp(optarg, "fixed")) {
 				newsettings.mac_sched.mode = DECT_MAC_SCHED_FIXED;
 			} else if (!strcmp(optarg, "random")) {
 				newsettings.mac_sched.mode = DECT_MAC_SCHED_RANDOM;
+			} else if (!strcmp(optarg, "rallocate") || !strcmp(optarg, "ra")) {
+				newsettings.mac_sched.mode = DECT_MAC_SCHED_RALLOCATE;
 			} else {
-				shell_error(shell, "sched_mode: use fixed|random");
+				shell_error(shell, "sched_mode: use fixed|random|rallocate");
 				return -EINVAL;
 			}
 			break;
@@ -2093,18 +2113,19 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 	}
 
 	/* FIXED: if switching RANDOM->FIXED in this command, role must be given */
-	if (newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED &&
-	    current_settings.mac_sched.mode != DECT_MAC_SCHED_FIXED &&
-	    !role_set) {
-		shell_error(shell, "FIXED scheduler requires role selection (--role ft|pt)");
+	if ((newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED ||
+		newsettings.mac_sched.mode == DECT_MAC_SCHED_RALLOCATE) &&
+		current_settings.mac_sched.mode != newsettings.mac_sched.mode &&
+		!role_set) {
+		shell_error(shell, "Scheduler requires role selection (--role ft|pt)");
 		return -EINVAL;
 	}
 
 	/* If fixed and role not set on CLI, keep stored role */
-	if (newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED && !role_set) {
+	if ((newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED ||
+		newsettings.mac_sched.mode == DECT_MAC_SCHED_RALLOCATE) && !role_set) {
 		newsettings.mac_sched.role = current_settings.mac_sched.role;
 	}
-
 	/* PT role rules */
 	if (newsettings.mac_sched.role == DECT_MAC_ROLE_PT) {
 		/* PT must not set FT-only options */
@@ -2173,6 +2194,10 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 		for (int i = 0; i < newsettings.mac_sched.max_pts; i++) {
 			uint16_t si = newsettings.mac_sched.pt_slots[i].start_subslot;
 			uint16_t ei = newsettings.mac_sched.pt_slots[i].end_subslot;
+			if (si == 0) {
+				desh_warn("PT%d slot starts at 0; this often fails LBT. Consider starting from 1.", i + 1);
+			}
+			
 
 			if (si >= HS_DECT_SLOTS_PER_FRAME || ei >= HS_DECT_SLOTS_PER_FRAME || si > ei) {
 				shell_error(shell, "PT%d slot must be within 0..%d and start<=end",

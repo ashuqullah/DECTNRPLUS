@@ -354,24 +354,41 @@ int dect_phy_mac_ctrl_associate_fixed(struct dect_phy_mac_associate_params *para
 
 	return ret;
 }
+
 int dect_phy_mac_ctrl_dissociate_fixed(struct dect_phy_mac_associate_params *params)
 {
-    struct dect_phy_mac_nbr_info_list_item *target_nbr;
+	struct dect_phy_mac_nbr_info_list_item *scan_info;
+	int ret;
 
-    if (!params) {
-        return -EINVAL;
-    }
+	if (!params) {
+		return -EINVAL;
+	}
 
-    target_nbr = dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
-    if (!target_nbr) {
-        desh_error("(%s): target nbr (long rd id %u) not found",
-                   __func__, params->target_long_rd_id);
-        return -ENOENT;
-    }
+	scan_info = dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
+	if (!scan_info) {
+		desh_error("Beacon with long RD ID %u has not been seen in scan results",
+			   params->target_long_rd_id);
+		return -ENOENT;
+	}
 
-    return 0;
+	ret = dect_phy_ctrl_ext_command_start(mac_data.ext_cmd);
+	if (ret) {
+		return ret;
+	}
+
+	/* NOTE:
+	 * FIXED dissociation is not using RA resource (no RACH TX),
+	 * so do NOT warn about LBT requirements for RA.
+	 */
+
+	ret = dect_phy_mac_client_dissociate_fixed(scan_info, params);
+	if (ret) {
+		desh_error("Cannot start client_dissociate_fixed: %d", ret);
+		(void)dect_phy_ctrl_ext_command_stop();
+	}
+
+	return ret;
 }
-
 
 /**************************************************************************************************/
 
@@ -421,6 +438,54 @@ int dect_phy_mac_ctrl_rach_tx_stop(void)
 	dect_phy_ctrl_ext_command_stop();
 	return 0;
 }
+int dect_phy_mac_ctrl_reach_tx_start(struct dect_phy_mac_rach_tx_params *params)
+{
+	struct dect_phy_mac_nbr_info_list_item *scan_info =
+		dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
+	int ret;
+
+	if (!params) {
+		return -EINVAL;
+	}
+
+	if (!scan_info) {
+		desh_error("Beacon with long RD ID %u has not been seen in scan results",
+			   params->target_long_rd_id);
+		return -EINVAL;
+	}
+
+	ret = dect_phy_ctrl_ext_command_start(mac_data.ext_cmd);
+	if (ret) {
+		return ret;
+	}
+
+	/* reach_tx still transmits over-the-air; warn if modem is in NON_LBT mode */
+	enum nrf_modem_dect_phy_radio_mode radio_mode;
+	ret = dect_phy_ctrl_current_radio_mode_get(&radio_mode);
+	if (!ret && radio_mode == NRF_MODEM_DECT_PHY_RADIO_MODE_NON_LBT_WITH_STANDBY) {
+		char tmp_str[128] = {0};
+
+		dect_common_utils_radio_mode_to_string(radio_mode, tmp_str);
+		desh_warn("Scheduled TX requires LBT to be used, continue -- but current radio mode is %s and operation may fail in modem.",
+			  tmp_str);
+	}
+
+	ret = dect_phy_mac_client_reach_tx_start(scan_info, params);
+	if (ret) {
+		desh_error("Cannot start client_reach_tx: %d", ret);
+		(void)dect_phy_ctrl_ext_command_stop();
+	}
+
+	return ret;
+}
+
+int dect_phy_mac_ctrl_reach_tx_stop(void)
+{
+	dect_phy_mac_client_reach_tx_stop();
+	dect_phy_ctrl_ext_command_stop();
+	return 0;
+}
+
 
 /*Hs helper*/
 static inline bool hs_is_fixed_ft(void)

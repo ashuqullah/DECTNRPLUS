@@ -25,7 +25,6 @@
 #define HSA_DECT_IE_EXT_ID_SCHED_BEACON   0xA2
 #define HSA_DECT_IE_VERSION               1
 #define HSA_DECT_SLOTS_PER_FRAME          24
-#define DECT_PHY_MAC_RES_ALLOC_IE_LEN 8
 
 enum hsa_dect_sched_mode {
 	HSA_DECT_SCHED_RANDOM = 0,
@@ -393,287 +392,6 @@ uint8_t *dect_phy_mac_pdu_common_header_encode(dect_phy_mac_common_header_t *com
 			target_ptr = dect_common_utils_32bit_be_write(
 				target_ptr, common_header_in->transmitter_id);
 		}
-	}
-
-	return target_ptr;
-}
-
-
-
- /*********************IE resuource Allocation Decode and Encode Functions ********************** */
-uint16_t dect_phy_mac_res_alloc_ie_length_get(
-	const dect_phy_mac_resource_allocation_ie_t *ie)
-{
-	/* Minimum is 1 octet if RELEASE_ALL, otherwise:
-	 * - 8-bit Start subslot (μ <= 4): min 4 octets (2 bitmap + start + len)
-	 * - 9-bit Start subslot (μ > 4):  min 5 octets (2 bitmap + msb + start + len)
-	 *
-	 * ETSI TS 103 636-4, clause 6.4.3.3.
-	 */
-	if (ie->allocation_type == DECT_PHY_MAC_RA_ALLOC_RELEASE_ALL) {
-		return 1;
-	}
-
-	/* Decide whether Start subslot needs the 9-bit encoding.
-	 *
-	 * Full ETSI compliance requires knowing μ (numerology). This codec supports both encodings:
-	 *  - If DECT_PHY_MAC_FORCE_START_SUBSLOT_9BIT is defined, always use 9-bit encoding.
-	 *  - Otherwise, use 9-bit encoding when the value does not fit in 8 bits.
-	 */
-	bool use_9bit =
-#ifdef DECT_PHY_MAC_FORCE_START_SUBSLOT_9BIT
-		true;
-#else
-		(ie->start_subslot > 0xFFu) ||
-		(ie->allocation_type == DECT_PHY_MAC_RA_ALLOC_DL_UL && ie->start_subslot2 > 0xFFu);
-#endif
-
-	uint16_t len = 0;
-
-	/* 2 octets bitmap + mandatory allocation #1 (start + len) */
-	len = 2 + (use_9bit ? 3 : 2);
-
-	/* If alloc_type includes UL => allocation #2 */
-	if (ie->allocation_type == DECT_PHY_MAC_RA_ALLOC_DL_UL) {
-		len += (use_9bit ? 3 : 2);
-	}
-
-	/* ID=1 => short rd id present */
-	if (ie->id_present) {
-		len += 2;
-	}
-
-	/* repeat != SINGLE => repetition + validity */
-	if (ie->repeat != DECT_PHY_MAC_RA_REPEAT_SINGLE) {
-		len += 2;
-	}
-
-	/* SFN present => sfn value */
-	if (ie->sfn_included) {
-		len += 1;
-	}
-
-	/* channel present => channel (13 bits packed into 2 octets) */
-	if (ie->channel_included) {
-		len += 2;
-	}
-
-	/* rlf present => 1 octet (4 bits used) */
-	if (ie->rlf_included) {
-		len += 1;
-	}
-
-	return len;
-}
- bool dect_phy_mac_sdu_resource_allocation_decode(
-	const uint8_t *payload_ptr, uint32_t payload_len,
-	dect_phy_mac_resource_allocation_ie_t *ra_out)
-{
-	if (!payload_ptr || !ra_out || payload_len < 1) {
-		return false;
-	}
-
-	memset(ra_out, 0, sizeof(*ra_out));
-
-	const uint8_t *p = payload_ptr;
-
-	uint8_t b0 = *p++;
-	ra_out->allocation_type = (b0 >> 6) & 0x03;
-	ra_out->add            = (b0 >> 5) & 0x01;
-	ra_out->id_present     = (b0 >> 4) & 0x01;
-	ra_out->repeat         = (b0 >> 1) & 0x07;
-	ra_out->sfn_included   = (b0 >> 0) & 0x01;
-
-	/* ETSI: if Allocation Type == 00, IE is 1 octet (release all), ignore others */
-	if (ra_out->allocation_type == DECT_PHY_MAC_RA_ALLOC_RELEASE_ALL) {
-		return true;
-	}
-
-	/* Otherwise need at least 4 octets for 8-bit start_subslot, or 5 for 9-bit. */
-	if (payload_len < 4) {
-		return false;
-	}
-
-	uint8_t b1 = *p++;
-	ra_out->channel_included = (b1 >> 7) & 0x01;
-	ra_out->rlf_included     = (b1 >> 6) & 0x01;
-
-	/* Determine whether Start subslot is encoded as 8 or 9 bits.
-	 *
-	 * ETSI TS 103 636-4 (6.4.3.3): 8-bit when μ<=4, otherwise 9-bit.
-	 * The 9-bit encoding adds an extra octet before each Start subslot, where only
-	 * the least-significant bit (C bit0) carries Start subslot bit[8] (ETSI "bit7").
-	 */
-	uint16_t optional_len = 0;
-	if (ra_out->id_present) {
-		optional_len += 2;
-	}
-	if (ra_out->repeat != DECT_PHY_MAC_RA_REPEAT_SINGLE) {
-		optional_len += 2;
-	}
-	if (ra_out->sfn_included) {
-		optional_len += 1;
-	}
-	if (ra_out->channel_included) {
-		optional_len += 2;
-	}
-	if (ra_out->rlf_included) {
-		optional_len += 1;
-	}
-
-	bool has_ul = (ra_out->allocation_type == DECT_PHY_MAC_RA_ALLOC_DL_UL);
-	uint16_t expected_len_8 = 2 /*bitmap*/ + (has_ul ? 4 : 2) + optional_len;
-	uint16_t expected_len_9 = 2 /*bitmap*/ + (has_ul ? 6 : 3) + optional_len;
-
-	bool use_9bit = false;
-#ifdef DECT_PHY_MAC_FORCE_START_SUBSLOT_9BIT
-	use_9bit = true;
-#else
-	if (payload_len == expected_len_9) {
-		use_9bit = true;
-	} else if (payload_len == expected_len_8) {
-		use_9bit = false;
-	} else {
-		/* Fallback: prefer 8-bit if it can fit, otherwise 9-bit. */
-		use_9bit = (payload_len >= expected_len_9);
-	}
-#endif
-
-	/* Allocation #1 */
-	if (use_9bit) {
-		if ((uint32_t)(p - payload_ptr) + 3 > payload_len) {
-			return false;
-		}
-		uint8_t msb = (*p++) & 0x01; /* ETSI bit7 => C bit0 */
-		ra_out->start_subslot = ((uint16_t)msb << 8) | *p++;
-	} else {
-		if ((uint32_t)(p - payload_ptr) + 2 > payload_len) {
-			return false;
-		}
-		ra_out->start_subslot = *p++;
-	}
-	uint8_t len_oct = *p++;
-	ra_out->length_type = (len_oct >> 7) & 0x01;
-	ra_out->length      = (len_oct & 0x7F);
-
-	/* Allocation #2 if allocation_type == 11 (DL+UL) */
-	if (has_ul) {
-		if (use_9bit) {
-			if ((uint32_t)(p - payload_ptr) + 3 > payload_len) {
-				return false;
-			}
-			uint8_t msb2 = (*p++) & 0x01;
-			ra_out->start_subslot2 = ((uint16_t)msb2 << 8) | *p++;
-		} else {
-			if ((uint32_t)(p - payload_ptr) + 2 > payload_len) {
-				return false;
-			}
-			ra_out->start_subslot2 = *p++;
-		}
-		uint8_t len2 = *p++;
-		ra_out->length_type2 = (len2 >> 7) & 0x01;
-		ra_out->length2      = (len2 & 0x7F);
-	}
-
-	/* Optional Short RD ID */
-	if (ra_out->id_present) {
-		if ((uint32_t)(p - payload_ptr) + 2 > payload_len) {
-			return false;
-		}
-		ra_out->short_rd_id = ((uint16_t)p[0] << 8) | p[1];
-		p += 2;
-	}
-
-	/* Optional repetition+validity if repeat != 000 */
-	if (ra_out->repeat != DECT_PHY_MAC_RA_REPEAT_SINGLE) {
-		if ((uint32_t)(p - payload_ptr) + 2 > payload_len) {
-			return false;
-		}
-		ra_out->repetition = *p++;
-		ra_out->validity   = *p++;
-	}
-
-	/* Optional SFN value */
-	if (ra_out->sfn_included) {
-		if ((uint32_t)(p - payload_ptr) + 1 > payload_len) {
-			return false;
-		}
-		ra_out->sfn_value = *p++;
-	}
-
-	/* Optional channel (13 bits stored in 16-bit) */
-	if (ra_out->channel_included) {
-		if ((uint32_t)(p - payload_ptr) + 2 > payload_len) {
-			return false;
-		}
-		/* Spec says 13 bits; keep it in 16-bit container */
-		ra_out->channel = (uint16_t)(((p[0] & 0x1F) << 8) | p[1]);
-		p += 2;
-	}
-
-	/* Optional RLF timer (4 bits) */
-	if (ra_out->rlf_included) {
-		if ((uint32_t)(p - payload_ptr) + 1 > payload_len) {
-			return false;
-		}
-		ra_out->dectScheduledResourceFailure = (*p++) & 0x0F;
-	}
-
-	return true;
-}
-
-uint8_t *dect_phy_mac_pdu_sdu_resource_allocation_encode(
-	const dect_phy_mac_resource_allocation_ie_t *ra_in, uint8_t *target_ptr)
-{
-	uint8_t b0 =
-		((ra_in->allocation_type & 0x03) << 6) |
-		((ra_in->add            & 0x01) << 5) |
-		((ra_in->id_present     & 0x01) << 4) |
-		((ra_in->repeat         & 0x07) << 1) |
-		((ra_in->sfn_included   & 0x01) << 0);
-
-	*target_ptr++ = b0;
-
-	if (ra_in->allocation_type == 0x00) {
-		/* release all: only bitmap0 */
-		return target_ptr;
-	}
-
-	uint8_t b1 =
-		((ra_in->channel_included & 0x01) << 7) |
-		((ra_in->rlf_included     & 0x01) << 6);
-	*target_ptr++ = b1;
-
-	*target_ptr++ = ra_in->start_subslot;
-	*target_ptr++ = ((ra_in->length_type & 0x01) << 7) | (ra_in->length & 0x7F);
-
-	if (ra_in->allocation_type == 0x03) {
-		*target_ptr++ = ra_in->start_subslot2;
-		*target_ptr++ = ((ra_in->length_type2 & 0x01) << 7) | (ra_in->length2 & 0x7F);
-	}
-
-	if (ra_in->id_present) {
-		*target_ptr++ = (uint8_t)(ra_in->short_rd_id >> 8);
-		*target_ptr++ = (uint8_t)(ra_in->short_rd_id & 0xFF);
-	}
-
-	if (ra_in->repeat != 0x00) {
-		*target_ptr++ = ra_in->repetition;
-		*target_ptr++ = ra_in->validity;
-	}
-
-	if (ra_in->sfn_included) {
-		*target_ptr++ = ra_in->sfn_value;
-	}
-
-	if (ra_in->channel_included) {
-		/* store 13-bit channel into 2 bytes, top 3 bits reserved */
-		*target_ptr++ = (uint8_t)((ra_in->channel >> 8) & 0x1F);
-		*target_ptr++ = (uint8_t)(ra_in->channel & 0xFF);
-	}
-
-	if (ra_in->rlf_included) {
-		*target_ptr++ = (uint8_t)(ra_in->dectScheduledResourceFailure & 0x0F);
 	}
 
 	return target_ptr;
@@ -1427,12 +1145,6 @@ uint8_t *dect_phy_mac_pdu_sdus_encode(uint8_t *target_ptr, sys_dlist_t *sdu_inpu
 				target_ptr = dect_phy_mac_pdu_sdu_association_rel_encode(
 					&sdu_list_item->message.association_rel, target_ptr);
 				break;
-
-			case DECT_PHY_MAC_MESSAGE_RESOURCE_ALLOCATION_IE:
-				target_ptr = dect_phy_mac_pdu_sdu_resource_allocation_encode(
-					&sdu_list_item->message.resource_alloc_ie, target_ptr);
-				break;
-
 			case DECT_PHY_MAC_MESSAGE_RANDOM_ACCESS_RESOURCE_IE:
 				/* Encode the RACH IE */
 				target_ptr = dect_phy_mac_pdu_sdu_random_access_resource_encode(
@@ -1487,58 +1199,31 @@ bool dect_phy_mac_pdu_sdus_decode(uint8_t *payload_ptr, uint32_t payload_len, sy
 			return false;
 		}
 
+		/* Add SDU to list */
 		dect_phy_mac_sdu_t *sdu_list_item =
-   							 (dect_phy_mac_sdu_t *)k_calloc(1, sizeof(dect_phy_mac_sdu_t));
+			(dect_phy_mac_sdu_t *)k_malloc(sizeof(dect_phy_mac_sdu_t));
 
 		if (sdu_list_item == NULL) {
 			printk("No memory to decode SDUs!\n");
 			return false;
 		}
 
-		
-		/* ------------------------------------------------------------ */
-		/* FIX #1: avoid uninitialized garbage (message_type/union etc.) */
-		/* ------------------------------------------------------------ */
-		memset(sdu_list_item, 0, sizeof(*sdu_list_item));
-
 		sdu_list_item->mux_header = mux_header;
 
-		/* Helper: safe raw copy length into common_msg.data */
-		uint16_t raw_len = mux_header.payload_length;
-		if (raw_len > sizeof(sdu_list_item->message.common_msg.data)) {
-			raw_len = sizeof(sdu_list_item->message.common_msg.data);
-		}
-
 		switch (sdu_list_item->mux_header.ie_type) {
-		/* ---------------------------- */
-		/* USER PLANE / HL DATA FLOWS   */
-		/* ---------------------------- */
+		/* Only supported types */
 		case DECT_PHY_MAC_IE_TYPE_USER_PLANE_DATA_FLOW1:
 		case DECT_PHY_MAC_IE_TYPE_USER_PLANE_DATA_FLOW2:
 		case DECT_PHY_MAC_IE_TYPE_USER_PLANE_DATA_FLOW3:
 		case DECT_PHY_MAC_IE_TYPE_USER_PLANE_DATA_FLOW4:
 		case DECT_PHY_MAC_IE_TYPE_HIGHER_LAYER_SIGNALING_FLOW1:
 		case DECT_PHY_MAC_IE_TYPE_HIGHER_LAYER_SIGNALING_FLOW2: {
-			/* ------------------------------------------------------------ */
-			/* FIX #2: hard bounds for DLC data length to avoid HardFault     */
-			/* payload = [1 byte DLC header] + data...                       */
-			/* ------------------------------------------------------------ */
-			if (mux_header.payload_length < DECT_PHY_MAC_DLC_IE_TYPE_SERV_0_WITHOUT_ROUTING_LEN) {
-				printk("Invalid DATA SDU: payload too short (%u)\n",
-				       mux_header.payload_length);
-				sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
-				sdu_list_item->message.common_msg.data_length = raw_len;
-				memcpy(sdu_list_item->message.common_msg.data,
-				       mux_header.payload_ptr, raw_len);
-				break;
-			}
 			uint8_t *sdu_ptr = (uint8_t *)mux_header.payload_ptr;
 			uint8_t dlc_ie_type = *sdu_ptr++ >> 4; /* DLC spec: ch. 5.3.2 */
 
 			if (dlc_ie_type != DECT_PHY_MAC_DLC_IE_TYPE_SERV_0_WITHOUT_ROUTING) {
 				printk("Unsupported DLC IE type\n");
 			}
-			
 			sdu_list_item->message.data_sdu.dlc_ie_type = dlc_ie_type;
 			sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_TYPE_DATA_SDU;
 			sdu_list_item->message.data_sdu.data_length =
@@ -1566,22 +1251,6 @@ bool dect_phy_mac_pdu_sdus_decode(uint8_t *payload_ptr, uint32_t payload_len, sy
 			}
 
 			break;
-
-		case DECT_PHY_MAC_IE_TYPE_RESOURCE_ALLOCATION_IE:
-			handled = dect_phy_mac_sdu_resource_allocation_decode(
-				mux_header.payload_ptr, mux_header.payload_length,
-				&sdu_list_item->message.resource_alloc_ie);
-
-			if (!handled) {
-				printk("Failed to decode Resource Allocation IE\n");
-				sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
-				sdu_list_item->message.common_msg.data_length = raw_len;
-				memcpy(sdu_list_item->message.common_msg.data,
-					mux_header.payload_ptr, raw_len);
-			} else {
-				sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_RESOURCE_ALLOCATION_IE;
-			}
-			break;
 		case DECT_PHY_MAC_IE_TYPE_RANDOM_ACCESS_RESOURCE_IE:
 			handled = dect_phy_mac_sdu_random_access_resource_decode(
 				mux_header.payload_ptr, mux_header.payload_length,
@@ -1599,46 +1268,17 @@ bool dect_phy_mac_pdu_sdus_decode(uint8_t *payload_ptr, uint32_t payload_len, sy
 					DECT_PHY_MAC_MESSAGE_RANDOM_ACCESS_RESOURCE_IE;
 			}
 			break;
-
-		case DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE: {
-			/* Real FixedSched IE is never 4 bytes. Treat short payloads as raw extension. */
-			if (mux_header.payload_length < 8) {
-				/* store raw, no printk */
-				uint16_t raw_len = mux_header.payload_length;
-				if (raw_len > sizeof(sdu_list_item->message.common_msg.data)) {
-					raw_len = sizeof(sdu_list_item->message.common_msg.data);
-				}
-				sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
-				sdu_list_item->message.common_msg.data_length = raw_len;
-				if (raw_len) {
-					memcpy(sdu_list_item->message.common_msg.data,
-						mux_header.payload_ptr, raw_len);
-				}
-				break;
-			}
-
+		case DECT_PHY_MAC_IE_TYPE_FIXED_SCHED_RESOURCE_IE:
 			handled = dect_phy_mac_sdu_fixed_sched_resource_decode(
 				mux_header.payload_ptr, mux_header.payload_length,
 				&sdu_list_item->message.fixed_sched_ie);
 
 			if (handled) {
-				sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE;
-			} else {
-				/* store raw, no printk */
-				printk("Failed to decode Fixed Sched IE\n");
-				uint16_t raw_len = mux_header.payload_length;
-				if (raw_len > sizeof(sdu_list_item->message.common_msg.data)) {
-					raw_len = sizeof(sdu_list_item->message.common_msg.data);
-				}
-				sdu_list_item->message_type = DECT_PHY_MAC_MESSAGE_TYPE_NONE;
-				sdu_list_item->message.common_msg.data_length = raw_len;
-				if (raw_len) {
-					memcpy(sdu_list_item->message.common_msg.data,
-						mux_header.payload_ptr, raw_len);
-				}
+				sdu_list_item->message_type =
+					DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE;
 			}
 			break;
-		}
+
 		case DECT_PHY_MAC_IE_TYPE_ASSOCIATION_REQ:
 			handled = dect_phy_mac_pdu_sdu_association_req_decode(
 				mux_header.payload_ptr, mux_header.payload_length,

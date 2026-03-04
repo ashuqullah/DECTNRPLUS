@@ -58,6 +58,7 @@
 enum dect_mac_sched_mode {
 	DECT_MAC_SCHED_RANDOM = 0,
 	DECT_MAC_SCHED_FIXED  = 1,
+	DECT_MAC_SCHED_RALLOCATE = 2,
 };
 enum dect_mac_role {
 	DECT_MAC_ROLE_UNDEF = 0,

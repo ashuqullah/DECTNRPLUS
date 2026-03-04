@@ -40,6 +40,12 @@ static bool mac_shell_is_fixed_mode(void)
     return dect_phy_mac_sched_fixed_enabled();
 }
 
+
+static bool mac_shell_is_reallocation_mode(void)
+	{
+		return dect_phy_mac_sched_reallocation_enabled();
+	}
+		
 /* Validate fixed scheduling settings when in FIXED mode */
 static int mac_shell_guard_fixed_settings(const struct shell *shell)
 {
@@ -498,7 +504,7 @@ static int dect_phy_mac_dissociate_cmd(const struct shell *shell, size_t argc, c
 	params.tx_power_dbm = 0;
 	params.mcs = 0;
 	params.target_long_rd_id = 38;
-
+	const struct dect_phy_settings *s = dect_common_settings_ref_get();
 	while ((opt = getopt_long(argc, argv, "p:m:t:h", long_options_dissociate,
 				  &long_index)) != -1) {
 		switch (opt) {
@@ -529,6 +535,22 @@ static int dect_phy_mac_dissociate_cmd(const struct shell *shell, size_t argc, c
 	if (optind < argc) {
 		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
+	}
+	if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED) {
+    desh_print("Dissociating in FIXED mode.");
+    desh_print("Sending association release to FT %u using FIXED dissociation procedure",
+               params.target_long_rd_id);
+
+    ret = dect_phy_mac_ctrl_dissociate_fixed(&params);
+
+    if (ret) {
+        desh_error("Cannot send FIXED association release to FT %u, err %d",
+                   params.target_long_rd_id, ret);
+    } else {
+        desh_print("FIXED Association Release TX started.");
+    }
+
+    return ret;
 	}
 
 	desh_print("Sending association release to FT %u's random access resource",
@@ -693,7 +715,7 @@ show_usage:
 	desh_print_no_format(dect_phy_mac_rach_tx_cmd_usage_str);
 	return 0;
 }
-/************************************************Group Seched**************************************************/
+/************************************************Fixed Scheduling**************************************************/
 static int dect_phy_mac_ft_assoc_status_cmd(const struct shell *shell, size_t argc, char **argv)
 {
 	ARG_UNUSED(shell); ARG_UNUSED(argc); ARG_UNUSED(argv);
@@ -709,9 +731,138 @@ static int dect_phy_mac_ft_assoc_clear_cmd(const struct shell *shell, size_t arg
 	return 0;
 }
 
+static const char dect_phy_mac_reach_tx_cmd_usage_str[] =
+	"Usage: dect mac reach_tx [stop] | -d <data> [<options>]\n"
+	"Send user data using Resource Allocation (scheduled UL) if available.\n"
+	"Options:\n"
+	"  -d, --data <data_str>,  Data to be sent.\n"
+	"  -p, --tx_pwr <integer>, TX power (dBm). Default: 0 dBm.\n"
+	"  -m, --tx_mcs <integer>, TX MCS (integer). Default: 0.\n"
+	"  -t, --long_rd_id <id>,  Target long rd id. Default: 38.\n"
+	"  -i, --interval <interval_secs>, Data sending interval in seconds.\n"
+	"                                  Default: 0, data sent only once.\n"
+	"  -j, --get_mdm_temp,             Include modem temperature in the payload (JSON).\n";
 
+static struct option long_options_reach_tx[] = {
+	{"data", required_argument, 0, 'd'},
+	{"tx_pwr", required_argument, 0, 'p'},
+	{"tx_mcs", required_argument, 0, 'm'},
+	{"long_rd_id", required_argument, 0, 't'},
+	{"interval", required_argument, 0, 'i'},
+	{"get_mdm_temp", no_argument, 0, 'j'},
+	{0, 0, 0, 0}
+};
 
-/**************************************************************************************************/
+static int dect_phy_mac_reach_tx_cmd(const struct shell *shell, size_t argc, char **argv)
+{
+	struct dect_phy_mac_rach_tx_params params;
+	int ret = 0;
+	int long_index = 0;
+	int opt;
+
+	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_PT);
+	if (err) {
+		return err;
+	}
+
+	/* NOTE: this is still allowed in FIXED mode later if you want,
+	 * but for now keep same guard behavior as rach_tx.
+	 */
+	err = mac_shell_guard_fixed_settings(shell);
+	if (err) {
+		return err;
+	}
+
+	if (argc < 2) {
+		goto show_usage;
+	}
+	if (argv[1] != NULL && !strcmp(argv[1], "stop")) {
+		dect_phy_mac_ctrl_reach_tx_stop();
+		desh_print("reach_tx stopped.");
+		return 0;
+	}
+
+	optreset = 1;
+	optind = 1;
+
+	memset(&params, 0, sizeof(params));
+	params.tx_power_dbm = 0;
+	params.mcs = 0;
+	params.target_long_rd_id = 38;
+	params.interval_secs = 0;
+	params.get_mdm_temp = false;
+
+	while ((opt = getopt_long(argc, argv, "d:p:m:t:i:jh", long_options_reach_tx,
+				  &long_index)) != -1) {
+		switch (opt) {
+		case 't':
+			params.target_long_rd_id = shell_strtoul(optarg, 10, &ret);
+			if (ret) {
+				desh_error("Give decent tx id (> 0)");
+				return -EINVAL;
+			}
+			break;
+		case 'd':
+			if (strlen(optarg) >= (DECT_DATA_MAX_LEN - 1)) {
+				desh_error("RALLOC TX data (%s) too long.", optarg);
+				return -EINVAL;
+			}
+			strcpy(params.tx_data_str, optarg);
+			break;
+		case 'p':
+			params.tx_power_dbm = atoi(optarg);
+			break;
+		case 'm':
+			params.mcs = atoi(optarg);
+			break;
+		case 'i':
+			params.interval_secs = atoi(optarg);
+			if (params.interval_secs < 0) {
+				desh_error("The interval must be positive.");
+				return -EINVAL;
+			}
+			break;
+		case 'j':
+			params.get_mdm_temp = true;
+			break;
+		case 'h':
+			goto show_usage;
+		case '?':
+		default:
+			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
+			goto show_usage;
+		}
+	}
+
+	if (optind < argc) {
+		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
+		goto show_usage;
+	}
+
+	if (params.get_mdm_temp &&
+	    ((strlen(params.tx_data_str) + DECT_PHY_MAC_RACH_TX_DATA_JSON_OVERHEAD) >=
+	     (DECT_DATA_MAX_LEN - 1))) {
+		desh_error("Data too long for JSON + modem temp.");
+		goto show_usage;
+	}
+
+	desh_print("Sending data %s to FT %u using Resource Allocation (scheduled UL)",
+		   params.tx_data_str, params.target_long_rd_id);
+
+	ret = dect_phy_mac_ctrl_reach_tx_start(&params);
+	if (ret) {
+		desh_error("Cannot send data %s to FT %u using scheduled UL, err %d",
+			   params.tx_data_str, params.target_long_rd_id, ret);
+	} else {
+		desh_print("Client TX using Resource Allocation started.");
+	}
+	return 0;
+
+show_usage:
+	desh_print_no_format(dect_phy_mac_reach_tx_cmd_usage_str);
+	return 0;
+}
+
 /**************************************************************************************************/
 
 static void dect_phy_mac_status_cmd(const struct shell *shell, size_t argc, char **argv)
@@ -745,7 +896,8 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
 	      dect_phy_mac_ft_assoc_status_cmd, 1, 0),
 	SHELL_CMD_ARG(ft_assoc_clear, NULL, "Usage: dect mac ft_assoc_clear",
 	      dect_phy_mac_ft_assoc_clear_cmd, 1, 0),
-
+	SHELL_CMD_ARG(reach_tx, NULL, "Usage options: dect mac reach_tx -h",
+	      dect_phy_mac_reach_tx_cmd, 1, 11),
 	SHELL_SUBCMD_SET_END);
 	
 SHELL_SUBCMD_ADD((dect), mac, &mac_shell_cmd_sub,
