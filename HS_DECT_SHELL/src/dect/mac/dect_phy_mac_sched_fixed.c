@@ -11,12 +11,69 @@
 #include "desh_print.h"               /* desh_print / desh_warn (or whatever your project uses) */
 #include "dect_phy_mac.h"             /* DECT_PRIORITY2_RX and other MAC priorities/handles */
 
+/*  shared functions*/
+
+bool hsa_dect_slots_overlap(uint16_t a_start, uint16_t a_end,
+                            uint16_t b_start, uint16_t b_end)
+{
+    return !(a_end < b_start || b_end < a_start);
+}
+
+void hsa_dect_assign_default_pt_slots(struct dect_phy_settings *s)
+{
+    int n = s->mac_sched.max_pts;
+
+    if (n < 1) {
+        n = DECT_DEF_PTS;
+    }
+    if (n > DECT_MAX_PTS) {
+        n = DECT_MAX_PTS;
+    }
+
+    const uint16_t total  = DECT_RADIO_FRAME_SUBSLOT_COUNT; /* 48 */
+    const uint16_t guard  = DECT_MAC_UL_GUARD_SUBSLOTS;     /* 8  */
+    const uint16_t usable = (guard < total) ? (total - guard) : 0;
+
+    if (usable == 0) {
+        for (int i = 0; i < DECT_MAX_PTS; i++) {
+            s->mac_sched.pt_slots[i].start_subslot = 0;
+            s->mac_sched.pt_slots[i].end_subslot   = 0;
+        }
+        return;
+    }
+
+    const uint16_t base = usable / n;
+    const uint16_t rem  = usable % n;
+
+    uint16_t start = guard;
+
+    for (int i = 0; i < n; i++) {
+        uint16_t count = base + ((i < rem) ? 1 : 0);
+        uint16_t end   = (count > 0) ? (start + count - 1) : start;
+
+        s->mac_sched.pt_slots[i].start_subslot = start;
+        s->mac_sched.pt_slots[i].end_subslot   = end;
+
+        start = end + 1;
+    }
+
+    for (int i = n; i < DECT_MAX_PTS; i++) {
+        s->mac_sched.pt_slots[i].start_subslot = 0;
+        s->mac_sched.pt_slots[i].end_subslot   = 0;
+    }
+}
+
+
 /* Auto-allocation: reserve slot 0 for beacon/control, split remaining slots among PTs. */
 static void fixed_auto_pt_slot_range_compute(uint8_t pt_idx0, uint8_t max_pts,
                                              uint8_t *start_slot, uint8_t *end_slot)
 {
-    const uint8_t first_slot = 1; /* reserve slot 0 */
-    const uint8_t total_slots = (uint8_t)DECT_RADIO_FRAME_SLOT_COUNT - first_slot; /* 23 if 24 total */
+    /* Guard is defined in SUBSLOTS; convert to whole slots for slot-domain splitting */
+    const uint8_t ss_per_slot = (uint8_t)DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT;
+    const uint8_t guard_slots = (uint8_t)((DECT_MAC_UL_GUARD_SUBSLOTS + (ss_per_slot - 1U)) / ss_per_slot);
+
+    const uint8_t first_slot  = guard_slots;
+    const uint8_t total_slots = (uint8_t)DECT_RADIO_FRAME_SLOT_COUNT - first_slot;
     const uint8_t base = total_slots / max_pts;
     const uint8_t rem  = total_slots % max_pts;
 
@@ -53,7 +110,7 @@ bool dect_phy_mac_sched_reallocation_enabled(void)
 	struct dect_phy_settings *s = dect_common_settings_ref_get();
 	return (s->mac_sched.mode == DECT_MAC_SCHED_RALLOCATE);
 }
-bool dect_phy_mac_sched_random_enabled(void)
+bool dect_phy_mac_sched_ra_enabled(void)
 {
 	struct dect_phy_settings *s = dect_common_settings_ref_get();
 	return (s->mac_sched.mode == DECT_MAC_SCHED_RANDOM);
@@ -108,6 +165,15 @@ int dect_phy_mac_sched_fixed_validate_settings(void)
         uint16_t st_i = s->mac_sched.pt_slots[i].start_subslot;
         uint16_t en_i = s->mac_sched.pt_slots[i].end_subslot;
 
+        /* Unused entry is allowed */
+        if (st_i == 0U && en_i == 0U) {
+            continue;
+        }
+        /* Enforce guard region at frame start */
+        if (st_i < DECT_MAC_UL_GUARD_SUBSLOTS) {
+            return -EINVAL;
+        }
+
         if (st_i > en_i) {
             return -EINVAL;
         }
@@ -118,6 +184,15 @@ int dect_phy_mac_sched_fixed_validate_settings(void)
         for (int j = i + 1; j < s->mac_sched.max_pts; j++) {
             uint16_t st_j = s->mac_sched.pt_slots[j].start_subslot;
             uint16_t en_j = s->mac_sched.pt_slots[j].end_subslot;
+
+            /* Unused entry is allowed */
+            if (st_j == 0U && en_j == 0U) {
+                continue;
+            }
+            /* Enforce guard region at frame start */
+            if (st_j < DECT_MAC_UL_GUARD_SUBSLOTS) {
+                return -EINVAL;
+            }
 
             if (st_j > en_j) {
                 return -EINVAL;
@@ -166,14 +241,7 @@ int dect_phy_mac_sched_fixed_pt_slot_range_get(uint8_t pt_id,
         return -EINVAL;
     }
 
-    /* Heuristic: if both values fit in slot domain, treat as slots (no division). */
-    if (end_cfg < DECT_RADIO_FRAME_SLOT_COUNT && start_cfg < DECT_RADIO_FRAME_SLOT_COUNT) {
-        *start_slot = (uint8_t)start_cfg;
-        *end_slot   = (uint8_t)end_cfg;
-        return 0;
-    }
-
-    /* Otherwise treat as subslots and convert to slots. */
+    /* Settings are ALWAYS in SUBSLOTS now. Convert to slot indices for slot-based users. */
     if (end_cfg >= DECT_RADIO_FRAME_SUBSLOT_COUNT || start_cfg >= DECT_RADIO_FRAME_SUBSLOT_COUNT) {
         return -EINVAL;
     }
@@ -400,10 +468,15 @@ int dect_phy_mac_ft_fixed_join_rx_schedule_start(uint64_t beacon_frame_time,
     uint8_t start_slot = 0;
     uint8_t end_slot = 0;
 
-    /* Use PT1 advertised range if available; fallback to 0..5 */
+    /* Use PT1 advertised range if available; fallback to a small window after guard */
     if (dect_phy_mac_sched_fixed_pt_slot_range_get(1, s->mac_sched.max_pts, &start_slot, &end_slot) != 0) {
-        start_slot = 0;
-        end_slot = 5;
+        const uint8_t ss_per_slot = (uint8_t)DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT;
+        const uint8_t guard_slots = (uint8_t)((DECT_MAC_UL_GUARD_SUBSLOTS + (ss_per_slot - 1U)) / ss_per_slot);
+        start_slot = guard_slots;
+        end_slot   = (uint8_t)(guard_slots + 5U);
+        if (end_slot >= DECT_RADIO_FRAME_SLOT_COUNT) {
+            end_slot = (uint8_t)(DECT_RADIO_FRAME_SLOT_COUNT - 1U);
+        }
     }
 
     /* Add a guard slot (but keep within frame) */
@@ -474,12 +547,13 @@ int dect_phy_mac_ft_fixed_join_rx_schedule_start(uint64_t beacon_frame_time,
  */
 static inline uint8_t slot_to_start_subslot(uint8_t slot)
 {
-	return (uint8_t)(slot * 2U);
+	return (uint8_t)(slot * DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT);
 }
 
 static inline uint8_t slot_to_end_subslot(uint8_t slot)
 {
-	return (uint8_t)(slot * 2U + 1U);
+	return (uint8_t)((slot * DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT) +
+			 (DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT - 1U));
 }
 
 void dect_phy_mac_fixed_sched_resource_ie_handle(
@@ -518,8 +592,9 @@ void dect_phy_mac_fixed_sched_resource_ie_handle(
 		uint8_t end_slot   = ie->pt[i].end_slot;
 
 		/* Defensive clamp */
-		if (start_slot > 23U) start_slot = 23U;
-		if (end_slot > 23U)   end_slot = 23U;
+		const uint8_t last_slot = (uint8_t)(DECT_RADIO_FRAME_SLOT_COUNT - 1U);
+		if (start_slot > last_slot) start_slot = last_slot;
+		if (end_slot > last_slot)   end_slot = last_slot;
 		if (end_slot < start_slot) {
 			end_slot = start_slot;
 		}

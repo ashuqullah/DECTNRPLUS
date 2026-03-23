@@ -65,10 +65,6 @@ typedef struct {
 #define HSA_DECT_ASSOC_EXT_VER                1
 #define HSA_DECT_IE_EXT_TYPE_ASSOC_POLICY     0xA1
 
-/* HSA_DECT flags (keep single source of truth if already defined elsewhere) */
-#ifndef HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE
-#define HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE   (1U << 0)
-#endif
 #define DECT_PHY_MAC_FIXED_SCHED_RES_IE_MIN_LEN 4 /* ver + mode + max_pts + active_pts */
 /* Keep the name, but implement it via IE_TYPE_EXTENSION (63) */
 

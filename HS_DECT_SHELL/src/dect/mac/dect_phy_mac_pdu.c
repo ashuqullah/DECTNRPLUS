@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <zephyr/shell/shell.h>
-
+#include <zephyr/sys/atomic.h>
 #include <nrf_modem_dect_phy.h>
 
 #include "desh_print.h"
@@ -30,6 +30,7 @@
 enum hsa_dect_sched_mode {
 	HSA_DECT_SCHED_RANDOM = 0,
 	HSA_DECT_SCHED_FIXED  = 1,
+	HSA_DECT_SCHED_RALLOCATE = 2,
 };
 
 struct hsa_dect_beacon_sched_ie {

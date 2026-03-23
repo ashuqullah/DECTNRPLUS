@@ -242,11 +242,10 @@ int dect_phy_mac_ctrl_beacon_scan_start(struct dect_phy_mac_beacon_scan_params *
 
 int dect_phy_mac_ctrl_associate(struct dect_phy_mac_associate_params *params)
 {
-	struct dect_phy_mac_nbr_info_list_item *scan_info =
-		dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
+	struct dect_phy_mac_nbr_info_list_item scan_info;
 	int ret;
 
-	if (!scan_info) {
+	if (!dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id, &scan_info)) {
 		desh_error("Beacon with long RD ID %u has not been seen in scan results",
 			   params->target_long_rd_id);
 		return -EINVAL;
@@ -265,13 +264,12 @@ int dect_phy_mac_ctrl_associate(struct dect_phy_mac_associate_params *params)
 
 		dect_common_utils_radio_mode_to_string(radio_mode, tmp_str);
 
-		/* We need to disable LBT */
 		desh_warn("Associate req to RA resource requires LBT to be used, continue -- "
 			  "but current radio mode is %s and operation will fail in modem.",
-				tmp_str);
+			  tmp_str);
 	}
 
-	ret = dect_phy_mac_client_associate(scan_info, params);
+	ret = dect_phy_mac_client_associate(&scan_info, params);
 	if (ret) {
 		desh_error("Cannot start client_associate: %d", ret);
 		(void)dect_phy_ctrl_ext_command_stop();
@@ -279,93 +277,18 @@ int dect_phy_mac_ctrl_associate(struct dect_phy_mac_associate_params *params)
 
 	return ret;
 }
-
 /**************************************************************************************************/
 
 int dect_phy_mac_ctrl_dissociate(struct dect_phy_mac_associate_params *params)
 {
-	struct dect_phy_mac_nbr_info_list_item *scan_info =
-		dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
-	int ret;
-
-	if (!scan_info) {
-		desh_error("Beacon with long RD ID %u has not been seen in scan results",
-			   params->target_long_rd_id);
-		return -EINVAL;
-	}
-
-	ret = dect_phy_ctrl_ext_command_start(mac_data.ext_cmd);
-	if (ret) {
-		return ret;
-	}
-
-	enum nrf_modem_dect_phy_radio_mode radio_mode;
-
-	ret = dect_phy_ctrl_current_radio_mode_get(&radio_mode);
-	if (!ret && radio_mode == NRF_MODEM_DECT_PHY_RADIO_MODE_NON_LBT_WITH_STANDBY) {
-		char tmp_str[128] = {0};
-
-		dect_common_utils_radio_mode_to_string(radio_mode, tmp_str);
-
-		/* We need to disable LBT */
-		desh_warn("Associate req to RA resource requires LBT to be used, continue -- "
-			  "but current radio mode is %s and operation will fail in modem.",
-				tmp_str);
-	}
-
-	ret = dect_phy_mac_client_dissociate(scan_info, params);
-	if (ret) {
-		desh_error("Cannot start client_dissociate: %d", ret);
-		(void)dect_phy_ctrl_ext_command_stop();
-	}
-
-	return ret;
-}
-
-/*HSA Fixed Schedulling association function */
-int dect_phy_mac_ctrl_associate_fixed(struct dect_phy_mac_associate_params *params)
-{
-	struct dect_phy_mac_nbr_info_list_item *scan_info =
-		dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
-	int ret;
-
-	if (!scan_info) {
-		desh_error("Beacon with long RD ID %u has not been seen in scan results",
-			   params->target_long_rd_id);
-		return -EINVAL;
-	}
-
-	ret = dect_phy_ctrl_ext_command_start(mac_data.ext_cmd);
-	if (ret) {
-		return ret;
-	}
-
-	/* NOTE:
-	 * FIXED association is not using RA resource anymore, so we do NOT warn about
-	 * "Associate req to RA resource requires LBT...".
-	 * Keep radio mode untouched here.
-	 */
-
-	ret = dect_phy_mac_client_associate_fixed(scan_info, params);
-	if (ret) {
-		desh_error("Cannot start client_associate_fixed: %d", ret);
-		(void)dect_phy_ctrl_ext_command_stop();
-	}
-
-	return ret;
-}
-
-int dect_phy_mac_ctrl_dissociate_fixed(struct dect_phy_mac_associate_params *params)
-{
-	struct dect_phy_mac_nbr_info_list_item *scan_info;
+		struct dect_phy_mac_nbr_info_list_item scan_info;
 	int ret;
 
 	if (!params) {
 		return -EINVAL;
 	}
 
-	scan_info = dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
-	if (!scan_info) {
+	if (!dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id, &scan_info)) {
 		desh_error("Beacon with long RD ID %u has not been seen in scan results",
 			   params->target_long_rd_id);
 		return -ENOENT;
@@ -376,12 +299,7 @@ int dect_phy_mac_ctrl_dissociate_fixed(struct dect_phy_mac_associate_params *par
 		return ret;
 	}
 
-	/* NOTE:
-	 * FIXED dissociation is not using RA resource (no RACH TX),
-	 * so do NOT warn about LBT requirements for RA.
-	 */
-
-	ret = dect_phy_mac_client_dissociate_fixed(scan_info, params);
+	ret = dect_phy_mac_client_dissociate_fixed(&scan_info, params);
 	if (ret) {
 		desh_error("Cannot start client_dissociate_fixed: %d", ret);
 		(void)dect_phy_ctrl_ext_command_stop();
@@ -390,15 +308,76 @@ int dect_phy_mac_ctrl_dissociate_fixed(struct dect_phy_mac_associate_params *par
 	return ret;
 }
 
+/*HSA Fixed Schedulling association function */
+int dect_phy_mac_ctrl_associate_fixed(struct dect_phy_mac_associate_params *params)
+{
+	struct dect_phy_mac_nbr_info_list_item scan_info;
+	int ret;
+
+	if (!params) {
+		return -EINVAL;
+	}
+
+	if (!dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id, &scan_info)) {
+		desh_error("Beacon with long RD ID %u has not been seen in scan results",
+			   params->target_long_rd_id);
+		return -EINVAL;
+	}
+
+	ret = dect_phy_ctrl_ext_command_start(mac_data.ext_cmd);
+	if (ret) {
+		return ret;
+	}
+
+	ret = dect_phy_mac_client_associate_fixed(&scan_info, params);
+	if (ret) {
+		desh_error("Cannot start client_associate_fixed: %d", ret);
+		(void)dect_phy_ctrl_ext_command_stop();
+	}
+
+	return ret;
+}
+
+int dect_phy_mac_ctrl_dissociate_fixed(struct dect_phy_mac_associate_params *params)
+{
+	struct dect_phy_mac_nbr_info_list_item scan_info;
+	int ret;
+
+	if (!params) {
+		return -EINVAL;
+	}
+
+	if (!dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id, &scan_info)) {
+		desh_error("Beacon with long RD ID %u has not been seen in scan results",
+			   params->target_long_rd_id);
+		return -ENOENT;
+	}
+
+	ret = dect_phy_ctrl_ext_command_start(mac_data.ext_cmd);
+	if (ret) {
+		return ret;
+	}
+
+	ret = dect_phy_mac_client_dissociate_fixed(&scan_info, params);
+	if (ret) {
+		desh_error("Cannot start client_dissociate_fixed: %d", ret);
+		(void)dect_phy_ctrl_ext_command_stop();
+	}
+
+	return ret;
+}
 /**************************************************************************************************/
 
 int dect_phy_mac_ctrl_rach_tx_start(struct dect_phy_mac_rach_tx_params *params)
 {
-	struct dect_phy_mac_nbr_info_list_item *scan_info =
-		dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
+	struct dect_phy_mac_nbr_info_list_item scan_info;
 	int ret;
 
-	if (!scan_info) {
+	if (!params) {
+		return -EINVAL;
+	}
+
+	if (!dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id, &scan_info)) {
 		desh_error("Beacon with long RD ID %u has not been seen in scan results",
 			   params->target_long_rd_id);
 		return -EINVAL;
@@ -416,14 +395,12 @@ int dect_phy_mac_ctrl_rach_tx_start(struct dect_phy_mac_rach_tx_params *params)
 		char tmp_str[128] = {0};
 
 		dect_common_utils_radio_mode_to_string(radio_mode, tmp_str);
-
-		/* We need to disable LBT */
 		desh_warn("Associate req to RA resource requires LBT to be used, continue -- "
 			  "but current radio mode is %s and operation will fail in modem.",
-				tmp_str);
+			  tmp_str);
 	}
 
-	ret = dect_phy_mac_client_rach_tx_start(scan_info, params);
+	ret = dect_phy_mac_client_rach_tx_start(&scan_info, params);
 	if (ret) {
 		desh_error("Cannot start client_rach_tx: %d", ret);
 		(void)dect_phy_ctrl_ext_command_stop();
@@ -431,7 +408,6 @@ int dect_phy_mac_ctrl_rach_tx_start(struct dect_phy_mac_rach_tx_params *params)
 
 	return ret;
 }
-
 int dect_phy_mac_ctrl_rach_tx_stop(void)
 {
 	dect_mac_client_rach_tx_stop();
@@ -440,15 +416,14 @@ int dect_phy_mac_ctrl_rach_tx_stop(void)
 }
 int dect_phy_mac_ctrl_reach_tx_start(struct dect_phy_mac_rach_tx_params *params)
 {
-	struct dect_phy_mac_nbr_info_list_item *scan_info =
-		dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id);
+	struct dect_phy_mac_nbr_info_list_item scan_info;
 	int ret;
 
 	if (!params) {
 		return -EINVAL;
 	}
 
-	if (!scan_info) {
+	if (!dect_phy_mac_nbr_info_get_by_long_rd_id(params->target_long_rd_id, &scan_info)) {
 		desh_error("Beacon with long RD ID %u has not been seen in scan results",
 			   params->target_long_rd_id);
 		return -EINVAL;
@@ -459,8 +434,8 @@ int dect_phy_mac_ctrl_reach_tx_start(struct dect_phy_mac_rach_tx_params *params)
 		return ret;
 	}
 
-	/* reach_tx still transmits over-the-air; warn if modem is in NON_LBT mode */
 	enum nrf_modem_dect_phy_radio_mode radio_mode;
+
 	ret = dect_phy_ctrl_current_radio_mode_get(&radio_mode);
 	if (!ret && radio_mode == NRF_MODEM_DECT_PHY_RADIO_MODE_NON_LBT_WITH_STANDBY) {
 		char tmp_str[128] = {0};
@@ -470,7 +445,7 @@ int dect_phy_mac_ctrl_reach_tx_start(struct dect_phy_mac_rach_tx_params *params)
 			  tmp_str);
 	}
 
-	ret = dect_phy_mac_client_reach_tx_start(scan_info, params);
+	ret = dect_phy_mac_client_reach_tx_start(&scan_info, params);
 	if (ret) {
 		desh_error("Cannot start client_reach_tx: %d", ret);
 		(void)dect_phy_ctrl_ext_command_stop();
@@ -485,7 +460,6 @@ int dect_phy_mac_ctrl_reach_tx_stop(void)
 	dect_phy_ctrl_ext_command_stop();
 	return 0;
 }
-
 
 /*Hs helper*/
 static inline bool hs_is_fixed_ft(void)

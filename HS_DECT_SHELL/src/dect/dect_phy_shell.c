@@ -28,9 +28,8 @@
 #include "dect_phy_ctrl.h"
 #include "dect_phy_rf_tool.h"
 #include "dect_phy_scan.h"
-/*Default Slots per frame as per Standard*/
-#define HS_DECT_SLOTS_PER_FRAME 24
-/*===========================================*/
+
+
 static int dect_phy_dect_cmd_print_help(const struct shell *shell, size_t argc, char **argv)
 {
 	int ret = 1;
@@ -53,6 +52,8 @@ static const char *hs_dect_sched_mode_to_str(int mode)
 		return "fixed";
 	case DECT_MAC_SCHED_RALLOCATE:
 		return "rallocate";
+	case DECT_MAC_SCHED_GROUP:
+		return "group";
 	default:
 		return "unknown";
 	}
@@ -83,19 +84,20 @@ static bool slots_overlap(uint16_t a_start, uint16_t a_end,
 	return !(a_end < b_start || b_end < a_start);
 }
 
-static int hs_dect_parse_slot_range(const struct shell *shell,
-				   const char *optarg,
-				   uint16_t *start, uint16_t *end)
+static int hs_dect_parse_subslot_range(const struct shell *shell,
+				       const char *optarg,
+				       uint16_t *start, uint16_t *end)
 {
 	unsigned int a, b;
 
 	if (!optarg || sscanf(optarg, "%u:%u", &a, &b) != 2) {
-		shell_error(shell, "slot format must be a:b");
+		shell_error(shell, "subslot format must be a:b");
 		return -EINVAL;
 	}
-	if (a >= HS_DECT_SLOTS_PER_FRAME || b >= HS_DECT_SLOTS_PER_FRAME || a > b) {
-		shell_error(shell, "slot range must be within 0..%d and start<=end",
-			    HS_DECT_SLOTS_PER_FRAME - 1);
+
+	if (a >= DECT_RADIO_FRAME_SUBSLOT_COUNT || b >= DECT_RADIO_FRAME_SUBSLOT_COUNT || a > b) {
+		shell_error(shell, "subslot range must be within 0..%u and start<=end",
+			    (unsigned)(DECT_RADIO_FRAME_SUBSLOT_COUNT - 1));
 		return -EINVAL;
 	}
 
@@ -104,45 +106,34 @@ static int hs_dect_parse_slot_range(const struct shell *shell,
 	return 0;
 }
 
-/* Default: split 24 subslots equally across max_pts */
+static int hs_dect_parse_slot_range(const struct shell *shell,
+                                    const char *optarg,
+                                    uint16_t *start_ss, uint16_t *end_ss)
+{
+    unsigned int a, b;
+
+    if (!optarg || sscanf(optarg, "%u:%u", &a, &b) != 2) {
+        shell_error(shell, "slot format must be a:b");
+        return -EINVAL;
+    }
+
+    if (a >= DECT_RADIO_FRAME_SLOT_COUNT || b >= DECT_RADIO_FRAME_SLOT_COUNT || a > b) {
+        shell_error(shell, "slot range must be within 0..%u and start<=end",
+                    (unsigned)(DECT_RADIO_FRAME_SLOT_COUNT - 1));
+        return -EINVAL;
+    }
+
+    const uint16_t ss_per_slot = DECT_RADIO_FRAME_SUBSLOT_COUNT_IN_SLOT;
+    *start_ss = (uint16_t)(a * ss_per_slot);
+    *end_ss   = (uint16_t)((b * ss_per_slot) + (ss_per_slot - 1U));
+    return 0;
+}
+/* Default: split frame subslots equally across max_pts (with UL guard at frame start) */
+/* Default: split frame subslots equally across max_pts (with UL guard at frame start) */
 static void hs_dect_assign_default_pt_slots(struct dect_phy_settings *s)
 {
-	int n = s->mac_sched.max_pts;
-
-	if (n < 1) {
-		n = DECT_DEF_PTS; /* default max_pts */
-	}
-	if (n > DECT_MAX_PTS) {
-		n = DECT_MAX_PTS;
-	}
-
-	/* Reserve index 0 to avoid frame-boundary / beacon / LBT busy */
-	const int reserved = 1;
-	const int total = HS_DECT_SLOTS_PER_FRAME;
-	const int usable = total - reserved;
-
-	int base = usable / n;
-	int rem  = usable % n;
-
-	/* Start from 1 instead of 0 */
-	int start = reserved;
-
-	for (int i = 0; i < n; i++) {
-		int count = base + ((i < rem) ? 1 : 0);
-		int end = start + count - 1;
-
-		s->mac_sched.pt_slots[i].start_subslot = (uint16_t)start;
-		s->mac_sched.pt_slots[i].end_subslot   = (uint16_t)end;
-
-		start = end + 1;
-	}
-	/* Clear unused entries */
-	for (int i = n; i < DECT_MAX_PTS; i++) {
-		s->mac_sched.pt_slots[i].start_subslot = 0;
-		s->mac_sched.pt_slots[i].end_subslot = 0;
-	}
+	hsa_dect_assign_default_pt_slots(s);
 }
-
 
 /**************************************************************************************************/
 
@@ -1671,19 +1662,20 @@ static const char dect_phy_sett_cmd_usage_str[] =
 "\n"
 "HS_DECT MAC scheduling extensions:\n"
 "      --sched_mode <mode>,         MAC scheduling mode.\n"
-"                                   random : legacy random access (default).\n"
-"                                   fixed  : fixed, slot-based scheduling.\n"
-"									rallocate : ETSI Resource Allocation IE scheduling.\n"
+"                                   random    : legacy random access (default).\n"
+"                                   fixed     : fixed, slot-based scheduling.\n"
+"                                   rallocate : ETSI Resource Allocation IE scheduling.\n"
+"                                   group     : ETSI Group Assignment scheduling.\n"
 "      --pt_id <id>,                Portable Terminal (PT) identifier.\n"
 "                                   0 = Fixed Terminal (FT).\n"
 "                                   1..N = PT index in fixed scheduling.\n"
 "      --max_pts <N>,               Maximum number of PTs supported by the FT.\n"
 "                                   Controls FT association table size.\n"
 "      --sf_len <subslots>,         Superframe length in subslots for fixed scheduling.\n"
-"      --pt1_slot <start:end>,      Fixed subslot range for PT1.\n"
-"      --pt2_slot <start:end>,      Fixed subslot range for PT2.\n"
-"      --pt3_slot <start:end>,      Fixed subslot range for PT3.\n"
-"      --pt4_slot <start:end>,      Fixed subslot range for PT4.\n"
+"      --pt1_sub_slot <start:end>,      Fixed subslot range for PT1.\n"
+"      --pt2_sub_slot <start:end>,      Fixed subslot range for PT2.\n"
+"      --pt3_sub_slot <start:end>,      Fixed subslot range for PT3.\n"
+"      --pt4_sub_slot <start:end>,      Fixed subslot range for PT4.\n"
 "                                   Slot ranges must fit within sf_len.\n";
 
 
@@ -1718,18 +1710,23 @@ static struct option long_options_settings[] = {
 	{"read", no_argument, 0, 'r'},
 	/* ===== HS_DECT MAC scheduling extensions ===== */
 		/* ===== HS_DECT MAC scheduling extensions ===== */
-	{"sched_mode", required_argument, 0, 1001}, /* fixed|random */
+	{"sched_mode", required_argument, 0, 1001}, /* fixed|random |reallocation */
 	{"role",       required_argument, 0, 1002}, /* ft|pt (required when switching to fixed) */
 	{"pt_id",      required_argument, 0, 1003}, /* 1..DECT_MAX_PTS (PT only) */
 	{"max_pts",    required_argument, 0, 1004}, /* 1..DECT_MAX_PTS (FT only) */
 
-	{"pt1_slot",   required_argument, 0, 1010}, /* a:b (FT only) */
-	{"pt2_slot",   required_argument, 0, 1011},
-	{"pt3_slot",   required_argument, 0, 1012},
-	{"pt4_slot",   required_argument, 0, 1013},
-	{"pt5_slot",   required_argument, 0, 1014},
-	{"pt6_slot",   required_argument, 0, 1015},
-
+	{"pt1_subslot", required_argument, 0, 1010}, /* a:b in SUBSLOTS */
+	{"pt2_subslot", required_argument, 0, 1011},
+	{"pt3_subslot", required_argument, 0, 1012},
+	{"pt4_subslot", required_argument, 0, 1013},
+	{"pt5_subslot", required_argument, 0, 1014},
+	{"pt6_subslot", required_argument, 0, 1015},
+	{"pt1_slot", required_argument, 0, 1020}, /* a:b in SLOTS (0..23) */
+	{"pt2_slot", required_argument, 0, 1021},
+	{"pt3_slot", required_argument, 0, 1022},
+	{"pt4_slot", required_argument, 0, 1023},
+	{"pt5_slot", required_argument, 0, 1024},
+	{"pt6_slot", required_argument, 0, 1025},
 	
 
 	{0, 0, 0, 0}};
@@ -1820,7 +1817,7 @@ static void dect_phy_sett_cmd_print(struct dect_phy_settings *dect_sett)
 		   dect_sett->mac_sched.max_pts);
 
 	for (int i = 0; i < dect_sett->mac_sched.max_pts && i < DECT_MAX_PTS; i++) {
-		desh_print("  PT%u slot.......................................%u:%u",
+		desh_print("  PT%u sub_slot.......................................%u:%u",
 			   (unsigned)(i + 1),
 			   dect_sett->mac_sched.pt_slots[i].start_subslot,
 			   dect_sett->mac_sched.pt_slots[i].end_subslot);
@@ -2015,7 +2012,7 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 
 		/* ===== HS_DECT MAC scheduling extensions ===== */
 
-		case 1001: /* --sched_mode fixed|random|rallocate */
+		case 1001: /* --sched_mode fixed|random|rallocate|group */
 			sched_mode_set = true;
 			if (!strcmp(optarg, "fixed")) {
 				newsettings.mac_sched.mode = DECT_MAC_SCHED_FIXED;
@@ -2023,8 +2020,10 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 				newsettings.mac_sched.mode = DECT_MAC_SCHED_RANDOM;
 			} else if (!strcmp(optarg, "rallocate") || !strcmp(optarg, "ra")) {
 				newsettings.mac_sched.mode = DECT_MAC_SCHED_RALLOCATE;
+			} else if (!strcmp(optarg, "group") || !strcmp(optarg, "ga")) {
+				newsettings.mac_sched.mode = DECT_MAC_SCHED_GROUP;
 			} else {
-				shell_error(shell, "sched_mode: use fixed|random|rallocate");
+				shell_error(shell, "sched_mode: use fixed|random|rallocate|group");
 				return -EINVAL;
 			}
 			break;
@@ -2066,7 +2065,7 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 			pt_slot_any_set = true;
 			any_fixed_only_opt = true;
 
-			ret = hs_dect_parse_slot_range(shell, optarg, &s0, &e0);
+			ret = hs_dect_parse_subslot_range(shell, optarg, &s0, &e0);
 			if (ret) {
 				return ret;
 			}
@@ -2074,6 +2073,7 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 			newsettings.mac_sched.pt_slots[idx].end_subslot = e0;
 			break;
 		}
+		
 
 		case 'h':
 			goto show_usage;
@@ -2114,7 +2114,8 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 
 	/* FIXED: if switching RANDOM->FIXED in this command, role must be given */
 	if ((newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED ||
-		newsettings.mac_sched.mode == DECT_MAC_SCHED_RALLOCATE) &&
+		newsettings.mac_sched.mode == DECT_MAC_SCHED_RALLOCATE ||
+		newsettings.mac_sched.mode == DECT_MAC_SCHED_GROUP) &&
 		current_settings.mac_sched.mode != newsettings.mac_sched.mode &&
 		!role_set) {
 		shell_error(shell, "Scheduler requires role selection (--role ft|pt)");
@@ -2123,7 +2124,8 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 
 	/* If fixed and role not set on CLI, keep stored role */
 	if ((newsettings.mac_sched.mode == DECT_MAC_SCHED_FIXED ||
-		newsettings.mac_sched.mode == DECT_MAC_SCHED_RALLOCATE) && !role_set) {
+		newsettings.mac_sched.mode == DECT_MAC_SCHED_RALLOCATE ||
+		newsettings.mac_sched.mode == DECT_MAC_SCHED_GROUP) && !role_set) {
 		newsettings.mac_sched.role = current_settings.mac_sched.role;
 	}
 	/* PT role rules */
@@ -2171,7 +2173,9 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 		/* max_pts optional: default if missing */
 		if (!max_pts_set) {
 			if (current_settings.mac_sched.role == DECT_MAC_ROLE_FT &&
-			    current_settings.mac_sched.mode == DECT_MAC_SCHED_FIXED &&
+			   (current_settings.mac_sched.mode == DECT_MAC_SCHED_FIXED || 
+				current_settings.mac_sched.mode == DECT_MAC_SCHED_GROUP || 
+				current_settings.mac_sched.mode == DECT_MAC_SCHED_RALLOCATE) &&
 			    current_settings.mac_sched.max_pts >= 1 &&
 			    current_settings.mac_sched.max_pts <= DECT_MAX_PTS) {
 				newsettings.mac_sched.max_pts = current_settings.mac_sched.max_pts;
@@ -2194,17 +2198,18 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 		for (int i = 0; i < newsettings.mac_sched.max_pts; i++) {
 			uint16_t si = newsettings.mac_sched.pt_slots[i].start_subslot;
 			uint16_t ei = newsettings.mac_sched.pt_slots[i].end_subslot;
-			if (si == 0) {
-				desh_warn("PT%d slot starts at 0; this often fails LBT. Consider starting from 1.", i + 1);
-			}
-			
+			if (si >= DECT_RADIO_FRAME_SUBSLOT_COUNT || ei >= DECT_RADIO_FRAME_SUBSLOT_COUNT || si > ei) {
+					shell_error(shell, "PT%d subslot range must be within 0..%u and start<=end",
+							i + 1, (unsigned)(DECT_RADIO_FRAME_SUBSLOT_COUNT - 1));
+					return -EINVAL;
+				}
 
-			if (si >= HS_DECT_SLOTS_PER_FRAME || ei >= HS_DECT_SLOTS_PER_FRAME || si > ei) {
-				shell_error(shell, "PT%d slot must be within 0..%d and start<=end",
-					    i + 1, HS_DECT_SLOTS_PER_FRAME - 1);
-				return -EINVAL;
-			}
-
+				/* Enforce guard: do not allow allocations inside [0..guard-1] */
+				if (si < DECT_MAC_UL_GUARD_SUBSLOTS) {
+					shell_error(shell, "PT%d start_subslot %u violates UL guard (must be >= %u)",
+							i + 1, si, (unsigned)DECT_MAC_UL_GUARD_SUBSLOTS);
+					return -EINVAL;
+				}
 			for (int j = i + 1; j < newsettings.mac_sched.max_pts; j++) {
 				uint16_t sj = newsettings.mac_sched.pt_slots[j].start_subslot;
 				uint16_t ej = newsettings.mac_sched.pt_slots[j].end_subslot;
@@ -2223,7 +2228,7 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 	}
 
 	/* If fixed but role unknown => reject */
-	shell_error(shell, "FIXED scheduler requires role selection (--role ft|pt)");
+	shell_error(shell, "Selected scheduler requires role selection (--role ft|pt)");
 	return -EINVAL;
 
 settings_updated:

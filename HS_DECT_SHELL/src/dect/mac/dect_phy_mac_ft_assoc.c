@@ -37,20 +37,13 @@ int dect_phy_mac_ft_assoc_add_or_update(uint32_t pt_long_rd_id,
 	if (pt_long_rd_id == 0) {
 		return -EINVAL;
 	}
-	int assoc_count = dect_phy_mac_ft_assoc_count_get();
+
 	struct dect_phy_settings *s = dect_common_settings_ref_get();
-
-	if (assoc_count >= s->mac_sched.max_pts) {
-		desh_warn("FT: association rejected, max PTs reached (%d)",
-				s->mac_sched.max_pts);
-		return -ENOMEM;
-	}
-
 	k_spinlock_key_t key = k_spin_lock(&g_tab_lock);
 
 	int lim = tab_limit_get();
 
-	/* update if exists */
+	/* 1) Update existing entry by LONG RD id */
 	for (int i = 0; i < lim; i++) {
 		if (g_tab[i].used && g_tab[i].pt_long_rd_id == pt_long_rd_id) {
 			g_tab[i].pt_short_rd_id = pt_short_rd_id;
@@ -61,7 +54,36 @@ int dect_phy_mac_ft_assoc_add_or_update(uint32_t pt_long_rd_id,
 		}
 	}
 
-	/* insert to first free slot => assigns PT index */
+	/* 2) Reject duplicate SHORT RD id belonging to another PT */
+	for (int i = 0; i < lim; i++) {
+		if (g_tab[i].used &&
+		    g_tab[i].pt_short_rd_id == pt_short_rd_id &&
+		    g_tab[i].pt_long_rd_id != pt_long_rd_id) {
+			desh_warn("FT: duplicate short RD id %u already used by long=%u, reject long=%u",
+				  pt_short_rd_id,
+				  g_tab[i].pt_long_rd_id,
+				  pt_long_rd_id);
+			k_spin_unlock(&g_tab_lock, key);
+			return -EEXIST;
+		}
+	}
+
+	/* 3) Count used entries while holding the lock */
+	int assoc_count = 0;
+	for (int i = 0; i < lim; i++) {
+		if (g_tab[i].used) {
+			assoc_count++;
+		}
+	}
+
+	if (assoc_count >= s->mac_sched.max_pts) {
+		desh_warn("FT: association rejected, max PTs reached (%d)",
+			  s->mac_sched.max_pts);
+		k_spin_unlock(&g_tab_lock, key);
+		return -ENOMEM;
+	}
+
+	/* 4) Insert into first free slot */
 	for (int i = 0; i < lim; i++) {
 		if (!g_tab[i].used) {
 			g_tab[i].used = true;
@@ -77,7 +99,6 @@ int dect_phy_mac_ft_assoc_add_or_update(uint32_t pt_long_rd_id,
 	k_spin_unlock(&g_tab_lock, key);
 	return -ENOMEM; /* FT full */
 }
-
 bool dect_phy_mac_ft_assoc_is_associated(uint32_t pt_long_rd_id)
 {
 	bool ok = false;
@@ -184,9 +205,11 @@ void dect_phy_mac_ft_assoc_status_print(void)
 		}
 
 		uint16_t ss = 0, es = 0;
-		if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED && i < DECT_MAX_PTS) {
-			ss = s->mac_sched.pt_slots[i].start_subslot;
-			es = s->mac_sched.pt_slots[i].end_subslot;
+		if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED || s->mac_sched.mode == DECT_MAC_SCHED_RALLOCATE) {
+			if (i < DECT_MAX_PTS) {
+				ss = s->mac_sched.pt_slots[i].start_subslot;
+				es = s->mac_sched.pt_slots[i].end_subslot;
+			}
 		}
 
 		desh_print("  PT%d long=%u short=%u rssi=%d last_seen_bb=%llu slots=%u:%u",

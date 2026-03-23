@@ -138,10 +138,12 @@ void dect_phy_mac_client_resource_allocation_handle(
 
 	uint16_t end = (uint16_t)start + (uint16_t)len - 1U;
 
-	/* Clamp to 48 subslots: 0..47 */
-	if (end > 47U) {
-		end = 47U;
-	}
+	
+	/* Clamp to frame subslot range */
+		const uint16_t last_ss = (uint16_t)(DECT_RADIO_FRAME_SUBSLOT_COUNT - 1U);
+		if (end > last_ss) {
+			end = last_ss;
+		}
 
 	s->mac_sched.pt_slots[idx].start_subslot = start;
 	s->mac_sched.pt_slots[idx].end_subslot   = (uint8_t)end;
@@ -716,16 +718,17 @@ static void dect_phy_mac_client_rach_tx_worker(struct k_work *work_item)
 	}
 
 	/* Get fresh nbr info */
-	struct dect_phy_mac_nbr_info_list_item *scan_info =
-		dect_phy_mac_nbr_info_get_by_long_rd_id(cmd_params.target_long_rd_id);
+	struct dect_phy_mac_nbr_info_list_item scan_info;
 
-	if (!scan_info) {
-		desh_warn("(%s): Beacon with long RD ID %u has not been seen in scan results",
-			(__func__), cmd_params.target_long_rd_id);
-		return;
-	}
+if (!dect_phy_mac_nbr_info_get_by_long_rd_id(cmd_params.target_long_rd_id, &scan_info)) {
+	desh_warn("(%s): Beacon with long RD ID %u has not been seen in scan results",
+		  __func__, cmd_params.target_long_rd_id);
+	return;
+}
 
-	data->target_nbr = *scan_info;
+data->target_nbr = scan_info;
+
+
 	err = dect_phy_mac_client_rach_tx(&data->target_nbr, &cmd_params);
 	if (err) {
 		desh_error("(%s): client_rach_tx failed: %d", (__func__), err);
@@ -794,15 +797,15 @@ static void dect_phy_mac_client_reach_tx_worker(struct k_work *work_item)
 		strncpy(cmd_params.tx_data_str, tmp_str, DECT_DATA_MAX_LEN - 1);
 	}
 
-	struct dect_phy_mac_nbr_info_list_item *scan_info =
-		dect_phy_mac_nbr_info_get_by_long_rd_id(cmd_params.target_long_rd_id);
-	if (!scan_info) {
-		desh_warn("(%s): Beacon with long RD ID %u has not been seen in scan results",
-			  (__func__), cmd_params.target_long_rd_id);
-		return;
-	}
+struct dect_phy_mac_nbr_info_list_item scan_info;
 
-	data->target_nbr = *scan_info;
+if (!dect_phy_mac_nbr_info_get_by_long_rd_id(cmd_params.target_long_rd_id, &scan_info)) {
+	desh_warn("(%s): Beacon with long RD ID %u has not been seen in scan results",
+		  __func__, cmd_params.target_long_rd_id);
+	return;
+}
+
+data->target_nbr = scan_info;
 	err = dect_phy_mac_client_reach_tx(&data->target_nbr, &cmd_params);
 	if (err) {
 		desh_error("(%s): client_reach_tx failed: %d", (__func__), err);

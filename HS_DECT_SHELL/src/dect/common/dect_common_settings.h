@@ -51,29 +51,30 @@
 /* ===== HSA_DECT: MAC fixed scheduling / multi-PT support ===== */
 
 
-#define DECT_MAX_PTS 6 /* can be 4  */
-#define DECT_DEF_PTS 4 /* can be 4  */
+#define DECT_MAX_PTS 6 /* can be any thing   */
+#define DECT_DEF_PTS 4 /* can be any number  */
+#define DECT_MAC_SLOTS_PER_FRAME      24
+#define DECT_MAC_SUBSLOTS_PER_SLOT    2
+#define DECT_MAC_SUBSLOTS_PER_FRAME   (DECT_MAC_SLOTS_PER_FRAME * DECT_MAC_SUBSLOTS_PER_SLOT)
 
+/* Guard to avoid subslot 0 at frame start (LBT/beacon collision zone) */
+#define DECT_MAC_UL_GUARD_SUBSLOTS    12 /* at least 1 slot */
 
 enum dect_mac_sched_mode {
 	DECT_MAC_SCHED_RANDOM = 0,
 	DECT_MAC_SCHED_FIXED  = 1,
 	DECT_MAC_SCHED_RALLOCATE = 2,
+	DECT_MAC_SCHED_GROUP = 3,
 };
 enum dect_mac_role {
 	DECT_MAC_ROLE_UNDEF = 0,
 	DECT_MAC_ROLE_FT,
 	DECT_MAC_ROLE_PT,
 };
-#define HSA_DECT_ASSOC_EXT_VER               1
 
 /* flags in payload[1] */
 #define HSA_DECT_ASSOC_FLAG_FT_FIXED_MODE    (1U << 0)
 #define HSA_DECT_ASSOC_FLAG_PT_FIXED_MODE    (1U << 1)
-struct dect_mac_fixed_slot {
-	uint16_t start_subslot;
-	uint16_t end_subslot;
-};
 
 struct dect_mac_sched_settings {
 	enum dect_mac_sched_mode mode;
@@ -84,7 +85,7 @@ struct dect_mac_sched_settings {
 	struct {
 		uint16_t start_subslot;
 		uint16_t end_subslot;
-	} pt_slots[6];
+	} pt_slots[DECT_MAX_PTS];
 };
 
 /*********New Code 'Added end*********************************************************************************/

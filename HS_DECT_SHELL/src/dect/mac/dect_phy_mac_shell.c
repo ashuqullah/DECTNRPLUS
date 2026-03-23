@@ -45,26 +45,32 @@ static bool mac_shell_is_reallocation_mode(void)
 	{
 		return dect_phy_mac_sched_reallocation_enabled();
 	}
+
+static bool mac_shell_is_scheduled_mode(void)
+{
+    return mac_shell_is_fixed_mode() || mac_shell_is_reallocation_mode();
+}
 		
 /* Validate fixed scheduling settings when in FIXED mode */
 static int mac_shell_guard_fixed_settings(const struct shell *shell)
 {
-    if (!mac_shell_is_fixed_mode()) {
+    if (!mac_shell_is_scheduled_mode()) {
         return 0; /* Random mode: do not restrict */
     }
 
     int err = dect_phy_mac_sched_fixed_validate_settings();
     if (err) {
-        shell_error(shell, "FIXED mode: invalid scheduling settings (err=%d). Use `dect sett -r` and fix.", err);
+        shell_error(shell,
+                    "Scheduled mode: invalid scheduling settings (err=%d). Use `dect sett -r` and fix.",
+                    err);
         return err;
     }
     return 0;
 }
-
 /* Enforce role only in FIXED mode */
 static int mac_shell_guard_role(const struct shell *shell, enum dect_mac_role required)
 {
-    if (!mac_shell_is_fixed_mode()) {
+    if (!mac_shell_is_scheduled_mode()) {
         return 0; /* Random mode: do not restrict */
     }
 
@@ -286,7 +292,7 @@ static int dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc,
 
 	const struct dect_phy_settings *s = dect_common_settings_ref_get();
 
-		if (s->mac_sched.mode == DECT_MAC_SCHED_FIXED &&
+		if ((s->mac_sched.mode == DECT_MAC_SCHED_FIXED ||s->mac_sched.mode == DECT_MAC_SCHED_RALLOCATE )&&
 			s->mac_sched.role != DECT_MAC_ROLE_FT) {
 			shell_error(shell,
 				"Beacon start denied: node role is not FT");

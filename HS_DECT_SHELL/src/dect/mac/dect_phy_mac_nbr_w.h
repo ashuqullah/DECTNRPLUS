@@ -33,8 +33,8 @@ struct dect_phy_mac_nbr_info_list_item {
 	dect_phy_mac_random_access_resource_ie_t ra_ie; /* Supporting only one RA IE */
 };
 
-bool dect_phy_mac_nbr_info_get_by_long_rd_id(uint32_t long_rd_id,
-					     struct dect_phy_mac_nbr_info_list_item *out);
+struct dect_phy_mac_nbr_info_list_item *
+dect_phy_mac_nbr_info_get_by_long_rd_id(uint32_t long_rd_id);
 
 bool dect_phy_mac_nbr_info_remove_by_long_rd_id(uint32_t long_rd_id);
 void dect_phy_mac_nbr_info_clear_all(void);

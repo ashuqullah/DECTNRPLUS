@@ -49,3 +49,8 @@ int dect_phy_mac_sched_fixed_pt_slot_range_get(uint8_t pt_idx,
 void dect_phy_mac_fixed_sched_resource_ie_handle(
 	const dect_phy_mac_common_header_t *common_header,
 	const dect_phy_mac_fixed_sched_resource_ie_t *ie);
+
+bool hsa_dect_slots_overlap(uint16_t a_start, uint16_t a_end,
+                            uint16_t b_start, uint16_t b_end);
+
+void hsa_dect_assign_default_pt_slots(struct dect_phy_settings *s);
