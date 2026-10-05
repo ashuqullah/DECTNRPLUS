@@ -1,0 +1,117 @@
+/*
+ * Copyright (c) 2025 PHYTEC Messtechnik GmbH
+ *
+ *
+ */
+#include "debut_module_nrf9151_common-pinctrl.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "DEBUT DECT NR+ Module";
+	compatible = "phytec,debut-module";
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,uart-mcumgr = &uart0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_red: led_0 {
+			gpios = <&gpio0 21 GPIO_ACTIVE_HIGH>;
+			label = "Red LED 1";
+		};
+
+		led_green: led_1 {
+			gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
+			label = "Green LED 2";
+		};
+
+		led_blue: led_2 {
+			gpios = <&gpio0 23 GPIO_ACTIVE_HIGH>;
+			label = "Blue LED 3";
+		};
+	};
+
+	/* These aliases are provided for compatibility with samples */
+	aliases {
+		led0 = &led_red;
+		led1 = &led_green;
+		led2 = &led_blue;
+		bootloader-led0 = &led_blue;
+		mcuboot-led0 = &led_blue;
+		watchdog0 = &wdt0;
+	};
+
+	i2c_address_pins {
+		compatible = "gpio-keys";
+
+		lpin: lpin {
+			gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
+		};
+		hpin: hpin {
+			gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
+
+&gpiote {
+	status = "okay";
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_default>;
+	pinctrl-1 = <&uart0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&i2c2 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	pinctrl-0 = <&i2c2_default>;
+	pinctrl-1 = <&i2c2_sleep>;
+	pinctrl-names = "default", "sleep";
+	clock-frequency = <I2C_BITRATE_FAST>;
+};
+
+&spi1 {
+	compatible = "nordic,nrf-spis"; /* configure as slave */
+	status = "okay";
+	pinctrl-0 = <&spi1_default>;
+	pinctrl-1 = <&spi1_sleep>;
+	pinctrl-names = "default", "sleep";
+	/* def-char: byte clocked out when slave has no TX buffer prepared */
+	def-char = <0x00>;
+};
+
+/* connected to SPI NOR */
+&spi3 {
+	compatible = "nordic,nrf-spim";
+	status = "okay";
+	cs-gpios = <&gpio0 26 GPIO_ACTIVE_LOW>;
+	pinctrl-0 = <&spi3_default>;
+	pinctrl-1 = <&spi3_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	w25q16: w25q16jvsniq@1 {
+		compatible = "jedec,spi-nor";
+		status = "okay";
+		reg = <1>;
+		spi-max-frequency = <133000000>;
+		size = <16000000>;
+		has-dpd;
+		t-enter-dpd = <3000>;
+		t-exit-dpd = <40000>;
+	};
+};
+
+/* Include default memory partition configuration file */
+#include <nordic/nrf91xx_partition.dtsi>

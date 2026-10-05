@@ -1,4 +1,4 @@
-# Install script for directory: /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/share/sysbuild/images/bootloader
+# Install script for directory: /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysbuild/images/bootloader
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -37,3 +37,9 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
+string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
+       "${CMAKE_INSTALL_MANIFEST_FILES}")
+if(CMAKE_INSTALL_LOCAL_ONLY)
+  file(WRITE "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/bootloader/install_local_manifest.txt"
+     "${CMAKE_INSTALL_MANIFEST_CONTENT}")
+endif()

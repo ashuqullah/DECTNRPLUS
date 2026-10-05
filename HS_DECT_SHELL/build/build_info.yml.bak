@@ -2,7 +2,7 @@ cmake:
   board:
     name: 'nrf9151dk'
     path:
-     - '/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/boards/nordic/nrf9151dk'
+     - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk'
     qualifiers: 'nrf9151/ns'
     revision: ''
   images:
@@ -17,6 +17,6 @@ cmake:
      - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/empty.conf'
 version: '0.1.0'
 west:
-  command: '/home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL --pristine --board nrf9151dk/nrf9151/ns -- -DCONFIG_DEBUG_THREAD_INFO=y'
-  topdir: '/home/ashuqullah-alizai/ncs/v3.1.1'
-  version: '1.4.0'
+  command: '/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL --pristine --board nrf9151dk/nrf9151/ns'
+  topdir: '/home/ashuqullah-alizai/ncs/v3.3.0'
+  version: '1.5.0'

@@ -14,8 +14,8 @@
 #include "config_tfm.h"
 
 /* Backends */
-#define CONFIG_TFM_SPM_BACKEND_IPC                               0
-#define CONFIG_TFM_SPM_BACKEND_SFN                               1
+#define CONFIG_TFM_SPM_BACKEND_IPC                               1
+#define CONFIG_TFM_SPM_BACKEND_SFN                               0
 
 #define CONFIG_TFM_CONNECTION_BASED_SERVICE_API                  0
 #define CONFIG_TFM_MMIO_REGION_ENABLE                            0
@@ -31,13 +31,15 @@
 #endif
 
 #if !defined CONFIG_TFM_USE_TRUSTZONE
+#if !defined CONFIG_TFM_SPM_THREAD_STACK_SIZE
 /* SPM has to have its own stack if Trustzone isn't present. */
 #if defined(TFM_FIH_PROFILE_ON)
 #define CONFIG_TFM_SPM_THREAD_STACK_SIZE                          1536
 #else
 #define CONFIG_TFM_SPM_THREAD_STACK_SIZE                          1024
-#endif
-#endif
+#endif /* defined(TFM_FIH_PROFILE_ON) */
+#endif /* !defined CONFIG_TFM_SPM_THREAD_STACK_SIZE */
+#endif /* !defined CONFIG_TFM_USE_TRUSTZONE */
 
 #elif CONFIG_TFM_SPM_BACKEND_SFN == 1
 /*
@@ -50,7 +52,7 @@
  * The minimum value is 0x400 to satisfy the SPM functional requirement.
  * Manifest tool will assure this.
  */
-#define CONFIG_TFM_TOTAL_STACK_SIZE                              (0 + CRYPTO_STACK_SIZE + PLATFORM_SP_STACK_SIZE)
+#define CONFIG_TFM_TOTAL_STACK_SIZE                              (0 + PS_STACK_SIZE + ITS_STACK_SIZE + CRYPTO_STACK_SIZE + PLATFORM_SP_STACK_SIZE)
 #if (CONFIG_TFM_TOTAL_STACK_SIZE < 2048)
 #undef CONFIG_TFM_TOTAL_STACK_SIZE                             
 #define CONFIG_TFM_TOTAL_STACK_SIZE                              2048
@@ -62,7 +64,15 @@
 
 #endif /* CONFIG_TFM_SPM_BACKEND_IPC == 1 */
 
+/* Stack size must be aligned to satisfy platform alignment requirements
+ * Note that .c file that uses this define need to include region_defs.h and
+ * tfm_s_linker_alignments.h in this exact order. This is needed to ensure
+ * that correct align values are used. */
+#define TFM_NS_AGENT_TZ_STACK_SIZE_ALIGNED \
+    ROUND_UP_TO_MULTIPLE(CONFIG_TFM_NS_AGENT_TZ_STACK_SIZE,\
+                         TFM_LINKER_NS_AGENT_TZ_STACK_ALIGNMENT)
+
 /* Define whether ARoT partitions are present. Can be used when applying protections. */
-#define CONFIG_TFM_AROT_PRESENT                                  0
+#define CONFIG_TFM_AROT_PRESENT                                  1
 
 #endif /* __CONFIG_IMPL_H__ */

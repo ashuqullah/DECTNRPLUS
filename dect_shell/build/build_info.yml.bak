@@ -1,0 +1,22 @@
+cmake:
+  board:
+    name: 'debut_module'
+    path:
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module'
+    qualifiers: 'nrf9151/ns'
+    revision: ''
+  images:
+   - name: 'dect_shell'
+     source-dir: '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell'
+     type: 'MAIN'
+  kconfig:
+    files:
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/_sysbuild/empty.conf'
+    user-files:
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/_sysbuild/empty.conf'
+version: '0.1.0'
+west:
+  command: '/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell --pristine --board debut_module/nrf9151/ns -- -DCONFIG_DEBUG_THREAD_INFO=y -DBOARD_ROOT=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL'
+  topdir: '/home/ashuqullah-alizai/ncs/v3.3.0'
+  version: '1.5.0'

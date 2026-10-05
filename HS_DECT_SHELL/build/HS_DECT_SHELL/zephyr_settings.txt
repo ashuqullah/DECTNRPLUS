@@ -6,8 +6,8 @@
 # and/or the west manifest file.
 #
 # See the Modules guide for more information.
-"BOARD_ROOT":"/home/ashuqullah-alizai/ncs/v3.1.1/nrf"
-"DTS_ROOT":"/home/ashuqullah-alizai/ncs/v3.1.1/nrf"
-"SNIPPET_ROOT":"/home/ashuqullah-alizai/ncs/v3.1.1/nrf"
-"SOC_ROOT":"/home/ashuqullah-alizai/ncs/v3.1.1/nrf"
-"MODULE_EXT_ROOT":"/home/ashuqullah-alizai/ncs/v3.1.1/nrf"
+"BOARD_ROOT":"/home/ashuqullah-alizai/ncs/v3.3.0/nrf"
+"DTS_ROOT":"/home/ashuqullah-alizai/ncs/v3.3.0/nrf"
+"SNIPPET_ROOT":"/home/ashuqullah-alizai/ncs/v3.3.0/nrf"
+"SOC_ROOT":"/home/ashuqullah-alizai/ncs/v3.3.0/nrf"
+"MODULE_EXT_ROOT":"/home/ashuqullah-alizai/ncs/v3.3.0/nrf"

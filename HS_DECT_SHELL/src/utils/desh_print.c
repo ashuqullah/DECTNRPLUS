@@ -10,7 +10,7 @@
 #include <assert.h>
 
 #include <zephyr/kernel.h>
-#include <zephyr/posix/time.h>
+#include <time.h>
 #include <zephyr/sys/cbprintf.h>
 #include <zephyr/shell/shell.h>
 #include <modem/modem_info.h>

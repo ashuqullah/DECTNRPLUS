@@ -1,4 +1,4 @@
-# Install script for directory: /home/ashuqullah-alizai/ncs/v3.1.1/zephyr/share/sysbuild/template
+# Install script for directory: /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysbuild/template
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -42,3 +42,9 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/sysbuild/images/cmake_install.cmake")
 endif()
 
+string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
+       "${CMAKE_INSTALL_MANIFEST_FILES}")
+if(CMAKE_INSTALL_LOCAL_ONLY)
+  file(WRITE "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/_sysbuild/install_local_manifest.txt"
+     "${CMAKE_INSTALL_MANIFEST_CONTENT}")
+endif()

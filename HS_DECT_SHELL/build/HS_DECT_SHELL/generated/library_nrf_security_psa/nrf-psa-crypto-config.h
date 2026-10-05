@@ -13,12 +13,12 @@
 #define PSA_WANT_AES_KEY_SIZE_256                          1
 /* #undef PSA_WANT_ALG_CBC_NO_PADDING */
 /* #undef PSA_WANT_ALG_CBC_PKCS7 */
-/* #undef PSA_WANT_ALG_CCM */
+#define PSA_WANT_ALG_CCM                                   1
 /* #undef PSA_WANT_ALG_CCM_STAR_NO_TAG */
 /* #undef PSA_WANT_ALG_CHACHA20_POLY1305 */
 /* #undef PSA_WANT_ALG_CMAC */
 /* #undef PSA_WANT_ALG_CTR */
-/* #undef PSA_WANT_ALG_CTR_DRBG */
+#define PSA_WANT_ALG_CTR_DRBG                              1
 /* #undef PSA_WANT_ALG_DETERMINISTIC_ECDSA */
 /* #undef PSA_WANT_ALG_ECB_NO_PADDING */
 /* #undef PSA_WANT_ALG_ECDH */
@@ -27,11 +27,11 @@
 /* #undef PSA_WANT_ALG_ED25519PH */
 /* #undef PSA_WANT_ALG_ED448PH */
 /* #undef PSA_WANT_ALG_GCM */
-/* #undef PSA_WANT_ALG_HKDF */
+#define PSA_WANT_ALG_HKDF                                  1
 /* #undef PSA_WANT_ALG_HKDF_EXPAND */
 /* #undef PSA_WANT_ALG_HKDF_EXTRACT */
-/* #undef PSA_WANT_ALG_HMAC */
-#define PSA_WANT_ALG_HMAC_DRBG                             1
+#define PSA_WANT_ALG_HMAC                                  1
+/* #undef PSA_WANT_ALG_HMAC_DRBG */
 /* #undef PSA_WANT_ALG_JPAKE */
 /* #undef PSA_WANT_ALG_MD5 */
 /* #undef PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128 */
@@ -49,7 +49,7 @@
 /* #undef PSA_WANT_ALG_SHA3_512 */
 /* #undef PSA_WANT_ALG_SHA_1 */
 /* #undef PSA_WANT_ALG_SHA_224 */
-/* #undef PSA_WANT_ALG_SHA_256 */
+#define PSA_WANT_ALG_SHA_256                               1
 /* #undef PSA_WANT_ALG_SHA_384 */
 /* #undef PSA_WANT_ALG_SHA_512 */
 /* #undef PSA_WANT_ALG_SHA_512_224 */
@@ -63,42 +63,29 @@
 /* #undef PSA_WANT_ALG_TLS12_ECJPAKE_TO_PMS */
 /* #undef PSA_WANT_ALG_TLS12_PRF */
 /* #undef PSA_WANT_ALG_TLS12_PSK_TO_MS */
+/* #undef PSA_WANT_ALG_WPA3_SAE_H2E */
 /* #undef PSA_WANT_ALG_XTS */
-/* #undef PSA_WANT_ECC_BRAINPOOL_P_R1_160 */
-/* #undef PSA_WANT_ECC_BRAINPOOL_P_R1_192 */
 /* #undef PSA_WANT_ECC_BRAINPOOL_P_R1_224 */
 /* #undef PSA_WANT_ECC_BRAINPOOL_P_R1_256 */
 /* #undef PSA_WANT_ECC_BRAINPOOL_P_R1_320 */
 /* #undef PSA_WANT_ECC_BRAINPOOL_P_R1_384 */
 /* #undef PSA_WANT_ECC_BRAINPOOL_P_R1_512 */
-/* #undef PSA_WANT_ECC_FRP_V1_256 */
 /* #undef PSA_WANT_ECC_MONTGOMERY_255 */
 /* #undef PSA_WANT_ECC_MONTGOMERY_448 */
-/* #undef PSA_WANT_ECC_SECP_K1_192 */
 /* #undef PSA_WANT_ECC_SECP_K1_224 */
 /* #undef PSA_WANT_ECC_SECP_K1_256 */
-/* #undef PSA_WANT_ECC_SECP_R1_192 */
 /* #undef PSA_WANT_ECC_SECP_R1_224 */
 /* #undef PSA_WANT_ECC_SECP_R1_256 */
 /* #undef PSA_WANT_ECC_SECP_R1_384 */
 /* #undef PSA_WANT_ECC_SECP_R1_521 */
-/* #undef PSA_WANT_ECC_SECP_R2_160 */
-/* #undef PSA_WANT_ECC_SECT_K1_163 */
-/* #undef PSA_WANT_ECC_SECT_K1_233 */
-/* #undef PSA_WANT_ECC_SECT_K1_239 */
-/* #undef PSA_WANT_ECC_SECT_K1_283 */
-/* #undef PSA_WANT_ECC_SECT_K1_409 */
-/* #undef PSA_WANT_ECC_SECT_K1_571 */
-/* #undef PSA_WANT_ECC_SECT_R1_163 */
 /* #undef PSA_WANT_ECC_SECT_R1_233 */
 /* #undef PSA_WANT_ECC_SECT_R1_283 */
 /* #undef PSA_WANT_ECC_SECT_R1_409 */
 /* #undef PSA_WANT_ECC_SECT_R1_571 */
-/* #undef PSA_WANT_ECC_SECT_R2_163 */
 /* #undef PSA_WANT_ECC_TWISTED_EDWARDS_255 */
 /* #undef PSA_WANT_ECC_TWISTED_EDWARDS_448 */
 #define PSA_WANT_GENERATE_RANDOM                           1
-/* #undef PSA_WANT_KEY_TYPE_AES */
+#define PSA_WANT_KEY_TYPE_AES                              1
 /* #undef PSA_WANT_KEY_TYPE_CHACHA20 */
 /* #undef PSA_WANT_KEY_TYPE_DERIVE */
 /* #undef PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_BASIC */
@@ -129,6 +116,7 @@
 /* #undef PSA_WANT_KEY_TYPE_SRP_KEY_PAIR_EXPORT */
 /* #undef PSA_WANT_KEY_TYPE_SRP_KEY_PAIR_IMPORT */
 /* #undef PSA_WANT_KEY_TYPE_SRP_PUBLIC_KEY */
+/* #undef PSA_WANT_KEY_TYPE_WPA3_SAE */
 /* #undef PSA_WANT_RSA_KEY_SIZE_1024 */
 /* #undef PSA_WANT_RSA_KEY_SIZE_1536 */
 /* #undef PSA_WANT_RSA_KEY_SIZE_2048 */
@@ -146,7 +134,6 @@
 /* #undef PSA_WANT_ALG_SHAKE256_192 */
 /* #undef PSA_WANT_ALG_SHAKE256_256 */
 /* #undef PSA_WANT_ALG_SHA_256_192 */
-/* #undef PSA_WANT_ALG_WPA3_SAE */
 /* #undef PSA_WANT_ALG_WPA3_SAE_H2E */
 /* #undef PSA_WANT_ALG_XCHACHA20_POLY1305 */
 /* #undef PSA_WANT_ALG_XMSS */
@@ -174,7 +161,15 @@
 /* #undef PSA_WANT_ML_KEM_KEY_SIZE_1024 */
 /* #undef PSA_WANT_ML_KEM_KEY_SIZE_512 */
 /* #undef PSA_WANT_ML_KEM_KEY_SIZE_768 */
-
+/* #undef PSA_WANT_ALG_WPA3_SAE_FIXED */
+/* #undef PSA_WANT_ALG_WPA3_SAE_GDH */
+/* #undef PSA_WANT_ALG_ASCON_AEAD128 */
+/* #undef PSA_WANT_KEY_TYPE_ASCON */
+/* #undef PSA_WANT_ALG_DETERMINISTIC_ML_DSA */
+/* #undef PSA_WANT_ALG_DETERMINISTIC_HASH_ML_DSA */
+/* #undef PSA_WANT_ALG_HASH_ML_DSA */
+/* #undef PSA_WANT_ALG_AES_KW */
+/* #undef PSA_WANT_ALG_AES_KWP */
 
 /* The Adjusting is done in this file */
 #define PSA_CRYPTO_ADJUST_KEYPAIR_TYPES_H

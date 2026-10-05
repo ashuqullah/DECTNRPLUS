@@ -1,0 +1,2 @@
+osource "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/shields/*/Kconfig.defconfig"
+osource "/home/ashuqullah-alizai/ncs/v3.3.0/nrf/boards/shields/*/Kconfig.defconfig"

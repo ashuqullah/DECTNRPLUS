@@ -24,7 +24,7 @@ set(NRF_ALLOW_NON_SECURE_FAULT_HANDLING       OFF         CACHE BOOL      "Allow
 set(TFM_DUMMY_PROVISIONING                    OFF         CACHE BOOL      "Provision with dummy values. NOT to be used in production")
 set(PLATFORM_DEFAULT_PROVISIONING             OFF         CACHE BOOL      "Use default provisioning implementation")
 set(NRF_PROVISIONING                          OFF         CACHE BOOL      "Use Nordic provisioning implementation")
-set(CONFIG_NFCT_PINS_AS_GPIOS                 OFF         CACHE BOOL      "Use NFCT pins as GPIOs.")
+set(NRF_CONFIG_NFCT_PINS_AS_GPIOS             OFF         CACHE BOOL      "Use NFCT pins as GPIOs.")
 set(CONFIG_NRF_TRACE_PORT                     OFF         CACHE BOOL      "Enable trace port.")
 set(CONFIG_NRF_APPROTECT_LOCK                 OFF         CACHE BOOL      "Enable approtect.")
 set(CONFIG_NRF_APPROTECT_USER_HANDLING        OFF         CACHE BOOL      "Enable approtect user handling.")
@@ -33,3 +33,5 @@ set(CONFIG_NRF_SECURE_APPROTECT_USER_HANDLING OFF         CACHE BOOL      "Enabl
 
 set(CONFIG_HW_UNIQUE_KEY                      ON          CACHE BOOL      "Enable Hardware Unique Key")
 set(CONFIG_HW_UNIQUE_KEY_RANDOM               ON          CACHE BOOL      "Write a new Hardware Unique Key if none exists")
+
+set(CONFIG_NRF91_ANOMALY_36_WORKAROUND        OFF         CACHE BOOL      "Enable workaround for NRF91 Anomaly 36")
