@@ -24,16 +24,13 @@ APPLICATION_SOURCE_DIR:PATH=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysb
 APP_DIR:PATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell
 
 //Selected board
-BOARD:STRING=debut_module/nrf9151/ns
+BOARD:STRING=nrf9151dk/nrf9151/ns
 
-//Main board directory for board (debut_module)
-BOARD_DIR:PATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module
-
-//Sysbuild adjusted BOARD_ROOT
-BOARD_ROOT:PATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL
+//Main board directory for board (nrf9151dk)
+BOARD_DIR:PATH=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk
 
 //Selected board
-CACHED_BOARD:STRING=debut_module/nrf9151/ns
+CACHED_BOARD:STRING=nrf9151dk/nrf9151/ns
 
 //Selected shield
 CACHED_SHIELD:STRING=
@@ -122,8 +119,8 @@ sysbuild_toplevel_SOURCE_DIR:STATIC=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/sh
 # INTERNAL cache entries
 ########################
 
-//List of board directories for board (debut_module)
-BOARD_DIRECTORIES:INTERNAL=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module
+//List of board directories for board (nrf9151dk)
+BOARD_DIRECTORIES:INTERNAL=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk
 //This is the directory where this CMakeCache.txt was created
 CMAKE_CACHEFILE_DIR:INTERNAL=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build
 //Major version of cmake used to create the current loaded cache

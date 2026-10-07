@@ -27,10 +27,10 @@ APPLICATION_SOURCE_DIR:PATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect
 ARM_MBEDTLS_PATH:STRING=/home/ashuqullah-alizai/ncs/v3.3.0/modules/crypto/mbedtls
 
 //Selected board
-BOARD:STRING=debut_module/nrf9151/ns
+BOARD:STRING=nrf9151dk/nrf9151/ns
 
-//Main board directory for board (debut_module)
-BOARD_DIR:PATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module
+//Main board directory for board (nrf9151dk)
+BOARD_DIR:PATH=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk
 
 //Path to a program.
 BOSSAC:FILEPATH=BOSSAC-NOTFOUND
@@ -48,7 +48,7 @@ BYPRODUCT_KERNEL_HEX_NAME:FILEPATH=/home/ashuqullah-alizai/Documents/DECT_2020_G
 BYPRODUCT_KERNEL_SIGNED_HEX_NAME:FILEPATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/tfm_merged.hex
 
 //Selected board
-CACHED_BOARD:STRING=debut_module/nrf9151/ns
+CACHED_BOARD:STRING=nrf9151dk/nrf9151/ns
 
 //Selected shield
 CACHED_SHIELD:STRING=
@@ -500,10 +500,10 @@ Zephyr_DIR:PATH=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/zephyr-package/c
 # INTERNAL cache entries
 ########################
 
-//List of board directories for board (debut_module)
-BOARD_DIRECTORIES:INTERNAL=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module
+//List of board directories for board (nrf9151dk)
+BOARD_DIRECTORIES:INTERNAL=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk
 //DT bindings root directories
-CACHED_DTS_ROOT_BINDINGS:INTERNAL=/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts/bindings;/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/bindings
+CACHED_DTS_ROOT_BINDINGS:INTERNAL=/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts/bindings;/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/dts/bindings;/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/bindings
 CLI_CONFIG_DEBUG_THREAD_INFO:INTERNAL=y
 //ADVANCED property for variable: CMAKE_ADDR2LINE
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1
@@ -620,7 +620,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=203
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=201
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -706,6 +706,4 @@ _Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;12;4;64;<none>;cpython-312-x86
 _Python3_INTERPRETER_SIGNATURE:INTERNAL=62e11c7b10279245c0295cbffdaa378e
 //NumPy reason failure
 _Python3_NumPy_REASON_FAILURE:INTERNAL=
-//Test check_fmacro_prefix_map__home_ashuqullah_alizai_Documents_DECT_2020_GIT_dect_shell_CMAKE_SOURCE_DIR_C__nostartfiles__nostdlib__isystem___home_ashuqullah_alizai_ncs_toolchains_911f4c5c26_opt_zephyr_sdk_arm_zephyr_eabi_bin____lib_gcc_arm_zephyr_eabi_12_2_0_include___isystem___home_ashuqullah_alizai_ncs_toolchains_911f4c5c26_opt_zephyr_sdk_arm_zephyr_eabi_bin____lib_gcc_arm_zephyr_eabi_12_2_0_include_fixed___Wl___unresolved_symbols_ignore_in_object_files__Wl___entry_0__fuse_ld_bfd
-check_fmacro_prefix_map__home_ashuqullah_alizai_Documents_DECT_2020_GIT_dect_shell_CMAKE_SOURCE_DIR_C__nostartfiles__nostdlib__isystem___home_ashuqullah_alizai_ncs_toolchains_911f4c5c26_opt_zephyr_sdk_arm_zephyr_eabi_bin____lib_gcc_arm_zephyr_eabi_12_2_0_include___isystem___home_ashuqullah_alizai_ncs_toolchains_911f4c5c26_opt_zephyr_sdk_arm_zephyr_eabi_bin____lib_gcc_arm_zephyr_eabi_12_2_0_include_fixed___Wl___unresolved_symbols_ignore_in_object_files__Wl___entry_0__fuse_ld_bfd:INTERNAL=1
 

@@ -100,7 +100,7 @@ events:
       - "/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/share/cmake-4.2/Modules/CMakeDetermineSystem.cmake:212 (message)"
       - "CMakeLists.txt:22 (project)"
     message: |
-      The system is: Linux - 7.0.0-34-generic - x86_64
+      The system is: Linux - 7.0.0-38-generic - x86_64
   -
     kind: "find-v1"
     backtrace:

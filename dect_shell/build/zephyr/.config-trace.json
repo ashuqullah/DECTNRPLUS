@@ -3,7 +3,7 @@
     "SB_CONFIG_BOARD",
     "n",
     "string",
-    "debut_module",
+    "nrf9151dk",
     "default",
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysbuild/Kconfig",
@@ -22,7 +22,7 @@
     ]
   ],
   [
-    "SB_CONFIG_BOARD_DEBUT_MODULE",
+    "SB_CONFIG_BOARD_NRF9151DK",
     "n",
     "bool",
     "y",
@@ -33,7 +33,7 @@
     ]
   ],
   [
-    "SB_CONFIG_BOARD_DEBUT_MODULE_NRF9151_NS",
+    "SB_CONFIG_BOARD_NRF9151DK_NRF9151_NS",
     "n",
     "bool",
     "y",
@@ -124,7 +124,7 @@
     "y",
     "select",
     [
-      "BOARD_DEBUT_MODULE"
+      "BOARD_NRF9151DK"
     ]
   ],
   [

@@ -88,8 +88,6 @@
 		"/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/pinctrl/cmake_install.cmake",
 		"/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/pinctrl/renesas/cmake_install.cmake",
 		"/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/serial/cmake_install.cmake",
-		"/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/spi/cmake_install.cmake",
-		"/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/spi/spi_nxp_lpspi/cmake_install.cmake",
 		"/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/timer/cmake_install.cmake",
 		"/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/modules/nrf/cmake_install.cmake",
 		"/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/modules/nrf/ext/cmake_install.cmake",

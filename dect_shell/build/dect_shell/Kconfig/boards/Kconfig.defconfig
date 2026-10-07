@@ -1,2 +1,2 @@
 # Load Zephyr board defconfig descriptions.
-osource "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module/Kconfig.defconfig"
+osource "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/Kconfig.defconfig"

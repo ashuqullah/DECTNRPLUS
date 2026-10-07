@@ -508,25 +508,6 @@ rule C_STATIC_LIBRARY_LINKER__drivers__serial_
 #############################################
 # Rule for compiling C files.
 
-rule C_COMPILER__drivers__spi_unscanned_
-  depfile = $DEP_FILE
-  deps = gcc
-  command = ccache ${LAUNCHER}${CODE_CHECK}/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building C object $out
-
-
-#############################################
-# Rule for linking C static library.
-
-rule C_STATIC_LIBRARY_LINKER__drivers__spi_
-  command = $PRE_LINK && ccache /home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/bin/cmake -E rm -f $TARGET_FILE && ccache /home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ar qc $TARGET_FILE $LINK_FLAGS $in && ccache /home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ranlib $TARGET_FILE && $POST_BUILD
-  description = Linking C static library $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
-# Rule for compiling C files.
-
 rule C_COMPILER__drivers__timer_unscanned_
   depfile = $DEP_FILE
   deps = gcc

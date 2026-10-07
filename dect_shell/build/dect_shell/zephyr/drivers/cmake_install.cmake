@@ -109,11 +109,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/spi/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
   include("/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/timer/cmake_install.cmake")
 endif()
 

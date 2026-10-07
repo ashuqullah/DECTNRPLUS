@@ -1,5 +1,27 @@
 [
   [
+    "CONFIG_DT_HAS_ARDUINO_UNO_ADC_ENABLED",
+    "n",
+    "bool",
+    "y",
+    "default",
+    [
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
+      948
+    ]
+  ],
+  [
+    "CONFIG_DT_HAS_ARDUINO_HEADER_R3_ENABLED",
+    "n",
+    "bool",
+    "y",
+    "default",
+    [
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
+      958
+    ]
+  ],
+  [
     "CONFIG_DT_HAS_ARM_ARMV8M_MPU_ENABLED",
     "n",
     "bool",
@@ -74,17 +96,6 @@
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
       3033
-    ]
-  ],
-  [
-    "CONFIG_DT_HAS_JEDEC_SPI_NOR_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      4258
     ]
   ],
   [
@@ -209,6 +220,28 @@
     ]
   ],
   [
+    "CONFIG_DT_HAS_NORDIC_NRF_PWM_ENABLED",
+    "n",
+    "bool",
+    "y",
+    "default",
+    [
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
+      6023
+    ]
+  ],
+  [
+    "CONFIG_DT_HAS_NORDIC_NRF_SAADC_ENABLED",
+    "n",
+    "bool",
+    "y",
+    "default",
+    [
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
+      6073
+    ]
+  ],
+  [
     "CONFIG_DT_HAS_NORDIC_NRF_SPIM_ENABLED",
     "n",
     "bool",
@@ -217,17 +250,6 @@
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
       6083
-    ]
-  ],
-  [
-    "CONFIG_DT_HAS_NORDIC_NRF_SPIS_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      6088
     ]
   ],
   [
@@ -293,7 +315,18 @@
     "default",
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      6418
+      6423
+    ]
+  ],
+  [
+    "CONFIG_DT_HAS_PWM_LEDS_ENABLED",
+    "n",
+    "bool",
+    "y",
+    "default",
+    [
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
+      9023
     ]
   ],
   [
@@ -304,7 +337,7 @@
     "default",
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      11698
+      11703
     ]
   ],
   [
@@ -315,7 +348,7 @@
     "default",
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      15498
+      15503
     ]
   ],
   [
@@ -408,11 +441,9 @@
     "CONFIG_SPI",
     "y",
     "bool",
-    "y",
-    "select",
-    [
-      "SPI_NOR && DT_HAS_JEDEC_SPI_NOR_ENABLED && FLASH"
-    ]
+    null,
+    "unset",
+    null
   ],
   [
     "CONFIG_MIPI_DSI",
@@ -463,12 +494,12 @@
     "y",
     "default",
     [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module/Kconfig.defconfig",
-      6
+      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/Kconfig.defconfig",
+      7
     ]
   ],
   [
-    "CONFIG_BOARD_DEBUT_MODULE",
+    "CONFIG_BOARD_NRF9151DK",
     "n",
     "bool",
     "y",
@@ -477,6 +508,14 @@
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/Kconfig.v2",
       10
     ]
+  ],
+  [
+    "CONFIG_I2C",
+    "y",
+    "bool",
+    null,
+    "unset",
+    null
   ],
   [
     "CONFIG_NUM_IRQS",
@@ -741,9 +780,11 @@
     "CONFIG_USE_DT_CODE_PARTITION",
     "y",
     "bool",
-    null,
-    "unset",
-    null
+    "y",
+    "select",
+    [
+      "BOARD_NRF9151DK && BOARD_NRF9151DK_NRF9151_NS && (BOARD_NRF9151DK_NRF9151 || BOARD_NRF9151DK_NRF9151_NS)"
+    ]
   ],
   [
     "CONFIG_BUILD_WITH_TFM",
@@ -865,13 +906,13 @@
   ],
   [
     "CONFIG_FLASH_LOAD_OFFSET",
-    "y",
+    "n",
     "hex",
-    "0",
+    "0x50000",
     "default",
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/Kconfig.zephyr",
-      106
+      105
     ]
   ],
   [
@@ -967,8 +1008,7 @@
     "y",
     "select",
     [
-      "DK_LIBRARY",
-      "SPI_NRFX && SOC_FAMILY_NORDIC_NRF && SPI"
+      "DK_LIBRARY"
     ]
   ],
   [
@@ -1137,7 +1177,7 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module/debut_module_nrf9151_ns_defconfig",
+      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
       19
     ]
   ],
@@ -1221,17 +1261,6 @@
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/arch/Kconfig",
       538
-    ]
-  ],
-  [
-    "CONFIG_SPI_NOR",
-    "y",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/flash/Kconfig.nor",
-      8
     ]
   ],
   [
@@ -2432,17 +2461,6 @@
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/nrf/modules/../subsys/partition_manager/Kconfig",
       68
-    ]
-  ],
-  [
-    "CONFIG_PM_EXTERNAL_FLASH_HAS_DRIVER",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/nrf/modules/../subsys/partition_manager/Kconfig",
-      157
     ]
   ],
   [
@@ -6732,7 +6750,7 @@
     ]
   ],
   [
-    "CONFIG_NRF_SPIS1_SECURE",
+    "CONFIG_NRF_SPIM1_SECURE",
     "y",
     "bool",
     null,
@@ -7063,6 +7081,14 @@
     "bool",
     "y",
     "assign",
+    null
+  ],
+  [
+    "CONFIG_TFM_SECURE_UART1",
+    "y",
+    "bool",
+    null,
+    "unset",
     null
   ],
   [
@@ -7449,22 +7475,6 @@
     null
   ],
   [
-    "CONFIG_NRFX_SPIM_LOG",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_NRFX_SPIS_LOG",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
     "CONFIG_NRFX_CLOCK",
     "y",
     "bool",
@@ -7690,21 +7700,9 @@
     "CONFIG_NRFX_SPIM",
     "y",
     "bool",
-    "y",
-    "select",
-    [
-      "SPI_NRFX_SPIM && DT_HAS_NORDIC_NRF_SPIM_ENABLED && SPI_NRFX && SPI"
-    ]
-  ],
-  [
-    "CONFIG_NRFX_SPIS",
-    "y",
-    "bool",
-    "y",
-    "select",
-    [
-      "SPI_NRFX_SPIS && DT_HAS_NORDIC_NRF_SPIS_ENABLED && SPI_NRFX && SPI"
-    ]
+    null,
+    "unset",
+    null
   ],
   [
     "CONFIG_NRFX_SYSTICK",
@@ -8427,7 +8425,7 @@
     "CONFIG_BOARD",
     "n",
     "string",
-    "debut_module",
+    "nrf9151dk",
     "default",
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/Kconfig",
@@ -8449,7 +8447,7 @@
     "CONFIG_BOARD_TARGET",
     "n",
     "string",
-    "debut_module/nrf9151/ns",
+    "nrf9151dk/nrf9151/ns",
     "default",
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/Kconfig",
@@ -8465,7 +8463,7 @@
     null
   ],
   [
-    "CONFIG_BOARD_DEBUT_MODULE_NRF9151_NS",
+    "CONFIG_BOARD_NRF9151DK_NRF9151_NS",
     "n",
     "bool",
     "y",
@@ -8556,7 +8554,7 @@
     "y",
     "select",
     [
-      "BOARD_DEBUT_MODULE"
+      "BOARD_NRF9151DK"
     ]
   ],
   [
@@ -8748,6 +8746,17 @@
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/soc/nordic/common/Kconfig.peripherals",
       128
+    ]
+  ],
+  [
+    "CONFIG_HAS_HW_NRF_SAADC",
+    "n",
+    "bool",
+    "y",
+    "default",
+    [
+      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/soc/nordic/common/Kconfig.peripherals",
+      182
     ]
   ],
   [
@@ -9457,7 +9466,7 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module/debut_module_nrf9151_ns_defconfig",
+      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
       7
     ]
   ],
@@ -9576,7 +9585,7 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module/debut_module_nrf9151_ns_defconfig",
+      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
       4
     ]
   ],
@@ -9668,7 +9677,7 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module/debut_module_nrf9151_ns_defconfig",
+      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
       10
     ]
   ],
@@ -11116,7 +11125,7 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards/debut_module/debut_module_nrf9151_ns_defconfig",
+      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
       20
     ]
   ],
@@ -11451,18 +11460,7 @@
     "y",
     "select",
     [
-      "SPI_NOR && DT_HAS_JEDEC_SPI_NOR_ENABLED && FLASH",
       "SOC_FLASH_NRF && (DT_HAS_NORDIC_NRF51_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF52_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF53_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF91_FLASH_CONTROLLER_ENABLED) && !FLASH_NRF_FORCE_ALT && FLASH"
-    ]
-  ],
-  [
-    "CONFIG_FLASH_HAS_EX_OP",
-    "n",
-    "bool",
-    "y",
-    "select",
-    [
-      "SPI_NOR && DT_HAS_JEDEC_SPI_NOR_ENABLED && FLASH"
     ]
   ],
   [
@@ -11472,7 +11470,6 @@
     "y",
     "select",
     [
-      "SPI_NOR && DT_HAS_JEDEC_SPI_NOR_ENABLED && FLASH",
       "SOC_FLASH_NRF && (DT_HAS_NORDIC_NRF51_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF52_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF53_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF91_FLASH_CONTROLLER_ENABLED) && !FLASH_NRF_FORCE_ALT && FLASH"
     ]
   ],
@@ -11483,27 +11480,8 @@
     "y",
     "select",
     [
-      "SPI_NOR && DT_HAS_JEDEC_SPI_NOR_ENABLED && FLASH",
       "SOC_FLASH_NRF && (DT_HAS_NORDIC_NRF51_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF52_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF53_FLASH_CONTROLLER_ENABLED || DT_HAS_NORDIC_NRF91_FLASH_CONTROLLER_ENABLED) && !FLASH_NRF_FORCE_ALT && FLASH"
     ]
-  ],
-  [
-    "CONFIG_FLASH_JESD216",
-    "n",
-    "bool",
-    "y",
-    "select",
-    [
-      "SPI_NOR && DT_HAS_JEDEC_SPI_NOR_ENABLED && FLASH"
-    ]
-  ],
-  [
-    "CONFIG_FLASH_JESD216_API",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
   ],
   [
     "CONFIG_FLASH_SHELL",
@@ -11522,85 +11500,6 @@
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/flash/Kconfig",
       145
-    ]
-  ],
-  [
-    "CONFIG_FLASH_EX_OP_ENABLED",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_NOR_SFDP_MINIMAL",
-    "y",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/flash/Kconfig.nor",
-      21
-    ]
-  ],
-  [
-    "CONFIG_SPI_NOR_SFDP_DEVICETREE",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_NOR_SFDP_RUNTIME",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_NOR_INIT_PRIORITY",
-    "y",
-    "int",
-    "80",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/flash/Kconfig.nor",
-      49
-    ]
-  ],
-  [
-    "CONFIG_SPI_NOR_SLEEP_WHILE_WAITING_UNTIL_READY",
-    "y",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/flash/Kconfig.nor",
-      57
-    ]
-  ],
-  [
-    "CONFIG_SPI_NOR_SLEEP_ERASE_MS",
-    "y",
-    "int",
-    "50",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/flash/Kconfig.nor",
-      67
-    ]
-  ],
-  [
-    "CONFIG_SPI_NOR_FLASH_LAYOUT_PAGE_SIZE",
-    "y",
-    "int",
-    "65536",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/flash/Kconfig.nor",
-      76
     ]
   ],
   [
@@ -11868,14 +11767,6 @@
     null
   ],
   [
-    "CONFIG_I2C",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
     "CONFIG_I2S",
     "y",
     "bool",
@@ -12091,8 +11982,7 @@
     "y",
     "select",
     [
-      "UART_NRFX && (DT_HAS_NORDIC_NRF_UART_ENABLED || DT_HAS_NORDIC_NRF_UARTE_ENABLED) && SERIAL",
-      "SPI_NRFX && SOC_FAMILY_NORDIC_NRF && SPI"
+      "UART_NRFX && (DT_HAS_NORDIC_NRF_UART_ENABLED || DT_HAS_NORDIC_NRF_UARTE_ENABLED) && SERIAL"
     ]
   ],
   [
@@ -12535,187 +12425,6 @@
     null,
     "unset",
     null
-  ],
-  [
-    "CONFIG_SPI_SHELL",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_ASYNC",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_RTIO",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_SLAVE",
-    "y",
-    "bool",
-    "y",
-    "select",
-    [
-      "SPI_NRFX_SPIS && DT_HAS_NORDIC_NRF_SPIS_ENABLED && SPI_NRFX && SPI"
-    ]
-  ],
-  [
-    "CONFIG_SPI_EXTENDED_MODES",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_INIT_PRIORITY",
-    "y",
-    "int",
-    "50",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/spi/Kconfig",
-      77
-    ]
-  ],
-  [
-    "CONFIG_SPI_COMPLETION_TIMEOUT_TOLERANCE",
-    "y",
-    "int",
-    "200",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/spi/Kconfig",
-      83
-    ]
-  ],
-  [
-    "CONFIG_SPI_LOG_LEVEL_OFF",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_LOG_LEVEL_ERR",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_LOG_LEVEL_WRN",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_LOG_LEVEL_INF",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_LOG_LEVEL_DBG",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
-    "CONFIG_SPI_LOG_LEVEL_DEFAULT",
-    "y",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/subsys/logging/Kconfig.template.log_config",
-      5
-    ]
-  ],
-  [
-    "CONFIG_SPI_LOG_LEVEL",
-    "n",
-    "int",
-    "3",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/subsys/logging/Kconfig.template.log_config",
-      36
-    ]
-  ],
-  [
-    "CONFIG_SPI_NRFX",
-    "y",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/spi/Kconfig.nrfx",
-      6
-    ]
-  ],
-  [
-    "CONFIG_SPI_NRFX_SPIM",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/spi/Kconfig.nrfx",
-      21
-    ]
-  ],
-  [
-    "CONFIG_SPI_NRFX_SPIS",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/spi/Kconfig.nrfx",
-      26
-    ]
-  ],
-  [
-    "CONFIG_SPI_NRFX_RAM_BUFFER_SIZE",
-    "y",
-    "int",
-    "8",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/spi/Kconfig.nrfx",
-      33
-    ]
-  ],
-  [
-    "CONFIG_SPI_NRFX_WAKE_TIMEOUT_US",
-    "y",
-    "int",
-    "200",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/drivers/spi/Kconfig.nrfx",
-      53
-    ]
   ],
   [
     "CONFIG_STEPPER",
@@ -16504,13 +16213,13 @@
   ],
   [
     "CONFIG_FLASH_LOAD_SIZE",
-    "y",
+    "n",
     "hex",
-    "0",
+    "0x30000",
     "default",
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/Kconfig.zephyr",
-      119
+      118
     ]
   ],
   [
@@ -17113,8 +16822,7 @@
     "y",
     "select",
     [
-      "NRF_MODEM_LINK_BINARY_DECT_PHY && <choice>",
-      "SPI_SLAVE && SPI"
+      "NRF_MODEM_LINK_BINARY_DECT_PHY && <choice>"
     ]
   ],
   [

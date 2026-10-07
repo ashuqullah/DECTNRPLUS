@@ -227,11 +227,6 @@
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/serial/CMakeFiles/drivers__serial.dir
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/serial/CMakeFiles/edit_cache.dir
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/serial/CMakeFiles/rebuild_cache.dir
-/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/spi/CMakeFiles/drivers__spi.dir
-/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/spi/CMakeFiles/edit_cache.dir
-/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/spi/CMakeFiles/rebuild_cache.dir
-/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/spi/spi_nxp_lpspi/CMakeFiles/edit_cache.dir
-/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/spi/spi_nxp_lpspi/CMakeFiles/rebuild_cache.dir
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/timer/CMakeFiles/drivers__timer.dir
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/timer/CMakeFiles/edit_cache.dir
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/drivers/timer/CMakeFiles/rebuild_cache.dir
