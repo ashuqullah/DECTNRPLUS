@@ -1,5 +1,6 @@
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/Kconfig.nrf9151_connectkit
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/Kconfig/Kconfig.sysbuild.modules
-/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/Kconfig/boards/Kconfig.nrf9151dk
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/Kconfig/boards/Kconfig.nrf9151_connectkit
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/Kconfig/boards/Kconfig.sysbuild
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/Kconfig/soc/Kconfig.soc
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/Kconfig/soc/Kconfig.sysbuild
@@ -31,7 +32,6 @@
 /home/ashuqullah-alizai/ncs/v3.3.0/nrf/sysbuild/Kconfig.xip
 /home/ashuqullah-alizai/ncs/v3.3.0/nrf/sysbuild/Kconfig.zip
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/Kconfig.v2
-/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/Kconfig.nrf9151dk
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/modules/Kconfig.sysbuild
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysbuild/Kconfig
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysbuild/build/Kconfig

@@ -2,9 +2,9 @@ cmake:
   application:
     source-dir: '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysbuild'
   board:
-    name: 'nrf9151dk'
+    name: 'nrf9151_connectkit'
     path:
-     - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit'
     qualifiers: 'nrf9151/ns'
     revision: ''
   images:
@@ -20,6 +20,6 @@ cmake:
   sysbuild: 'true'
 version: '0.1.0'
 west:
-  command: '/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell --pristine --board nrf9151dk/nrf9151/ns -- -DCONFIG_DEBUG_THREAD_INFO=y'
+  command: '/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell --pristine --board nrf9151_connectkit/nrf9151/ns -- -DCONFIG_DEBUG_THREAD_INFO=y -DBOARD_ROOT=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell'
   topdir: '/home/ashuqullah-alizai/ncs/v3.3.0'
   version: '1.5.0'

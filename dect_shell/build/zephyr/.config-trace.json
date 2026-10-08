@@ -3,7 +3,7 @@
     "SB_CONFIG_BOARD",
     "n",
     "string",
-    "nrf9151dk",
+    "nrf9151_connectkit",
     "default",
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysbuild/Kconfig",
@@ -22,7 +22,7 @@
     ]
   ],
   [
-    "SB_CONFIG_BOARD_NRF9151DK",
+    "SB_CONFIG_BOARD_NRF9151_CONNECTKIT",
     "n",
     "bool",
     "y",
@@ -33,7 +33,7 @@
     ]
   ],
   [
-    "SB_CONFIG_BOARD_NRF9151DK_NRF9151_NS",
+    "SB_CONFIG_BOARD_NRF9151_CONNECTKIT_NRF9151_NS",
     "n",
     "bool",
     "y",
@@ -124,7 +124,7 @@
     "y",
     "select",
     [
-      "BOARD_NRF9151DK"
+      "BOARD_NRF9151_CONNECTKIT && (BOARD_NRF9151_CONNECTKIT_NRF9151 || BOARD_NRF9151_CONNECTKIT_NRF9151_NS)"
     ]
   ],
   [

@@ -1,0 +1,6 @@
+# DEBUT DECT NR+ Module board configuration
+
+# Copyright (c) 2025 PHYTEC Messtechnik GmbH
+
+config BOARD_DEBUT_MODULE
+	select SOC_NRF9151_LACA

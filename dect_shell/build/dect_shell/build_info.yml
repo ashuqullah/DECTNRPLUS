@@ -3,25 +3,23 @@ cmake:
     configuration-dir: '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell'
     source-dir: '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell'
   board:
-    name: 'nrf9151dk'
+    name: 'nrf9151_connectkit'
     path:
-     - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit'
     qualifiers: 'nrf9151/ns'
     revision: ''
   devicetree:
     bindings-dirs:
      - '/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts/bindings'
-     - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/dts/bindings'
      - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/bindings'
     files:
-     - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns.dts'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns.dts'
     include-dirs:
      - '/home/ashuqullah-alizai/ncs/v3.3.0/nrf/include'
      - '/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts/common'
      - '/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts/riscv'
      - '/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts/arm'
      - '/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts'
-     - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/dts'
      - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include'
      - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr'
      - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/common'
@@ -41,7 +39,7 @@ cmake:
      source-dir: '/home/ashuqullah-alizai/ncs/v3.3.0/modules/tee/tf-m/trusted-firmware-m'
   kconfig:
     files:
-     - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns_defconfig'
      - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/prj.conf'
      - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/misc/generated/extra_kconfig_options.conf'
      - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/.config.sysbuild'

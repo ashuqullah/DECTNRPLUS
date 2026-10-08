@@ -1646,7 +1646,7 @@ END GROUP
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
                 0x0000000000000660                __exidx_end = .
 
-.ER_TFM_CODE    0x0000000000000660     0x379f
+.ER_TFM_CODE    0x0000000000000660     0x378f
                 0x0000000000000660                . = ALIGN (0x4)
                 0x0000000000000660                PROVIDE (__preinit_array_start = .)
                 [!provide]                        PROVIDE (__bothinit_array_start = __preinit_array_start)
@@ -2252,35 +2252,34 @@ END GROUP
                 0x0000000000003b8c       0x38 platform/libplatform_s.a(Driver_USART.o)
                 0x0000000000003b8c                Driver_USART0
  .rodata.UART0_pins
-                0x0000000000003bc4       0x10 platform/libplatform_s.a(Driver_USART.o)
+                0x0000000000003bc4        0x8 platform/libplatform_s.a(Driver_USART.o)
  .rodata.DriverVersion
-                0x0000000000003bd4        0x4 platform/libplatform_s.a(Driver_USART.o)
- *fill*         0x0000000000003bd8        0x8 
+                0x0000000000003bcc        0x4 platform/libplatform_s.a(Driver_USART.o)
  .rodata.delay_machine_code.0
-                0x0000000000003be0        0x6 platform/libplatform_s.a(nrfx_uarte.o)
+                0x0000000000003bd0        0x6 platform/libplatform_s.a(nrfx_uarte.o)
  .rodata.nrf_exception_info_store_context.str1.1
-                0x0000000000003be6       0x60 platform/libplatform_s.a(nrf_exception_info.o)
+                0x0000000000003bd6       0x60 platform/libplatform_s.a(nrf_exception_info.o)
  .rodata.tfm_hal_platform_init.str1.1
-                0x0000000000003c46       0x2e platform/libplatform_s.a(tfm_hal_platform.o)
+                0x0000000000003c36       0x2e platform/libplatform_s.a(tfm_hal_platform.o)
  *libtfm_spm*:*(.rodata*)
  .rodata.HEX_TABLE
-                0x0000000000003c74       0x10 secure_fw/spm/libtfm_spm.a(spm_log.o)
+                0x0000000000003c64       0x10 secure_fw/spm/libtfm_spm.a(spm_log.o)
  .rodata.main.str1.1
-                0x0000000000003c84       0xa1 secure_fw/spm/libtfm_spm.a(main.o)
- *fill*         0x0000000000003d25        0x3 
+                0x0000000000003c74       0xa1 secure_fw/spm/libtfm_spm.a(main.o)
+ *fill*         0x0000000000003d15        0x3 
  .rodata.serv_pool_ea
-                0x0000000000003d28        0x4 secure_fw/spm/libtfm_spm.a(rom_loader.o)
+                0x0000000000003d18        0x4 secure_fw/spm/libtfm_spm.a(rom_loader.o)
  .rodata.part_pool_ea
-                0x0000000000003d2c        0x4 secure_fw/spm/libtfm_spm.a(rom_loader.o)
+                0x0000000000003d1c        0x4 secure_fw/spm/libtfm_spm.a(rom_loader.o)
  .rodata.ldinf_ea
-                0x0000000000003d30        0x4 secure_fw/spm/libtfm_spm.a(rom_loader.o)
+                0x0000000000003d20        0x4 secure_fw/spm/libtfm_spm.a(rom_loader.o)
  .rodata.memory_regions
-                0x0000000000003d34       0x1c secure_fw/spm/libtfm_spm.a(target_cfg.o)
-                0x0000000000003d34                memory_regions
+                0x0000000000003d24       0x1c secure_fw/spm/libtfm_spm.a(target_cfg.o)
+                0x0000000000003d24                memory_regions
  .rodata.target_peripherals.0
-                0x0000000000003d50       0x74 secure_fw/spm/libtfm_spm.a(target_cfg_53_91.o)
+                0x0000000000003d40       0x74 secure_fw/spm/libtfm_spm.a(target_cfg_53_91.o)
  .rodata.spm_svc_handler.str1.1
-                0x0000000000003dc4       0x3b secure_fw/spm/libtfm_spm.a(tfm_svcalls.o)
+                0x0000000000003db4       0x3b secure_fw/spm/libtfm_spm.a(tfm_svcalls.o)
                 0x0000000000000001                ASSERT (((SIZEOF (.TFM_DATA) % 0x4) == 0x0), SIZEOF(.TFM_DATA))
                 0x0000000000000001                ASSERT (((SIZEOF (.TFM_PSA_ROT_LINKER_DATA) % 0x4) == 0x0), SIZEOF(.TFM_PSA_ROT_LINKER_DATA))
                 0x0000000000000001                ASSERT (((SIZEOF (.TFM_APP_ROT_LINKER_DATA) % 0x4) == 0x0), SIZEOF(.TFM_APP_ROT_LINKER_DATA))

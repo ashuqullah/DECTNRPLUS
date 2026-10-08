@@ -1,11 +1,10 @@
+
 {
     "nrf-connect.applications": [
-        "${workspaceFolder}/dect_shell"
+        "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell"
     ],
     "nrf-connect.boardRoots": [
-    "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/boards"
+        "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell"
     ],
-    
-    "cmake.sourceDirectory": "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_2020"
-    
+    "cmake.sourceDirectory": "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell"
 }

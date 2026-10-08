@@ -1,5 +1,5 @@
 empty_file.o: /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/misc/empty_file.c \
- /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns.dts \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns.dts \
  /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf9151_ns_laca.dtsi \
  /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/common/mem.h \
  /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf91_ns.dtsi \
@@ -26,7 +26,6 @@ empty_file.o: /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/misc/empty_file.c \
  /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/override.dtsi \
  /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/adc/nrf-saadc.h \
  /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf91_peripherals.dtsi \
- /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common.dtsi \
- /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common-pinctrl.dtsi \
- /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/gpio/arduino-header-r3.h \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_common.dtsi \
+ /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_common-pinctrl.dtsi \
  /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi

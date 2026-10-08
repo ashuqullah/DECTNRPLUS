@@ -27,10 +27,10 @@ APPLICATION_SOURCE_DIR:PATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect
 ARM_MBEDTLS_PATH:STRING=/home/ashuqullah-alizai/ncs/v3.3.0/modules/crypto/mbedtls
 
 //Selected board
-BOARD:STRING=nrf9151dk/nrf9151/ns
+BOARD:STRING=nrf9151_connectkit/nrf9151/ns
 
-//Main board directory for board (nrf9151dk)
-BOARD_DIR:PATH=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk
+//Main board directory for board (nrf9151_connectkit)
+BOARD_DIR:PATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit
 
 //Path to a program.
 BOSSAC:FILEPATH=BOSSAC-NOTFOUND
@@ -48,7 +48,7 @@ BYPRODUCT_KERNEL_HEX_NAME:FILEPATH=/home/ashuqullah-alizai/Documents/DECT_2020_G
 BYPRODUCT_KERNEL_SIGNED_HEX_NAME:FILEPATH=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/zephyr/tfm_merged.hex
 
 //Selected board
-CACHED_BOARD:STRING=nrf9151dk/nrf9151/ns
+CACHED_BOARD:STRING=nrf9151_connectkit/nrf9151/ns
 
 //Selected shield
 CACHED_SHIELD:STRING=
@@ -500,10 +500,10 @@ Zephyr_DIR:PATH=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/zephyr-package/c
 # INTERNAL cache entries
 ########################
 
-//List of board directories for board (nrf9151dk)
-BOARD_DIRECTORIES:INTERNAL=/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk
+//List of board directories for board (nrf9151_connectkit)
+BOARD_DIRECTORIES:INTERNAL=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit
 //DT bindings root directories
-CACHED_DTS_ROOT_BINDINGS:INTERNAL=/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts/bindings;/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/dts/bindings;/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/bindings
+CACHED_DTS_ROOT_BINDINGS:INTERNAL=/home/ashuqullah-alizai/ncs/v3.3.0/nrf/dts/bindings;/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/bindings
 CLI_CONFIG_DEBUG_THREAD_INFO:INTERNAL=y
 //ADVANCED property for variable: CMAKE_ADDR2LINE
 CMAKE_ADDR2LINE-ADVANCED:INTERNAL=1

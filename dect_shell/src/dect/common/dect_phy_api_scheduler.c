@@ -1739,12 +1739,17 @@ static void dect_phy_api_scheduler_th_handler(void)
 
 #if defined(CONFIG_DK_LIBRARY)
 		case DECT_PHY_API_EVENT_SCHEDULER_LED_TX_ON: {
+#if DECT_STATUS_LEDS_AVAILABLE
 			dk_set_led_on(DECT_TX_STATUS_LED);
+#endif
 			k_timer_start(&scheduler_led_off_timer, K_MSEC(300), K_NO_WAIT);
 			break;
 		}
+
 		case DECT_PHY_API_EVENT_SCHEDULER_LED_TX_OFF: {
+#if DECT_STATUS_LEDS_AVAILABLE
 			dk_set_led_off(DECT_TX_STATUS_LED);
+#endif
 			break;
 		}
 #endif

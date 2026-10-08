@@ -1,27 +1,5 @@
 [
   [
-    "CONFIG_DT_HAS_ARDUINO_UNO_ADC_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      948
-    ]
-  ],
-  [
-    "CONFIG_DT_HAS_ARDUINO_HEADER_R3_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      958
-    ]
-  ],
-  [
     "CONFIG_DT_HAS_ARM_ARMV8M_MPU_ENABLED",
     "n",
     "bool",
@@ -85,17 +63,6 @@
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
       3028
-    ]
-  ],
-  [
-    "CONFIG_DT_HAS_GPIO_LEDS_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      3033
     ]
   ],
   [
@@ -220,17 +187,6 @@
     ]
   ],
   [
-    "CONFIG_DT_HAS_NORDIC_NRF_PWM_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      6023
-    ]
-  ],
-  [
     "CONFIG_DT_HAS_NORDIC_NRF_SAADC_ENABLED",
     "n",
     "bool",
@@ -239,28 +195,6 @@
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
       6073
-    ]
-  ],
-  [
-    "CONFIG_DT_HAS_NORDIC_NRF_SPIM_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      6083
-    ]
-  ],
-  [
-    "CONFIG_DT_HAS_NORDIC_NRF_TWIM_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      6153
     ]
   ],
   [
@@ -315,18 +249,7 @@
     "default",
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      6423
-    ]
-  ],
-  [
-    "CONFIG_DT_HAS_PWM_LEDS_ENABLED",
-    "n",
-    "bool",
-    "y",
-    "default",
-    [
-      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      9023
+      6418
     ]
   ],
   [
@@ -337,7 +260,7 @@
     "default",
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      11703
+      11698
     ]
   ],
   [
@@ -348,7 +271,7 @@
     "default",
     [
       "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts",
-      15503
+      15498
     ]
   ],
   [
@@ -494,12 +417,12 @@
     "y",
     "default",
     [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/Kconfig.defconfig",
-      7
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/Kconfig.defconfig",
+      9
     ]
   ],
   [
-    "CONFIG_BOARD_NRF9151DK",
+    "CONFIG_BOARD_NRF9151_CONNECTKIT",
     "n",
     "bool",
     "y",
@@ -510,12 +433,26 @@
     ]
   ],
   [
-    "CONFIG_I2C",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
+    "CONFIG_FLASH_LOAD_SIZE",
+    "n",
+    "hex",
+    "0x30000",
+    "default",
+    [
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/Kconfig.defconfig",
+      41
+    ]
+  ],
+  [
+    "CONFIG_FLASH_LOAD_OFFSET",
+    "n",
+    "hex",
+    "0x50000",
+    "default",
+    [
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/Kconfig.defconfig",
+      38
+    ]
   ],
   [
     "CONFIG_NUM_IRQS",
@@ -783,7 +720,7 @@
     "y",
     "select",
     [
-      "BOARD_NRF9151DK && BOARD_NRF9151DK_NRF9151_NS && (BOARD_NRF9151DK_NRF9151 || BOARD_NRF9151DK_NRF9151_NS)"
+      "BOARD_NRF9151_CONNECTKIT && BOARD_NRF9151_CONNECTKIT_NRF9151_NS && (BOARD_NRF9151_CONNECTKIT_NRF9151 || BOARD_NRF9151_CONNECTKIT_NRF9151_NS)"
     ]
   ],
   [
@@ -902,17 +839,6 @@
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/kernel/Kconfig",
       693
-    ]
-  ],
-  [
-    "CONFIG_FLASH_LOAD_OFFSET",
-    "n",
-    "hex",
-    "0x50000",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/Kconfig.zephyr",
-      105
     ]
   ],
   [
@@ -1177,8 +1103,8 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
-      19
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns_defconfig",
+      20
     ]
   ],
   [
@@ -7084,14 +7010,6 @@
     null
   ],
   [
-    "CONFIG_TFM_SECURE_UART1",
-    "y",
-    "bool",
-    null,
-    "unset",
-    null
-  ],
-  [
     "CONFIG_TFM_HW_INIT_RESET_ON_BOOT",
     "y",
     "bool",
@@ -8425,7 +8343,7 @@
     "CONFIG_BOARD",
     "n",
     "string",
-    "nrf9151dk",
+    "nrf9151_connectkit",
     "default",
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/Kconfig",
@@ -8447,7 +8365,7 @@
     "CONFIG_BOARD_TARGET",
     "n",
     "string",
-    "nrf9151dk/nrf9151/ns",
+    "nrf9151_connectkit/nrf9151/ns",
     "default",
     [
       "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/Kconfig",
@@ -8463,7 +8381,7 @@
     null
   ],
   [
-    "CONFIG_BOARD_NRF9151DK_NRF9151_NS",
+    "CONFIG_BOARD_NRF9151_CONNECTKIT_NRF9151_NS",
     "n",
     "bool",
     "y",
@@ -8554,7 +8472,7 @@
     "y",
     "select",
     [
-      "BOARD_NRF9151DK"
+      "BOARD_NRF9151_CONNECTKIT && (BOARD_NRF9151_CONNECTKIT_NRF9151 || BOARD_NRF9151_CONNECTKIT_NRF9151_NS)"
     ]
   ],
   [
@@ -9466,8 +9384,8 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
-      7
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns_defconfig",
+      8
     ]
   ],
   [
@@ -9585,8 +9503,8 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
-      4
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns_defconfig",
+      5
     ]
   ],
   [
@@ -9677,8 +9595,8 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
-      10
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns_defconfig",
+      11
     ]
   ],
   [
@@ -11125,8 +11043,8 @@
     "y",
     "assign",
     [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns_defconfig",
-      20
+      "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns_defconfig",
+      21
     ]
   ],
   [
@@ -11760,6 +11678,14 @@
   ],
   [
     "CONFIG_HWSPINLOCK",
+    "y",
+    "bool",
+    null,
+    "unset",
+    null
+  ],
+  [
+    "CONFIG_I2C",
     "y",
     "bool",
     null,
@@ -16210,17 +16136,6 @@
     null,
     "unset",
     null
-  ],
-  [
-    "CONFIG_FLASH_LOAD_SIZE",
-    "n",
-    "hex",
-    "0x30000",
-    "default",
-    [
-      "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/Kconfig.zephyr",
-      118
-    ]
   ],
   [
     "CONFIG_ROM_END_OFFSET",

@@ -1,17 +1,20 @@
 {
   "toolchainPath": "/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26",
   "sdkPath": "/home/ashuqullah-alizai/ncs/v3.3.0",
-  "board": "nrf9151dk/nrf9151/ns",
-  "boardDir": "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk",
+  "board": "nrf9151_connectkit/nrf9151/ns",
+  "boardDir": "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit",
   "boardDirs": [
-    "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk"
+    "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit"
   ],
   "optimizations": "default",
-  "cmakeArgs": [],
+  "cmakeArgs": [
+    "-DBOARD_ROOT=/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell"
+  ],
   "confFiles": [],
   "buildDirectory": "build",
   "kconfigFragments": [],
   "snippets": [],
   "dtcOverlays": [],
-  "extraDtcOverlays": []
+  "extraDtcOverlays": [],
+  "boardRoot": "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell"
 }

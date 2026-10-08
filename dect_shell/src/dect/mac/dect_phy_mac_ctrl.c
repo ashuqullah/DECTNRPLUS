@@ -121,9 +121,10 @@ static void dect_phy_mac_ctrl_beacon_start_work_handler(struct k_work *work_item
 		mac_data.beacon_tx_on_going = true;
 		desh_print("%s", started_string);
 		desh_print("Beacon TX started.");
-#if defined(CONFIG_DK_LIBRARY)
-		dk_set_led_on(DECT_BEACON_ON_STATUS_LED);
+#if defined(CONFIG_DK_LIBRARY) && DECT_STATUS_LEDS_AVAILABLE
+        dk_set_led_on(DECT_BEACON_ON_STATUS_LED);
 #endif
+	
 	}
 	return;
 err_exit:
@@ -181,7 +182,7 @@ static void dect_phy_mac_ctrl_beacon_stop_work_handler(struct k_work *work_item)
 	mac_data.ext_cmd.direct_pdc_rcv_cb = NULL;
 	dect_phy_ctrl_ext_command_stop();
 	mac_data.beacon_tx_on_going = false;
-#if defined(CONFIG_DK_LIBRARY)
+#if defined(CONFIG_DK_LIBRARY) && DECT_STATUS_LEDS_AVAILABLE
 	dk_set_led_off(DECT_BEACON_ON_STATUS_LED);
 #endif
 	if (data->cause == DECT_PHY_MAC_CTRL_BEACON_STOP_CAUSE_USER_INITIATED) {

@@ -1,4 +1,6 @@
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/Kconfig
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/Kconfig.defconfig
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/Kconfig.nrf9151_connectkit
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.dts
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.modules
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/Kconfig.shield
@@ -6,7 +8,7 @@
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/arch/Kconfig
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/boards/Kconfig
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/boards/Kconfig.defconfig
-/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/boards/Kconfig.nrf9151dk
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/boards/Kconfig.nrf9151_connectkit
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/soc/Kconfig
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/soc/Kconfig.defconfig
 /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build/dect_shell/Kconfig/soc/Kconfig.soc
@@ -441,8 +443,6 @@
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/arch/xtensa/Kconfig
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/Kconfig
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/Kconfig.v2
-/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/Kconfig.defconfig
-/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/Kconfig.nrf9151dk
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/shields/abrobot_esp32c3_oled/Kconfig.shield
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/shields/adafruit_24lc32/Kconfig.shield
 /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/shields/adafruit_2_8_tft_touch_v2/Kconfig.defconfig

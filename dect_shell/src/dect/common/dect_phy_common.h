@@ -111,6 +111,12 @@ struct dect_phy_data_rcv_common_params {
 #define DECT_CTRL_BATTERY_LOW_STATUS_LED DK_LED1 /* Thingy91x: red */
 
 #define DECT_CTRL_DK_ALL_LEDS_MSK (DK_ALL_LEDS_MSK)
+/* Enable DECT status LEDs only when the board defines LEDs. */
+#if DT_NODE_EXISTS(DT_PATH(leds))
+#define DECT_STATUS_LEDS_AVAILABLE 1
+#else
+#define DECT_STATUS_LEDS_AVAILABLE 0
+#endif
 
 /******************************************************************************/
 
