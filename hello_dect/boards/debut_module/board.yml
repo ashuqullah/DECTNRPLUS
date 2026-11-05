@@ -1,0 +1,8 @@
+board:
+  name: debut_module
+  full_name: DEBUT DECT NR+ Module
+  vendor: nordic
+  socs:
+  - name: nrf9151
+    variants:
+    - name: 'ns'

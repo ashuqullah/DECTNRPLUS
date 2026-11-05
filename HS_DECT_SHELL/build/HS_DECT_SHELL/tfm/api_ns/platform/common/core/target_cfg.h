@@ -59,7 +59,7 @@
 /* Only UART20 and UART30 are supported for TF-M tests, which are the
  * Non-secure applications build via the TF-M build system
  */
-#if defined(NRF54L_SERIES) || defined(NRF71_SERIES)
+#ifdef NRF54L_SERIES
 #if NRF_SECURE_UART_INSTANCE == 20
 #define NS_DRIVER_STDIO     Driver_USART30
 #else
@@ -67,7 +67,7 @@
 #endif
 #else
 #define NS_DRIVER_STDIO     Driver_USART0
-#endif /* NRF54L_SERIES or NRF71_SERIES */
+#endif /* NRF54L_SERIES */
 
 /**
  * \brief Store the addresses of memory regions

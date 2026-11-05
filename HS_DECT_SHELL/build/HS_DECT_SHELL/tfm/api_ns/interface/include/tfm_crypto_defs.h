@@ -41,13 +41,13 @@ struct tfm_crypto_aead_pack_input {
  *
  */
 struct tfm_crypto_pack_iovec {
-    psa_key_id_t key_id;       /*!< Key id */
-    psa_algorithm_t alg;       /*!< Algorithm */
-    uint32_t op_handle;        /*!< Client context handle associated to a
-                                *   multipart operation
-                                */
-    uint32_t ad_length;        /*!< Additional Data length for multipart AEAD */
-    uint32_t plaintext_length; /*!< Plaintext length for multipart AEAD */
+    psa_key_id_t key_id;     /*!< Key id */
+    psa_algorithm_t alg;     /*!< Algorithm */
+    uint32_t op_handle;      /*!< Client context handle associated to a
+                              *   multipart operation
+                              */
+    size_t ad_length;        /*!< Additional Data length for multipart AEAD */
+    size_t plaintext_length; /*!< Plaintext length for multipart AEAD */
 
     struct tfm_crypto_aead_pack_input aead_in; /*!< Packs AEAD-related inputs */
 
@@ -57,7 +57,7 @@ struct tfm_crypto_pack_iovec {
                               */
     uint16_t step;           /*!< Key derivation step */
     union {
-        uint32_t capacity;   /*!< Key derivation capacity */
+        size_t capacity;     /*!< Key derivation capacity */
         uint64_t value;      /*!< Key derivation integer for update*/
     };
     psa_pake_role_t role;    /*!< PAKE role */
@@ -78,8 +78,7 @@ enum tfm_crypto_group_id_t {
     TFM_CRYPTO_GROUP_ID_ASYM_SIGN       = UINT8_C(7),
     TFM_CRYPTO_GROUP_ID_ASYM_ENCRYPT    = UINT8_C(8),
     TFM_CRYPTO_GROUP_ID_KEY_DERIVATION  = UINT8_C(9),
-    TFM_CRYPTO_GROUP_ID_PAKE            = UINT8_C(10),
-    TFM_CRYPTO_GROUP_ID_KEY_WRAPPING    = UINT8_C(11)
+    TFM_CRYPTO_GROUP_ID_PAKE            = UINT8_C(10)
 };
 
 /* Set of X macros describing each of the available PSA Crypto APIs */
@@ -166,6 +165,8 @@ enum tfm_crypto_group_id_t {
     X(TFM_CRYPTO_KEY_DERIVATION_OUTPUT_KEY)        \
     X(TFM_CRYPTO_KEY_DERIVATION_ABORT)
 
+#define BASE__VALUE(x) ((uint16_t)((((uint16_t)(x)) << 8) & 0xFF00))
+
 #define PAKE_FUNCS                                  \
     X(TFM_CRYPTO_PAKE_SETUP)                        \
     X(TFM_CRYPTO_PAKE_SET_ROLE)                     \
@@ -176,12 +177,6 @@ enum tfm_crypto_group_id_t {
     X(TFM_CRYPTO_PAKE_INPUT)                        \
     X(TFM_CRYPTO_PAKE_GET_SHARED_KEY)               \
     X(TFM_CRYPTO_PAKE_ABORT)
-
-#define KEY_WRAPPING_FUNCS                          \
-    X(TFM_CRYPTO_KEY_WRAPPING_WRAP)                 \
-    X(TFM_CRYPTO_KEY_WRAPPING_UNWRAP)
-
-#define BASE__VALUE(x) ((uint16_t)((((uint16_t)(x)) << 8) & 0xFF00))
 
 /**
  * \brief This type defines numerical progressive values identifying a function API
@@ -217,8 +212,6 @@ enum tfm_crypto_func_sid_t {
     KEY_DERIVATION_FUNCS
     BASE__PAKE           = BASE__VALUE(TFM_CRYPTO_GROUP_ID_PAKE) - 1,
     PAKE_FUNCS
-    BASE__KEY_WRAPPING   = BASE__VALUE(TFM_CRYPTO_GROUP_ID_KEY_WRAPPING) - 1,
-    KEY_WRAPPING_FUNCS
 #undef X
 };
 

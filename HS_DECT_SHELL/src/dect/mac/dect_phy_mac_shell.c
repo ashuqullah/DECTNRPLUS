@@ -169,7 +169,6 @@ static int dect_phy_mac_beacon_scan_cmd(const struct shell *shell, size_t argc, 
 	int long_index = 0;
 	int opt;
 
-	optreset = 1;
 	optind = 1;
 
 	params.busy_rssi_limit = current_settings->rssi_scan.busy_threshold;
@@ -277,7 +276,6 @@ static int dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc,
 	int long_index = 0;
 	int opt;
 
-	optreset = 1;
 	optind = 1;
 	/* Schedula Mode valideation if */
 	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_FT);
@@ -389,7 +387,6 @@ static int dect_phy_mac_associate_cmd(const struct shell *shell, size_t argc, ch
 	int long_index = 0;
 	int opt;
 
-	optreset = 1;
 	optind = 1;
 
 	params.tx_power_dbm = 0;
@@ -504,7 +501,6 @@ static int dect_phy_mac_dissociate_cmd(const struct shell *shell, size_t argc, c
 	int long_index = 0;
 	int opt;
 
-	optreset = 1;
 	optind = 1;
 
 	params.tx_power_dbm = 0;
@@ -636,7 +632,6 @@ static int dect_phy_mac_rach_tx_cmd(const struct shell *shell, size_t argc, char
 		return 0;
 	}
 
-	optreset = 1;
 	optind = 1;
 
 	params.tx_power_dbm = 0;
@@ -788,7 +783,6 @@ static int dect_phy_mac_reach_tx_cmd(const struct shell *shell, size_t argc, cha
 		return 0;
 	}
 
-	optreset = 1;
 	optind = 1;
 
 	memset(&params, 0, sizeof(params));

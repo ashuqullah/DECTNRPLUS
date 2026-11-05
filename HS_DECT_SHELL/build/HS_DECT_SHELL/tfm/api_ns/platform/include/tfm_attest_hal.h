@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ * Copyright (c) 2019-2022, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -38,12 +38,9 @@ enum tfm_security_lifecycle_t {
 /**
  * \def PROFILE_DEFINITION_MAX_SIZE
  *
- * \brief Maximum size of profile definition in bytes. Note that the OTP
- *        layout might only store a reduced representation of the actual
- *        profile string that needs to be translated by interrogating the
- *        HAL of platform before generating the token
+ * \brief Maximum size of profile definition in bytes
  */
-#define PROFILE_DEFINITION_MAX_SIZE (48u)
+#define PROFILE_DEFINITION_MAX_SIZE (32u)
 
 /**
  * \def PLATFORM_CONFIG_MAX_SIZE
@@ -91,16 +88,6 @@ tfm_attest_hal_get_verification_service(uint32_t *size, uint8_t *buf);
  * \brief Retrieve the name of the profile definition document for initial
  *        attestation.
  *
- * \note  It is allowed for this function to return an empty string, i.e.
- *        with the value of \p size equal to 0. In this case the Attestation
- *        service will determine the profile_definition string directly from
- *        the build options
- *
- * \note  The profile_definition in OTP may contain either the full string
- *        associated with the profile or a reduced representation of it.
- *        The HAL function must be able to handle both cases and return the
- *        correct string, translating the reduced representation if necessary.
- *
  *  This document describes the 'profile' of the initial attestation token,
  *  being a full description of the claims, their usage, verification and
  *  token signing.
@@ -142,15 +129,17 @@ tfm_attest_hal_get_platform_config(uint32_t *size, uint8_t *buf);
  * According to IANA hash algorithm registry:
  *   - https://www.iana.org/assignments/hash-function-text-names/hash-function-text-names.xml
  *
- * \param[out] size     At return its value is updated with the
- *                      exact size of the platform hash algo string.
- * \param[out] buf      Double pointer to the buffer to store the platform
+ * \param[in/out] size  As an input value it indicates the size of the caller
+ *                      allocated buffer (in bytes) to store the platform
+ *                      hash algo. At return its value is updated with the
+ *                      exact size of the platform hahs algo string.
+ * \param[out]    buf   Pointer to the buffer to store the platform
  *                      hash algo string.
  *
  * \return  Returns error code specified in \ref tfm_plat_err_t
  */
 enum tfm_plat_err_t
-tfm_attest_hal_get_platform_hash_algo(uint32_t *size, const char **buf);
+tfm_attest_hal_get_platform_hash_algo(uint32_t *size, uint8_t *buf);
 
 #ifdef __cplusplus
 }

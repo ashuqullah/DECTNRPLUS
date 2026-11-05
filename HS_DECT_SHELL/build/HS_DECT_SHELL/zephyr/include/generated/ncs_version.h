@@ -10,16 +10,16 @@
 /* #undef ZEPHYR_VERSION */
 
 #define NCSVERSION                   
-#define NCS_VERSION_NUMBER           0x30300
+#define NCS_VERSION_NUMBER           0x30101
 #define NCS_VERSION_MAJOR            3
-#define NCS_VERSION_MINOR            3
-#define NCS_PATCHLEVEL               0
+#define NCS_VERSION_MINOR            1
+#define NCS_PATCHLEVEL               1
 #define NCS_TWEAK                    
-#define NCS_VERSION_STRING           "3.3.0"
+#define NCS_VERSION_STRING           "3.1.1"
 #define NCS_VERSION_EXTENDED_STRING  ""
 #define NCS_VERSION_TWEAK_STRING     ""
 
-#define NCS_BUILD_VERSION v3.3.0
+#define NCS_BUILD_VERSION v3.1.1
 
 
 #endif /* _NCS_VERSION_H_ */

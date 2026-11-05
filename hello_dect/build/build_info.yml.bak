@@ -1,0 +1,22 @@
+cmake:
+  board:
+    name: 'nrf9151dk'
+    path:
+     - '/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk'
+    qualifiers: 'nrf9151/ns'
+    revision: ''
+  images:
+   - name: 'hello_dect'
+     source-dir: '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect'
+     type: 'MAIN'
+  kconfig:
+    files:
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/empty.conf'
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/empty.conf'
+    user-files:
+     - '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/empty.conf'
+version: '0.1.0'
+west:
+  command: '/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/bin/west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect --pristine --board nrf9151dk/nrf9151/ns -- -DCONFIG_DEBUG_THREAD_INFO=y'
+  topdir: '/home/ashuqullah-alizai/ncs/v3.3.0'
+  version: '1.5.0'

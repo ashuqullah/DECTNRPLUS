@@ -1,0 +1,11 @@
+# ninja log v5
+0	14	1793878278687205140	_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-mkdir	65e132df66278004
+0	14	1793878278687205140	/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-mkdir	65e132df66278004
+14	17	1793878278690205119	_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-download	bccaee14133c3e67
+14	17	1793878278690205119	/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-download	bccaee14133c3e67
+17	21	1793878278694205091	_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-update	567236da198d54fa
+17	21	1793878278694205091	/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-update	567236da198d54fa
+21	25	1793878278698205062	_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-patch	434fa5fb30956798
+21	25	1793878278698205062	/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-patch	434fa5fb30956798
+25	29	1793878278702205034	_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-configure	c22e42863d0ed556
+25	29	1793878278702205034	/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/build_1/_sysbuild/sysbuild/images/dect_shell-prefix/src/dect_shell-stamp/dect_shell-configure	c22e42863d0ed556

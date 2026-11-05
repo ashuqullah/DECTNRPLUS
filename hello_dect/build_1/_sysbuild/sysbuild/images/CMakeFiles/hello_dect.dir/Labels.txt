@@ -1,0 +1,13 @@
+# Target labels
+ hello_dect
+# Source files and their labels
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/CMakeFiles/hello_dect
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/CMakeFiles/hello_dect.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/CMakeFiles/hello_dect-complete.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-build.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-configure.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-download.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-install.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-mkdir.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-patch.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-update.rule

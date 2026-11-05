@@ -10,4 +10,3 @@
 #include <stdint.h>
 #include "config_tfm.h"
 
-uint8_t tfm_sp_crypto_stack[CRYPTO_STACK_SIZE] __attribute__((aligned(8)));

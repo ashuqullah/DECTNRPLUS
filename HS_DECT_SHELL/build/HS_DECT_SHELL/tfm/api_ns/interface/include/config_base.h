@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
  * Copyright (c) 2023-2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -10,8 +10,6 @@
 
 #ifndef __CONFIG_BASE_H__
 #define __CONFIG_BASE_H__
-
-#include "tfm_hybrid_platform.h"
 
 /* Platform Partition Configs */
 
@@ -155,7 +153,7 @@
 
 /* The stack size of the Initial Attestation Secure Partition */
 #ifndef ATTEST_STACK_SIZE
-#define ATTEST_STACK_SIZE                      0x800
+#define ATTEST_STACK_SIZE                      0x700
 #endif
 
 /* Set the initial attestation token profile */
@@ -264,35 +262,6 @@
 #define NS_AGENT_MAILBOX_STACK_SIZE            0x800
 #endif
 
-/* Whether the mailbox itself is in memory that is uncached in the SPE */
-#ifndef MAILBOX_IS_UNCACHED_S
-#define MAILBOX_IS_UNCACHED_S                  1
-#endif
-
-/* Whether the mailbox itself is in memory that is uncached in the NSPE */
-#ifndef MAILBOX_IS_UNCACHED_NS
-#define MAILBOX_IS_UNCACHED_NS                 1
-#endif
-
-/*
- * Whether the client ID translation can accept NS client ID == 0.
- * NS client ID from NSPE is calculated as an offset of the client ID range in
- * NS Agent mailbox client ID translation.
- * Select this option to allow platforms to accept NS client ID == 0 as a valid
- * offset.
- */
-#ifndef MAILBOX_SUPPORT_NS_CLIENT_ID_ZERO
-#define MAILBOX_SUPPORT_NS_CLIENT_ID_ZERO      0
-#endif
-
-/* Secure Test Partition Configs */
-#ifdef TFM_PARTITION_DPE
-/* DPE tests require larger test partition stack */
-#define SECURE_TEST_PARTITION_STACK_SIZE        0x3000
-#else
-#define SECURE_TEST_PARTITION_STACK_SIZE        0x0F00
-#endif
-
 /* SPM Configs */
 
 #ifdef CONFIG_TFM_CONNECTION_POOL_ENABLE
@@ -307,33 +276,6 @@
 #define CONFIG_TFM_DOORBELL_API                 0
 #endif
 
-/*
- * Scheduling type for Hybrid Platforms (Currently in Experimental Stage)
- * Options can be found in spm/include/tfm_hybrid_platform.h
- */
-#ifndef CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE
-#define CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE   TFM_HYBRID_PLAT_SCHED_OFF
-#else
-
-#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_OFF)
-    /* default, nothing to do, no overrides */
-#endif
-
-#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_SPE)
-    #ifndef CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED
-    #define CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED 1
-    #define CONFIG_TFM_SPM_BACKEND_IPC 1
-    #endif
-#endif
-#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_NSPE)
-    #ifndef CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED
-    #define CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED 0
-    #define CONFIG_TFM_SPM_BACKEND_IPC 1
-    #endif
-#endif
-
-#endif
-
 /* Do not run the scheduler after handling a secure interrupt if the NSPE was pre-empted */
 #ifndef CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED
 #define CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED 0
@@ -344,24 +286,9 @@
 #define CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT 0
 #endif
 
-/*
- * tfm_hal_post_partition_init_hook is called if this option is enabled.
- * It's called by SPM right before starting scheduler.
- */
-#ifndef CONFIG_TFM_POST_PARTITION_INIT_HOOK
-#define CONFIG_TFM_POST_PARTITION_INIT_HOOK     0
-#endif
-
 /* Enable OTP/NV_COUNTERS emulation in RAM */
 #ifndef OTP_NV_COUNTERS_RAM_EMULATION
 #define OTP_NV_COUNTERS_RAM_EMULATION           0
-#endif
-
-/* Error Codes Configs */
-
-/* Enable unique error codes */
-#ifndef TFM_UNIQUE_ERROR_CODES
-#define TFM_UNIQUE_ERROR_CODES 0
 #endif
 
 #endif /* __CONFIG_BASE_H__ */

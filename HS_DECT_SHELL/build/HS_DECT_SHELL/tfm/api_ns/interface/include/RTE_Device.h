@@ -15,6 +15,8 @@
 
 #include <nrf-pinctrl.h>
 
+#include <nrf.h>
+
 #define UART_PIN_INIT(node_id, prop, idx) DT_PROP_BY_IDX(node_id, prop, idx),
 
 #define RTE_USART_PINS(idx)                                                                        \
@@ -27,21 +29,22 @@
 
 #if DOMAIN_NS == 1U
 
-#if defined(CONFIG_SOC_SERIES_NRF53) || defined(CONFIG_SOC_SERIES_NRF91)
+#ifdef NRF_UARTE0_S
 
 #define RTE_USART0 1
 
-#elif defined(CONFIG_NRF_PLATFORM_LUMOS)
-/* UART20 and UART30 are supported for TF-M tests on NRF54L and NRF71. */
+#else /* NRF_UARTE0_S - 54L15 devices*/
+
+/* Only UART20 and UART30 are supported for TF-M tests, which are the
+ * Non-secure applications build via the TF-M build system
+ */
 #if defined(CONFIG_TFM_SECURE_UART30)
 #define RTE_USART20 1
 #else
 #define RTE_USART30 1
 #endif
 
-#else
-#error Unknown platform
-#endif
+#endif /* NRF_UARTE0_S */
 
 #endif /* DOMAIN_NS == 1U */
 

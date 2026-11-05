@@ -17,6 +17,15 @@ typedef int32_t    mailbox_msg_handle_t;
 
 #define MAILBOX_MSG_NULL_HANDLE             ((mailbox_msg_handle_t)0)
 
+#ifndef MAILBOX_ENABLE_INTERRUPTS
+#define MAILBOX_ENABLE_INTERRUPTS() \
+                        (psa_irq_enable(MAILBOX_INTERRUPT_SIGNAL))
+#define MAILBOX_SIGNAL_IS_ACTIVE(signals) \
+                        ((signals) & MAILBOX_INTERRUPT_SIGNAL)
+#define MAILBOX_SIGNAL_GET_ACTIVE(signals) \
+                        (MAILBOX_INTERRUPT_SIGNAL)
+#endif /* MAILBOX_ENABLE_INTERRUPTS */
+
 /* A single slot structure in SPE mailbox queue */
 struct secure_mailbox_slot_t {
     struct mailbox_msg_t msg;
@@ -58,18 +67,12 @@ int32_t tfm_mailbox_hal_notify_peer(void);
 
 /**
  * \brief Enter critical section of NSPE mailbox
- *
- * \return Platform specific critical section state. Use it to exit from critical section
- * by passing result to \ref tfm_mailbox_hal_exit_critical.
  */
-uint32_t tfm_mailbox_hal_enter_critical(void);
+void tfm_mailbox_hal_enter_critical(void);
 
 /**
  * \brief Exit critical section of NSPE mailbox
- *
- * \param[in] state             Critical section state returned by
- *                              \ref tfm_mailbox_hal_enter_critical.
  */
-void tfm_mailbox_hal_exit_critical(uint32_t state);
+void tfm_mailbox_hal_exit_critical(void);
 
 #endif /* __TFM_HAL_MAILBOX_H__ */

@@ -18,7 +18,6 @@
 #define __UART_STDOUT_H__
 
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
  * \brief Initializes the STDIO.
@@ -34,16 +33,6 @@ void stdio_uninit(void);
 /**
  * \brief Output buffer by STDIO.
  */
-int stdio_output_string(const char *str, uint32_t len);
-
-/**
- * \brief Returns the initialization status of the stdio
- */
-bool stdio_is_initialized(void);
-
-/**
- * \brief Reset the initialization status of the stdio to false
- */
-void stdio_is_initialized_reset(void);
+int stdio_output_string(const unsigned char *str, uint32_t len);
 
 #endif /* __UART_STDOUT_H__ */

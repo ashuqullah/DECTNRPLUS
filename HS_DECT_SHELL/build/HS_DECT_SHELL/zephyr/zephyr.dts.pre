@@ -1,7 +1,7 @@
-# 0 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/misc/empty_file.c"
+# 0 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/misc/empty_file.c"
 # 0 "<built-in>"
 # 0 "<command-line>"
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns.dts" 1
+# 1 "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns.dts" 1
 
 
 
@@ -9,36 +9,34 @@
 
 
 /dts-v1/;
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf9151_ns_laca.dtsi" 1 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf9151ns_laca.dtsi" 1 3 4
 
 
 
 
 
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/common/mem.h" 1 3 4
-# 8 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf9151_ns_laca.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf91_ns.dtsi" 1 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/common/mem.h" 1 3 4
+# 8 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf9151ns_laca.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf91ns.dtsi" 1 3 4
 
 
 
 
 
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/armv8-m.dtsi" 1 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/armv8-m.dtsi" 1 3 4
 
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/common/skeleton.dtsi" 1 3 4
-# 9 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/common/skeleton.dtsi" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/common/skeleton.dtsi" 1 3 4
+# 9 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/common/skeleton.dtsi" 3 4
 / {
  #address-cells = <1>;
  #size-cells = <1>;
-
- chosen {};
-
- aliases {};
+ chosen { };
+ aliases { };
 };
-# 4 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/armv8-m.dtsi" 2 3 4
+# 4 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/armv8-m.dtsi" 2 3 4
 
 / {
  soc {
@@ -62,63 +60,61 @@
   };
  };
 };
-# 8 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf91_ns.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 1 3 4
+# 8 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf91ns.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 1 3 4
 
 
 
 
 
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/adc/adc.h" 1 3 4
-# 9 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/adc/adc.h" 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/dt-util.h" 1 3 4
-# 19 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/dt-util.h" 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_macro.h" 1 3 4
-# 34 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_macro.h" 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 1 3 4
-# 18 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_loops.h" 1 3 4
-# 1083 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_loops.h" 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_listify.h" 1 3 4
-# 1084 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_loops.h" 2 3 4
-# 19 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
-# 203 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal_is_eq.h" 1 3 4
-# 204 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
-# 234 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal_util_inc.h" 1 3 4
-# 235 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/adc/adc.h" 1 3 4
+# 9 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/adc/adc.h" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/dt-util.h" 1 3 4
+# 19 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/dt-util.h" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_macro.h" 1 3 4
+# 34 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_macro.h" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 1 3 4
+# 18 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_loops.h" 1 3 4
+# 1083 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_loops.h" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_listify.h" 1 3 4
+# 1084 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_loops.h" 2 3 4
+# 19 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
+# 162 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal_is_eq.h" 1 3 4
+# 163 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
+# 193 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal_util_inc.h" 1 3 4
+# 194 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
 
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal_util_dec.h" 1 3 4
-# 238 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal_util_dec.h" 1 3 4
+# 197 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
 
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal_util_x2.h" 1 3 4
-# 241 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
-# 35 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/sys/util_macro.h" 2 3 4
-# 20 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/dt-util.h" 2 3 4
-# 10 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/adc/adc.h" 2 3 4
-# 8 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/gpio/gpio.h" 1 3 4
-# 9 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/i2c/i2c.h" 1 3 4
-# 10 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/input/input-event-codes.h" 1 3 4
-# 11 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/pinctrl/nrf-pinctrl.h" 1 3 4
-# 12 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/pwm/pwm.h" 1 3 4
-# 13 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/sensor/qdec_nrf.h" 1 3 4
-# 14 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal_util_x2.h" 1 3 4
+# 200 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_internal.h" 2 3 4
+# 35 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/sys/util_macro.h" 2 3 4
+# 20 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/dt-util.h" 2 3 4
+# 10 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/adc/adc.h" 2 3 4
+# 8 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/gpio/gpio.h" 1 3 4
+# 9 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/i2c/i2c.h" 1 3 4
+# 10 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/input/input-event-codes.h" 1 3 4
+# 11 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/pinctrl/nrf-pinctrl.h" 1 3 4
+# 12 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/pwm/pwm.h" 1 3 4
+# 13 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/common/freq.h" 1 3 4
-# 16 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/override.dtsi" 1 3 4
-# 17 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
-# 25 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf_common.dtsi" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/common/freq.h" 1 3 4
+# 15 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/override.dtsi" 1 3 4
+# 16 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 2 3 4
+# 24 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf_common.dtsi" 3 4
 / {
  pinctrl: pin-controller {
 
@@ -130,7 +126,7 @@
 
  rng_hci: entropy_bt_hci {
   compatible = "zephyr,bt-hci-entropy";
-  status = "disabled";
+  status = "okay";
  };
 
  sw_pwm: sw-pwm {
@@ -141,9 +137,12 @@
   #pwm-cells = <3>;
  };
 };
-# 9 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf91_ns.dtsi" 2 3 4
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/adc/nrf-saadc.h" 1 3 4
-# 10 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf91_ns.dtsi" 2 3 4
+# 9 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf91ns.dtsi" 2 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/adc/nrf-saadc-v2.h" 1 3 4
+# 10 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/adc/nrf-saadc-v2.h" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/adc/nrf-saadc.h" 1 3 4
+# 11 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/include/zephyr/dt-bindings/adc/nrf-saadc-v2.h" 2 3 4
+# 10 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf91ns.dtsi" 2 3 4
 
 / {
  cpus {
@@ -172,18 +171,15 @@
  soc {
   sram0: memory@20000000 {
    compatible = "mmio-sram";
-   #address-cells = <1>;
-   #size-cells = <1>;
   };
 
   peripheral@40000000 {
    #address-cells = <1>;
    #size-cells = <1>;
-   reg = <0x40000000 0x10000000>;
    ranges = <0x0 0x40000000 0x10000000>;
 
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf91_peripherals.dtsi" 1 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf91_peripherals.dtsi" 1 3 4
 
 
 
@@ -197,6 +193,7 @@ flash_controller: flash-controller@39000 {
 
  #address-cells = <1>;
  #size-cells = <1>;
+
 
  flash0: flash@0 {
   compatible = "soc-nv-flash";
@@ -218,8 +215,6 @@ dppic0: dppic: dppic@17000 {
  compatible = "nordic,nrf-dppic";
  reg = <0x17000 0x1000>;
  status = "okay";
- channels = <16>;
- groups = <6>;
 };
 
 egu0: egu@1b000 {
@@ -593,7 +588,7 @@ timer2: timer@11000 {
  interrupts = <17 1>;
  prescaler = <0>;
 };
-# 50 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf91_ns.dtsi" 2 3 4
+# 47 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf91ns.dtsi" 2 3 4
   };
 
 
@@ -624,7 +619,7 @@ timer2: timer@11000 {
 
  status = "disabled";
 };
-# 9 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/arm/nordic/nrf9151_ns_laca.dtsi" 2 3 4
+# 9 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/arm/nordic/nrf9151ns_laca.dtsi" 2 3 4
 
 &flash0 {
  reg = <0x00000000 ((1024) * 1024)>;
@@ -632,22 +627,22 @@ timer2: timer@11000 {
 
 &sram0 {
  reg = <0x20000000 ((256) * 1024)>;
- ranges = <0x0 0x20000000 ((256) * 1024)>;
 };
 
 / {
  soc {
-  compatible = "simple-bus";
+  compatible = "nordic,nrf9151-laca", "nordic,nrf9120",
+        "nordic,nrf91", "simple-bus";
  };
 };
-# 9 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns.dts" 2
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common.dtsi" 1
+# 9 "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns.dts" 2
+# 1 "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_common.dtsi" 1
 
 
 
 
 
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common-pinctrl.dtsi" 1
+# 1 "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_common-pinctrl.dtsi" 1
 
 
 
@@ -656,109 +651,28 @@ timer2: timer@11000 {
 &pinctrl {
  uart0_default: uart0_default {
   group1 {
-   psels = <((((((0) * 32U) + (27)) & 0x1FFU) << 0U) | ((0U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (14)) & 0x1FFU) << 0U) | ((2U & 0xFFU) << 24U))>;
+   psels = <((((((0) * 32U) + (11)) & 0x1FFU) << 0U) | ((0U & 0xFFU) << 24U))>;
   };
-
   group2 {
-   psels = <((((((0) * 32U) + (26)) & 0x1FFU) << 0U) | ((1U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (15)) & 0x1FFU) << 0U) | ((3U & 0xFFU) << 24U))>;
+   psels = <((((((0) * 32U) + (12)) & 0x1FFU) << 0U) | ((1U & 0xFFU) << 24U))>;
    bias-pull-up;
   };
  };
 
  uart0_sleep: uart0_sleep {
   group1 {
-   psels = <((((((0) * 32U) + (26)) & 0x1FFU) << 0U) | ((1U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (14)) & 0x1FFU) << 0U) | ((2U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (15)) & 0x1FFU) << 0U) | ((3U & 0xFFU) << 24U))>;
-   low-power-enable;
-  };
-
-  group2 {
-   psels = <((((((0) * 32U) + (27)) & 0x1FFU) << 0U) | ((0U & 0xFFU) << 24U))>;
-   low-power-enable;
-   bias-pull-up;
-  };
- };
-
- uart1_default: uart1_default {
-  group1 {
-   psels = <((((((0) * 32U) + (29)) & 0x1FFU) << 0U) | ((0U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (16)) & 0x1FFU) << 0U) | ((2U & 0xFFU) << 24U))>;
-  };
-
-  group2 {
-   psels = <((((((0) * 32U) + (28)) & 0x1FFU) << 0U) | ((1U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (17)) & 0x1FFU) << 0U) | ((3U & 0xFFU) << 24U))>;
-   bias-pull-up;
-  };
- };
-
- uart1_sleep: uart1_sleep {
-  group1 {
-   psels = <((((((0) * 32U) + (29)) & 0x1FFU) << 0U) | ((0U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (28)) & 0x1FFU) << 0U) | ((1U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (16)) & 0x1FFU) << 0U) | ((2U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (17)) & 0x1FFU) << 0U) | ((3U & 0xFFU) << 24U))>;
-   low-power-enable;
-  };
- };
-
- i2c2_default: i2c2_default {
-  group1 {
-   psels = <((((((0) * 32U) + (30)) & 0x1FFU) << 0U) | ((12U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (31)) & 0x1FFU) << 0U) | ((11U & 0xFFU) << 24U))>;
-  };
- };
-
- i2c2_sleep: i2c2_sleep {
-  group1 {
-   psels = <((((((0) * 32U) + (30)) & 0x1FFU) << 0U) | ((12U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (31)) & 0x1FFU) << 0U) | ((11U & 0xFFU) << 24U))>;
-   low-power-enable;
-  };
- };
-
- pwm0_default: pwm0_default {
-  group1 {
-   psels = <((((((0) * 32U) + (0)) & 0x1FFU) << 0U) | ((22U & 0xFFU) << 24U))>;
-  };
- };
-
- pwm0_sleep: pwm0_sleep {
-  group1 {
-   psels = <((((((0) * 32U) + (0)) & 0x1FFU) << 0U) | ((22U & 0xFFU) << 24U))>;
-   low-power-enable;
-  };
- };
-
- spi3_default: spi3_default {
-  group1 {
-   psels = <((((((0) * 32U) + (13)) & 0x1FFU) << 0U) | ((4U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (12)) & 0x1FFU) << 0U) | ((6U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (11)) & 0x1FFU) << 0U) | ((5U & 0xFFU) << 24U))>;
-   nordic,drive-mode = <3U>;
-  };
- };
-
- spi3_sleep: spi3_sleep {
-  group1 {
-   psels = <((((((0) * 32U) + (13)) & 0x1FFU) << 0U) | ((4U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (12)) & 0x1FFU) << 0U) | ((6U & 0xFFU) << 24U))>,
-    <((((((0) * 32U) + (11)) & 0x1FFU) << 0U) | ((5U & 0xFFU) << 24U))>;
+   psels = <((((((0) * 32U) + (11)) & 0x1FFU) << 0U) | ((0U & 0xFFU) << 24U))>,
+    <((((((0) * 32U) + (12)) & 0x1FFU) << 0U) | ((1U & 0xFFU) << 24U))>;
    low-power-enable;
   };
  };
 };
-# 7 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common.dtsi" 2
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/include/zephyr/dt-bindings/gpio/arduino-header-r3.h" 1 3 4
-# 8 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common.dtsi" 2
+# 7 "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_common.dtsi" 2
 
 
 / {
- model = "Nordic nRF9151 DK NRF9151";
- compatible = "nordic,nrf9151-dk-nrf9151";
+ model = "Makerdiary nRF9151 Connect Kit nRF9151";
+ compatible = "makerdiary,nrf9151-connectkit-nrf9151";
 
  chosen {
   zephyr,console = &uart0;
@@ -766,125 +680,19 @@ timer2: timer@11000 {
   zephyr,uart-mcumgr = &uart0;
  };
 
- leds {
-  compatible = "gpio-leds";
-
-  led0: led_0 {
-   gpios = <&gpio0 0 (0 << 0)>;
-   label = "Green LED 1";
-  };
-
-  led1: led_1 {
-   gpios = <&gpio0 1 (0 << 0)>;
-   label = "Green LED 2";
-  };
-
-  led2: led_2 {
-   gpios = <&gpio0 4 (0 << 0)>;
-   label = "Green LED 3";
-  };
-
-  led3: led_3 {
-   gpios = <&gpio0 5 (0 << 0)>;
-   label = "Green LED 4";
-  };
- };
-
- pwmleds {
-  compatible = "pwm-leds";
-
-  pwm_led0: pwm_led_0 {
-   pwms = <&pwm0 0 (((20) * 1000UL) * 1000UL) (0 << 0)>;
-  };
- };
-
  buttons {
   compatible = "gpio-keys";
-
   button0: button_0 {
-   gpios = <&gpio0 8 ((1 << 4) | (1 << 0))>;
+   gpios = <&gpio0 25 ((1 << 4) | (1 << 0))>;
    label = "Push button 1";
    zephyr,code = <11>;
   };
-
-  button1: button_1 {
-   gpios = <&gpio0 9 ((1 << 4) | (1 << 0))>;
-   label = "Push button 2";
-   zephyr,code = <2>;
-  };
-
-  button2: button_2 {
-   gpios = <&gpio0 18 ((1 << 4) | (1 << 0))>;
-   label = "Push button 3";
-   zephyr,code = <3>;
-  };
-
-  button3: button_3 {
-   gpios = <&gpio0 19 ((1 << 4) | (1 << 0))>;
-   label = "Push button 4";
-   zephyr,code = <4>;
-  };
- };
-
- nrf5340_reset: gpio-reset {
-  compatible = "nordic,nrf9151dk-nrf5340-reset";
-  status = "disabled";
-  gpios = <&gpio0 21 (1 << 0)>;
- };
-
- arduino_header: connector {
-  compatible = "arduino-header-r3";
-  #gpio-cells = <2>;
-  gpio-map-mask = <0xffffffff 0xffffffc0>;
-  gpio-map-pass-thru = <0 0x3f>;
-  gpio-map = <0 0 &gpio0 14 0>,
-      <1 0 &gpio0 15 0>,
-      <2 0 &gpio0 16 0>,
-      <3 0 &gpio0 17 0>,
-      <4 0 &gpio0 18 0>,
-      <5 0 &gpio0 19 0>,
-      <6 0 &gpio0 0 0>,
-      <7 0 &gpio0 1 0>,
-      <8 0 &gpio0 2 0>,
-      <9 0 &gpio0 3 0>,
-      <10 0 &gpio0 4 0>,
-      <11 0 &gpio0 5 0>,
-      <12 0 &gpio0 6 0>,
-      <13 0 &gpio0 7 0>,
-      <14 0 &gpio0 8 0>,
-      <15 0 &gpio0 9 0>,
-      <16 0 &gpio0 10 0>,
-      <17 0 &gpio0 11 0>,
-      <18 0 &gpio0 12 0>,
-      <19 0 &gpio0 13 0>,
-      <20 0 &gpio0 30 0>,
-      <21 0 &gpio0 31 0>;
- };
-
- arduino_adc: analog-connector {
-  compatible = "arduino,uno-adc";
-  #io-channel-cells = <1>;
-  io-channel-map = <0 &adc 1>,
-     <1 &adc 2>,
-     <2 &adc 3>,
-     <3 &adc 4>,
-     <4 &adc 5>,
-     <5 &adc 6>;
  };
 
 
  aliases {
-  led0 = &led0;
-  led1 = &led1;
-  led2 = &led2;
-  led3 = &led3;
-  pwm-led0 = &pwm_led0;
   sw0 = &button0;
-  sw1 = &button1;
-  sw2 = &button2;
-  sw3 = &button3;
   mcuboot-button0 = &button0;
-  mcuboot-led0 = &led0;
   watchdog0 = &wdt0;
  };
 };
@@ -909,71 +717,11 @@ timer2: timer@11000 {
  pinctrl-names = "default", "sleep";
 };
 
-arduino_serial: &uart1 {
- status = "okay";
- current-speed = <115200>;
- pinctrl-0 = <&uart1_default>;
- pinctrl-1 = <&uart1_sleep>;
- pinctrl-names = "default", "sleep";
-};
 
-arduino_i2c: &i2c2 {
- compatible = "nordic,nrf-twim";
- status = "okay";
- pinctrl-0 = <&i2c2_default>;
- pinctrl-1 = <&i2c2_sleep>;
- pinctrl-names = "default", "sleep";
- clock-frequency = <400000>;
-
- pcal6408a: pcal6408a@21 {
-  compatible = "nxp,pcal6408a";
-  status = "disabled";
-  reg = <0x21>;
-  gpio-controller;
-  #gpio-cells = <2>;
-  ngpios = <8>;
-  int-gpios = <&gpio0 19 ((1 << 4) | (1 << 0))>;
- };
-};
-
-&pwm0 {
- status = "okay";
- pinctrl-0 = <&pwm0_default>;
- pinctrl-1 = <&pwm0_sleep>;
- pinctrl-names = "default", "sleep";
-};
-
-arduino_spi: &spi3 {
- compatible = "nordic,nrf-spim";
- status = "okay";
- cs-gpios = <&arduino_header 16 (1 << 0)>,
-     <&gpio0 20 (1 << 0)>;
- pinctrl-0 = <&spi3_default>;
- pinctrl-1 = <&spi3_sleep>;
- pinctrl-names = "default", "sleep";
-
- gd25wb256: gd25wb256e3ir@1 {
-  compatible = "jedec,spi-nor";
-  status = "disabled";
-  reg = <1>;
-  spi-max-frequency = <8000000>;
-  size = <268435456>;
-  has-dpd;
-  t-enter-dpd = <3000>;
-  t-exit-dpd = <40000>;
-  sfdp-bfp = [e5 20 f3 ff ff ff ff 0f 44 eb 08 6b 08 3b 42 bb
-       ee ff ff ff ff ff 00 ff ff ff 00 ff 0c 20 0f 52
-       10 d8 00 ff 44 7a c9 fe 83 67 26 62 ec 82 18 44
-       7a 75 7a 75 04 c4 d5 5c 00 06 74 00 08 50 00 01];
-  jedec-id = [c8 65 19];
- };
-};
-
-
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi" 1 3 4
-# 9 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi" 3 4
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi" 1 3 4
+# 9 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi" 3 4
 &flash0 {
-# 27 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi" 3 4
+# 27 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi" 3 4
  partitions {
   compatible = "fixed-partitions";
   #address-cells = <1>;
@@ -985,41 +733,23 @@ arduino_spi: &spi3 {
   };
 
   slot0_partition: partition@10000 {
-   compatible = "fixed-subpartitions";
    label = "image-0";
-   reg = <0x00010000 0x70000>;
-   ranges = <0x0 0x10000 0x70000>;
-   #address-cells = <1>;
-   #size-cells = <1>;
+   reg = <0x00010000 0x40000>;
+  };
 
-   slot0_s_partition: partition@0 {
-    label = "image-0-secure";
-    reg = <0x00000000 0x40000>;
-   };
-
-   slot0_ns_partition: partition@40000 {
-    label = "image-0-nonsecure";
-    reg = <0x00040000 0x30000>;
-   };
+  slot0_ns_partition: partition@50000 {
+   label = "image-0-nonsecure";
+   reg = <0x00050000 0x30000>;
   };
 
   slot1_partition: partition@80000 {
-   compatible = "fixed-subpartitions";
    label = "image-1";
-   reg = <0x00080000 0x70000>;
-   ranges = <0x0 0x80000 0x70000>;
-   #address-cells = <1>;
-   #size-cells = <1>;
+   reg = <0x00080000 0x40000>;
+  };
 
-   slot1_s_partition: partition@0 {
-    label = "image-1-secure";
-    reg = <0x00000000 0x40000>;
-   };
-
-   slot1_ns_partition: partition@40000 {
-    label = "image-1-nonsecure";
-    reg = <0x00040000 0x30000>;
-   };
+  slot1_ns_partition: partition@c0000 {
+   label = "image-1-nonsecure";
+   reg = <0x000c0000 0x30000>;
   };
 
   tfm_ps_partition: partition@f0000 {
@@ -1044,33 +774,36 @@ arduino_spi: &spi3 {
  };
 };
 
-&sram0 {
-# 107 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi" 3 4
- sram0_s: sram@0 {
-
-  reg = <0x0 ((88) * 1024)>;
- };
-
- sram0_ns: sram@16000 {
-
-  reg = <0x16000 ((168) * 1024)>;
+/ {
+# 89 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/dts/vendor/nordic/nrf91xx_partition.dtsi" 3 4
+ reserved-memory {
   #address-cells = <1>;
   #size-cells = <1>;
-  ranges = <0x0 0x16000 ((168) * 1024)>;
+  ranges;
 
-  sram0_ns_modem: sram0_ns@0 {
+  sram0_s: image_s@20000000 {
 
-   reg = <0x0 ((40) * 1024)>;
+   reg = <0x20000000 ((88) * 1024)>;
   };
 
-  sram0_ns_app: sram0_ns@a000 {
+  sram0_ns: image_ns@20016000 {
 
-   reg = <0xa000 ((128) * 1024)>;
+   reg = <0x20016000 ((168) * 1024)>;
+  };
+
+  sram0_ns_modem: image_ns_modem@20016000 {
+
+   reg = <0x20016000 ((40) * 1024)>;
+  };
+
+  sram0_ns_app: image_ns_app@20020000 {
+
+   reg = <0x20020000 ((128) * 1024)>;
   };
  };
 };
-# 225 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_common.dtsi" 2
-# 10 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/boards/nordic/nrf9151dk/nrf9151dk_nrf9151_ns.dts" 2
+# 58 "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_common.dtsi" 2
+# 10 "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns.dts" 2
 
 / {
  chosen {
@@ -1079,10 +812,5 @@ arduino_spi: &spi3 {
   zephyr,code-partition = &slot0_ns_partition;
  };
 };
-
-
-&uart1 {
- status = "disabled";
-};
 # 0 "<command-line>" 2
-# 1 "/home/ashuqullah-alizai/ncs/v3.3.0/zephyr/misc/empty_file.c"
+# 1 "/home/ashuqullah-alizai/ncs/v3.1.1/zephyr/misc/empty_file.c"

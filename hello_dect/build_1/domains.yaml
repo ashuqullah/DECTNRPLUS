@@ -1,0 +1,7 @@
+default: hello_dect
+build_dir: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1
+domains:
+  - name: hello_dect
+    build_dir: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build_1/hello_dect
+flash_order:
+  - hello_dect

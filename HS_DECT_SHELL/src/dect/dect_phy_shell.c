@@ -266,8 +266,7 @@ static int dect_phy_perf_cmd(const struct shell *shell, size_t argc, char **argv
 		goto show_usage;
 	}
 
-	optreset = 1;
-	optind = 1;
+	optind = 0;
 
 	if (argv[1] != NULL && !strcmp(argv[1], "stop")) {
 		desh_print("Perf command stopping.");
@@ -575,7 +574,6 @@ static int dect_phy_rf_tool_cmd(const struct shell *shell, size_t argc, char **a
 		goto show_usage;
 	}
 
-	optreset = 1;
 	optind = 1;
 
 	if (argv[1] != NULL && !strcmp(argv[1], "stop")) {
@@ -800,7 +798,6 @@ show_usage:
 	desh_print_no_format(dect_phy_rf_tool_cmd_usage_str);
 	return 0;
 }
-
 /**************************************************************************************************/
 
 static const char dect_phy_ping_cmd_usage_str[] =
@@ -896,7 +893,6 @@ static int dect_phy_ping_cmd(const struct shell *shell, size_t argc, char **argv
 	if (argc < 2) {
 		goto show_usage;
 	}
-	optreset = 1;
 	optind = 1;
 
 	if (argv[1] != NULL && !strcmp(argv[1], "stop")) {
@@ -1104,7 +1100,6 @@ static void dect_phy_activate_cmd(const struct shell *shell, size_t argc, char *
 	int long_index = 0;
 	int opt, ret;
 
-	optreset = 1;
 	optind = 1;
 	while ((opt = getopt_long(argc, argv, "123h", long_options_radio_mode_conf, &long_index)) !=
 	       -1) {
@@ -1179,7 +1174,6 @@ static void dect_phy_radio_mode_cmd(const struct shell *shell, size_t argc, char
 	int long_index = 0;
 	int opt, ret;
 
-	optreset = 1;
 	optind = 1;
 	while ((opt = getopt_long(argc, argv, "123h", long_options_radio_mode_conf, &long_index)) !=
 	       -1) {
@@ -1304,7 +1298,6 @@ static int dect_phy_rssi_scan_cmd(const struct shell *shell, size_t argc, char *
 		goto show_usage;
 	}
 
-	optreset = 1;
 	optind = 1;
 	if (argv[1] != NULL && !strcmp(argv[1], "list")) {
 		dect_phy_scan_rssi_latest_results_print();
@@ -1472,7 +1465,6 @@ static int dect_phy_rx_cmd(const struct shell *shell, size_t argc, char **argv)
 		goto show_usage;
 	}
 
-	optreset = 1;
 	optind = 2;
 	if (argv[1] != NULL && !strcmp(argv[1], "stop")) {
 		dect_phy_ctrl_rx_stop();
@@ -1838,7 +1830,6 @@ static int dect_phy_sett_cmd(const struct shell *shell, size_t argc, char **argv
 	bool any_fixed_only_opt = false;
 	bool pt_slot_any_set = false;
 
-	optreset = 1;
 	optind = 1;
 
 	int ret = 0;

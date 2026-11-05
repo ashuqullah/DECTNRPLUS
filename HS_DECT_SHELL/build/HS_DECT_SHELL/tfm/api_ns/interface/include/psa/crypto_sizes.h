@@ -702,7 +702,7 @@
 /**
  * \brief ML-DSA signature size for a given key size
  *
- * \param key_size      key size.
+ * \param curve_bits    key size.
  * \return              Signature size in bytes.
  *
  * \note This macro returns a compile-time constant if its argument is one.

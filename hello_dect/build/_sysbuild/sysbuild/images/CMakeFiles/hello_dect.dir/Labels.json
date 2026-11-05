@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/CMakeFiles/hello_dect"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/CMakeFiles/hello_dect.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/CMakeFiles/hello_dect-complete.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-build.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-configure.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-download.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-install.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-mkdir.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-patch.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/hello_dect/build/_sysbuild/sysbuild/images/hello_dect-prefix/src/hello_dect-stamp/hello_dect-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"hello_dect"
+		],
+		"name" : "hello_dect"
+	}
+}

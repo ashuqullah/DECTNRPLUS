@@ -1027,7 +1027,7 @@ TFM_CRYPTO_API(psa_status_t, psa_aead_finish)(psa_aead_operation_t *operation,
 
     size_t out_len = IOVEC_LEN(out_vec);
 
-    if ((ciphertext == NULL) || (ciphertext_size == 0)) {
+    if (ciphertext == NULL || ciphertext_size == 0) {
         out_len--;
     }
     if ((out_len == 3) && (ciphertext_length == NULL)) {
@@ -1078,7 +1078,7 @@ TFM_CRYPTO_API(psa_status_t, psa_aead_verify)(psa_aead_operation_t *operation,
 
     size_t out_len = IOVEC_LEN(out_vec);
 
-    if ((plaintext == NULL) || (plaintext_size == 0)) {
+    if (plaintext == NULL || plaintext_size == 0) {
         out_len--;
     }
     if ((out_len == 2) && (plaintext_length == NULL)) {
@@ -1690,9 +1690,6 @@ TFM_CRYPTO_API(psa_status_t, psa_key_derivation_verify_bytes)(
                                       const uint8_t *expected_output,
                                       size_t output_length)
 {
-    (void)operation;
-    (void)expected_output;
-    (void)output_length;
     /* To be implemented when the PSA backend supports it */
     return PSA_ERROR_NOT_SUPPORTED;
 }
@@ -1701,8 +1698,6 @@ TFM_CRYPTO_API(psa_status_t, psa_key_derivation_verify_key)(
                                       psa_key_derivation_operation_t *operation,
                                       psa_key_id_t expected)
 {
-    (void)operation;
-    (void)expected;
     /* To be implemented when the PSA backend supports it */
     return PSA_ERROR_NOT_SUPPORTED;
 }
@@ -1871,57 +1866,4 @@ TFM_CRYPTO_API(psa_status_t, psa_pake_abort)(psa_pake_operation_t *operation) {
   };
 
   return API_DISPATCH(in_vec, out_vec);
-}
-
-TFM_CRYPTO_API(psa_status_t, psa_wrap_key)(psa_key_id_t wrapping_key,
-                                           psa_algorithm_t alg,
-                                           psa_key_id_t key,
-                                           uint8_t * data,
-                                           size_t data_size,
-                                           size_t * data_length)
-{
-    psa_status_t status;
-    struct tfm_crypto_pack_iovec iov = {
-        .function_id = TFM_CRYPTO_KEY_WRAPPING_WRAP_SID,
-        .key_id = wrapping_key,
-        .alg = alg,
-    };
-
-    psa_invec in_vec[] = {
-        {.base = &iov, .len = sizeof(struct tfm_crypto_pack_iovec)},
-        {.base = &key, .len = sizeof(psa_key_id_t)},
-    };
-    psa_outvec out_vec[] = {
-        {.base = data, .len = data_size}
-    };
-
-    status = API_DISPATCH(in_vec, out_vec);
-
-    *data_length = out_vec[0].len;
-    return status;
-}
-
-TFM_CRYPTO_API(psa_status_t, psa_unwrap_key)(const psa_key_attributes_t * attributes,
-                                             psa_key_id_t wrapping_key,
-                                             psa_algorithm_t alg,
-                                             const uint8_t * data,
-                                             size_t data_length,
-                                             psa_key_id_t * key)
-{
-    struct tfm_crypto_pack_iovec iov = {
-        .function_id = TFM_CRYPTO_KEY_WRAPPING_UNWRAP_SID,
-        .key_id = wrapping_key,
-        .alg = alg,
-    };
-
-    psa_invec in_vec[] = {
-        {.base = &iov, .len = sizeof(struct tfm_crypto_pack_iovec)},
-        {.base = attributes, .len = sizeof(psa_key_attributes_t)},
-        {.base = data, .len = data_length},
-    };
-    psa_outvec out_vec[] = {
-        {.base = key, .len = sizeof(psa_key_id_t)}
-    };
-
-    return API_DISPATCH(in_vec, out_vec);
 }

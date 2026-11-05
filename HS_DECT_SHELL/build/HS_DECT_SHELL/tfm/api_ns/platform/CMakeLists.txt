@@ -6,11 +6,12 @@
 cmake_policy(SET CMP0076 NEW)
 set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(NRF_BOARD_SELECTED True)
+set(NRF_TFM_BOARD ${ZEPHYR_NRF_MODULE_DIR}/modules/trusted-firmware-m/tfm_boards)
 
 add_library(platform_ns STATIC)
 
 set(partition_includes
-    ${TFM_BOARDS_NRF_DIR}/partition
+    ${NRF_TFM_BOARD}/partition
     ${CMAKE_BINARY_DIR}/../zephyr/include/generated
 )
 
@@ -34,7 +35,7 @@ target_include_directories(platform_ns
 # Disabling UART stdout not supported in NS Image, which is always built even when not needed.
 target_sources(platform_ns
   PRIVATE
-  $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_UART_STDOUT}>>:${TFM_BOARDS_NRF_DIR}/common/dummy_uart_stdout.c>
+  $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_UART_STDOUT}>>:${NRF_TFM_BOARD}/common/dummy_uart_stdout.c>
 )
 
 # Get the value of HAL_NORDIC_PATH
@@ -56,7 +57,7 @@ if(TFM_PARTITION_PLATFORM)
 
     target_sources(platform_ns
         PRIVATE
-        ${TFM_BOARDS_NRF_DIR}/src/tfm_ioctl_ns_api.c
+        ${NRF_TFM_BOARD}/src/tfm_ioctl_ns_api.c
     )
 endif()
 

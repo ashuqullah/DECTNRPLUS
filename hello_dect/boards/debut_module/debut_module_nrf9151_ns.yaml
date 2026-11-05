@@ -1,0 +1,16 @@
+identifier: debut_module/nrf9151/ns
+name: DEBUT DECT NR+ Module nRF9151 NS
+type: mcu
+arch: arm
+toolchain:
+  - gnuarmemb
+  - zephyr
+ram: 128
+flash: 192
+supported:
+  - i2c
+  - pwm
+  - watchdog
+  - netif:modem
+vendor: phytec
+sysbuild: true

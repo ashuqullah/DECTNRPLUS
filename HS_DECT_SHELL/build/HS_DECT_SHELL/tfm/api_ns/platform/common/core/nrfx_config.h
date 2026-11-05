@@ -36,12 +36,12 @@
 
 #if RTE_FLASH0
 
-#if defined(NRF5340_XXAA_APPLICATION) || defined(NRF91_SERIES)
+#include <nrf.h>
+
+#if defined(NRF_NVMC_S)
 #define NRFX_NVMC_ENABLED 1
-#elif defined(NRF54L_SERIES)
+#elif defined(NRF_RRAMC_S)
 #define NRFX_RRAMC_ENABLED 1
-#elif defined(NRF71_SERIES)
-#define NRFX_MRAMC_ENABLED 1
 #else
 #error "Unrecognized platform"
 #endif
@@ -96,6 +96,14 @@
 #define NRF_PERIPH(P) P##_S
 #endif
 
-#include <templates/nrfx_templates_config.h>
+#if defined(NRF5340_XXAA_APPLICATION)
+    #include <nrfx_config_nrf5340_application.h>
+#elif defined(NRF91_SERIES)
+    #include <nrfx_config_nrf91.h>
+#elif defined(NRF54L_SERIES)
+    #include <nrfx_config_nrf54l.h>
+#else
+    #error "Unknown device."
+#endif
 
 #endif // NRFX_CONFIG_H__

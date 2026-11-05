@@ -66,7 +66,6 @@ static int startup_cmd_shell(const struct shell *shell, size_t argc, char **argv
 	struct startup_cmd_data current_settings;
 	struct startup_cmd_data newsettings;
 
-	optreset = 1;
 	optind = 1;
 	int opt, tmp_value;
 

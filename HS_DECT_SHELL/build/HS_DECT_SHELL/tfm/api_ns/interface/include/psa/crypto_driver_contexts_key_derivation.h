@@ -28,10 +28,6 @@
 #include "cracen_psa_primitives.h"
 #endif
 
-#if defined(PSA_CRYPTO_DRIVER_IRONSIDE)
-#include "ironside_psa_types.h"
-#endif
-
 /*
  * Define the context to be used for an operation that is executed through the
  * PSA Driver wrapper layer as the union of all possible drivers' contexts.
@@ -59,9 +55,6 @@ typedef union {
 #endif
 #ifdef PSA_NEED_CRACEN_PAKE_DRIVER
 	cracen_pake_operation_t cracen_pake_ctx;
-#endif
-#ifdef PSA_CRYPTO_DRIVER_IRONSIDE
-	ironside_psa_pake_operation_t ironside_pake_ctx;
 #endif
 } psa_driver_pake_context_t;
 

@@ -1,5 +1,11 @@
 {
     "nrf-connect.applications": [
         "${workspaceFolder}"
-    ]
+    ],
+    "nrf-connect.boardRoots": [
+        "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell"
+    ],
+    "nrf-connect.west.env": {
+        "$base": "process"
+    }
 }

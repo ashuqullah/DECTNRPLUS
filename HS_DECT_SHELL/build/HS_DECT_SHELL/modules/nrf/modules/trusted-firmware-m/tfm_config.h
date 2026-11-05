@@ -20,7 +20,7 @@
 #define PLATFORM_SP_STACK_SIZE 0x500
 
 /* Disable Non-volatile counter module */
-#define PLATFORM_NV_COUNTER_MODULE_DISABLED 0
+#define PLATFORM_NV_COUNTER_MODULE_DISABLED 1
 
 /* Crypto Partition Configs */
 
@@ -28,34 +28,31 @@
  * Heap size for the crypto backend
  * CRYPTO_ENGINE_BUF_SIZE needs to be >8KB for EC signing by attest module.
  */
-#define CRYPTO_ENGINE_BUF_SIZE 8320
+#define CRYPTO_ENGINE_BUF_SIZE 1
 
 /* The max number of concurrent operations that can be active (allocated) at any time in Crypto */
-#define CRYPTO_CONC_OPER_NUM 8
+#define CRYPTO_CONC_OPER_NUM 1
 
 /* Enable PSA Crypto random number generator module */
 #define CRYPTO_RNG_MODULE_ENABLED 1
 
 /* Enable PSA Crypto Key module */
-#define CRYPTO_KEY_MODULE_ENABLED 1
+#define CRYPTO_KEY_MODULE_ENABLED 0
 
 /* Enable PSA Crypto AEAD module */
-#define CRYPTO_AEAD_MODULE_ENABLED 1
+#define CRYPTO_AEAD_MODULE_ENABLED 0
 
 /* Enable PSA Crypto MAC module */
-#define CRYPTO_MAC_MODULE_ENABLED 1
+#define CRYPTO_MAC_MODULE_ENABLED 0
 
 /* Enable PSA Crypto Hash module */
-#define CRYPTO_HASH_MODULE_ENABLED 1
+#define CRYPTO_HASH_MODULE_ENABLED 0
 
 /* Enable PSA Crypto Cipher module */
 #define CRYPTO_CIPHER_MODULE_ENABLED 0
 
 /* Enable PSA Crypto PAKE module */
 #define CRYPTO_PAKE_MODULE_ENABLED 0
-
-/* Enable PSA Crypto key wrapping module */
-#define CRYPTO_KEY_WRAPPING_MODULE_ENABLED 0
 
 /* Enable PSA Crypto asymmetric key signature module */
 #define CRYPTO_ASYM_SIGN_MODULE_ENABLED 0
@@ -64,10 +61,10 @@
 #define CRYPTO_ASYM_ENCRYPT_MODULE_ENABLED 0
 
 /* Enable PSA Crypto key derivation module */
-#define CRYPTO_KEY_DERIVATION_MODULE_ENABLED 1
+#define CRYPTO_KEY_DERIVATION_MODULE_ENABLED 0
 
 /* Default size of the internal scratch buffer used for PSA FF IOVec allocations */
-#define CRYPTO_IOVEC_BUFFER_SIZE 5120
+#define CRYPTO_IOVEC_BUFFER_SIZE 1024
 
 /* Use stored NV seed to provide entropy */
 #define CRYPTO_NV_SEED 0
@@ -79,7 +76,7 @@
 #define CRYPTO_SINGLE_PART_FUNCS_DISABLED 0
 
 /* The stack size of the Crypto Secure Partition */
-#define CRYPTO_STACK_SIZE 0x2000
+#define CRYPTO_STACK_SIZE 0x800
 
 /* ABI compatibility between client and crypto service */
 #define CRYPTO_LIBRARY_ABI_COMPAT 1
@@ -118,51 +115,51 @@
 /* ITS Partition Configs */
 
 /* Create flash FS if it doesn't exist for Internal Trusted Storage partition */
-#define ITS_CREATE_FLASH_LAYOUT 1
+#define ITS_CREATE_FLASH_LAYOUT 0
 
 /* Enable emulated RAM FS for platforms that don't have flash for Internal Trusted Storage partition */
 #define ITS_RAM_FS 0
 
 /* Validate filesystem metadata every time it is read from flash */
-#define ITS_VALIDATE_METADATA_FROM_FLASH 1
+#define ITS_VALIDATE_METADATA_FROM_FLASH 0
 
 /* The maximum asset size to be stored in the Internal Trusted Storage */
-#define ITS_MAX_ASSET_SIZE 512
+/* #undef ITS_MAX_ASSET_SIZE */
 
 /*
  * Size of the ITS internal data transfer buffer
  * (Default to the max asset size so that all requests can be handled in one iteration.)
  */
-#define ITS_BUF_SIZE 2048
+/* #undef ITS_BUF_SIZE */
 
 /* The maximum number of assets to be stored in the Internal Trusted Storage */
-#define ITS_NUM_ASSETS 10
+/* #undef ITS_NUM_ASSETS */
 
 /* The stack size of the Internal Trusted Storage Secure Partition */
-#define ITS_STACK_SIZE 0x720
+/* #undef ITS_STACK_SIZE */
 
 /* PS Partition Configs */
 
 /* Create flash FS if it doesn't exist for Protected Storage partition */
-#define PS_CREATE_FLASH_LAYOUT 1
+#define PS_CREATE_FLASH_LAYOUT 0
 
 /* Enable emulated RAM FS for platforms that don't have flash for Protected Storage partition */
 #define PS_RAM_FS 0
 
 /* Enable rollback protection for Protected Storage partition */
-#define PS_ROLLBACK_PROTECTION 1
+#define PS_ROLLBACK_PROTECTION 0
 
 /* Validate filesystem metadata every time it is read from flash */
-#define PS_VALIDATE_METADATA_FROM_FLASH 1
+#define PS_VALIDATE_METADATA_FROM_FLASH 0
 
 /* The maximum asset size to be stored in the Protected Storage */
-#define PS_MAX_ASSET_SIZE 2048
+/* #undef PS_MAX_ASSET_SIZE */
 
 /* The maximum number of assets to be stored in the Protected Storage */
-#define PS_NUM_ASSETS 10
+/* #undef PS_NUM_ASSETS */
 
 /* The stack size of the Protected Storage Secure Partition */
-#define PS_STACK_SIZE 0x700
+/* #undef PS_STACK_SIZE */
 
 /* Enable/Disable the doorbell APIs */
 #define CONFIG_TFM_DOORBELL_API 0

@@ -22,7 +22,7 @@
 #include <flash_layout.h>
 #include <string.h>
 
-#include <nrfx.h>
+#include <nrf.h>
 
 #ifdef __NRF_TFM__
 #include <zephyr/autoconf.h>
@@ -39,8 +39,6 @@
 #define WRITE_BUFFER_SIZE 0
 #endif
 
-#elif defined(NRF_MRAMC_S)
-#include <nrfx_mramc.h>
 #else
 #error "Unrecognized platform"
 #endif
@@ -120,20 +118,12 @@ static int32_t ARM_Flash_Initialize(ARM_Flash_SignalEvent_t cb_event)
 	 */
 	nrfx_rramc_evt_handler_t handler = NULL;
 
-	int err = nrfx_rramc_init(&config, handler);
+	nrfx_err_t err = nrfx_rramc_init(&config, handler);
 
-	if(err != 0 && err != -EALREADY) {
+	if(err != NRFX_SUCCESS && err != NRFX_ERROR_ALREADY) {
 		return err;
 	}
-#elif defined(MRAMC_PRESENT)
-	nrfx_mramc_config_t config = NRFX_MRAMC_DEFAULT_CONFIG();
-
-	int err = nrfx_mramc_init(&config, NULL);
-
-	if(err != 0 && err != -EALREADY) {
-		return err;
-	}
-#endif /* RRAMC_PRESENT or MRAMC_PRESENT*/
+#endif /* RRAMC_PRESENT */
     return ARM_DRIVER_OK;
 }
 
@@ -176,7 +166,7 @@ static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data,
 
 #ifdef NRF_NVMC_S
     nrfx_nvmc_words_write(addr, data, cnt);
-#elif defined(NRF_RRAMC_S)
+#else
 	nrf_rramc_config_t rramc_config;
 	nrf_rramc_config_get(NRF_RRAMC, &rramc_config);
 	const nrf_rramc_config_t orig_rramc_config = rramc_config;
@@ -186,18 +176,6 @@ static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data,
 	nrfx_rramc_words_write(addr, data, cnt);
 
 	nrf_rramc_config_set(NRF_RRAMC, &orig_rramc_config);
-#elif defined(NRF_MRAMC_S)
-	nrf_mramc_readynext_timeout_t orig_readynext_timeout;
-	nrf_mramc_readynext_timeout_get(NRF_MRAMC, &orig_readynext_timeout);
-	nrf_mramc_readynext_timeout_t readynext_timeout = {
-		.value        = NRF_MRAMC_READYNEXTTIMEOUT_DEFAULT,
-		.direct_write = true,
-	};
-	nrf_mramc_readynext_timeout_set(NRF_MRAMC, &readynext_timeout);
-
-	nrfx_mramc_words_write(addr, data, cnt);
-
-	nrf_mramc_readynext_timeout_set(NRF_MRAMC, &orig_readynext_timeout);
 #endif
 
     return cnt;
@@ -206,9 +184,9 @@ static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data,
 static int32_t ARM_Flash_EraseSector(uint32_t addr)
 {
 #ifdef NRF_NVMC_S
-    int err_code = nrfx_nvmc_page_erase(addr);
+    nrfx_err_t err_code = nrfx_nvmc_page_erase(addr);
 
-    if (err_code != 0) {
+    if (err_code != NRFX_SUCCESS) {
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 #else
