@@ -12,6 +12,9 @@
 #include <unistd.h>
 #include <getopt.h>
 
+/* NCS v3.3.0 Zephyr getopt compatibility */
+
+
 #include "desh_print.h"
 #include "startup_cmd_settings.h"
 
@@ -66,7 +69,7 @@ static int startup_cmd_shell(const struct shell *shell, size_t argc, char **argv
 	struct startup_cmd_data current_settings;
 	struct startup_cmd_data newsettings;
 
-	optind = 1;
+	getopt_state_get()->optind = 1;
 	int opt, tmp_value;
 
 	startup_cmd_settings_data_read(&current_settings);
@@ -78,7 +81,7 @@ static int startup_cmd_shell(const struct shell *shell, size_t argc, char **argv
 			startup_cmd_settings_data_print();
 			return 0;
 		case 't':
-			tmp_value = atoi(optarg);
+			tmp_value = atoi(getopt_state_get()->optarg);
 			if (tmp_value < 0) {
 				desh_error("Give decent value (value >= 0)");
 				return -EINVAL;
@@ -87,7 +90,7 @@ static int startup_cmd_shell(const struct shell *shell, size_t argc, char **argv
 			newsettings.starttime = tmp_value;
 			break;
 		case 'd':
-			delay = atoi(optarg);
+			delay = atoi(getopt_state_get()->optarg);
 			if (tmp_value < 0) {
 				desh_error("Give decent value (value >= 0)");
 				return -EINVAL;
@@ -95,7 +98,7 @@ static int startup_cmd_shell(const struct shell *shell, size_t argc, char **argv
 			delay_set = true;
 			break;
 		case SETT_CMD_SHELL_OPT_MEM_SLOT_NBR:
-			tmp_value = atoi(optarg);
+			tmp_value = atoi(getopt_state_get()->optarg);
 			if (tmp_value < 1 || tmp_value > STARTUP_CMD_MAX_COUNT) {
 				desh_error("Give decent value for the memory slot (1-3)");
 				return -EINVAL;
@@ -103,12 +106,12 @@ static int startup_cmd_shell(const struct shell *shell, size_t argc, char **argv
 			memslot = tmp_value;
 			break;
 		case SETT_CMD_SHELL_OPT_CMD_STR: {
-			if (strlen(optarg) > STARTUP_CMD_MAX_LEN) {
+			if (strlen(getopt_state_get()->optarg) > STARTUP_CMD_MAX_LEN) {
 				desh_error("Command string too long. Max length is %d.",
 					   STARTUP_CMD_MAX_LEN);
 				goto show_usage;
 			}
-			startup_cmd_str = optarg;
+			startup_cmd_str = getopt_state_get()->optarg;
 			break;
 		}
 
@@ -116,12 +119,12 @@ static int startup_cmd_shell(const struct shell *shell, size_t argc, char **argv
 			goto show_usage;
 		case '?':
 		default:
-			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
+			desh_error("Unknown option (%s). See usage:", argv[getopt_state_get()->optind - 1]);
 			goto show_usage;
 		}
 	}
 
-	if (optind < argc) {
+	if (getopt_state_get()->optind < argc) {
 		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
 	}

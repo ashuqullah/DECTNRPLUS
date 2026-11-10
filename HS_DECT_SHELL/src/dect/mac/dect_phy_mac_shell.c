@@ -14,6 +14,9 @@
 #include <zephyr/shell/shell.h>
 #include <getopt.h>
 
+/* NCS v3.3.0 Zephyr getopt compatibility */
+
+
 #include "desh_print.h"
 
 #include "dect_common.h"
@@ -21,7 +24,7 @@
 #include "dect_common_settings.h"
 
 #include "dect_phy_ctrl.h"
-
+#include <zephyr/posix/unistd.h>
 #include "dect_phy_mac_common.h"
 #include "dect_phy_mac_cluster_beacon.h"
 #include "dect_phy_mac_nbr.h"
@@ -30,7 +33,7 @@
 #include "dect_phy_mac_ft_assoc.h"
 #include "dect_phy_mac_sched_fixed.h"
 
-
+#include <zephyr/posix/unistd.h>
 /* -----------------------------------------------------------
  * Fixed scheduling policy guards HS DECT shell commands to restrict certain operations only to the allowed role (FT or PT) when in FIXED mode.
  * ----------------------------------------------------------- */
@@ -169,7 +172,7 @@ static int dect_phy_mac_beacon_scan_cmd(const struct shell *shell, size_t argc, 
 	int long_index = 0;
 	int opt;
 
-	optind = 1;
+	getopt_state_get()->optind = 1;
 
 	params.busy_rssi_limit = current_settings->rssi_scan.busy_threshold;
 	params.free_rssi_limit = current_settings->rssi_scan.free_threshold;
@@ -188,15 +191,15 @@ static int dect_phy_mac_beacon_scan_cmd(const struct shell *shell, size_t argc, 
 				  &long_index)) != -1) {
 		switch (opt) {
 		case 'c': {
-			params.channel = atoi(optarg);
+			params.channel = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 't': {
-			params.duration_secs = atoi(optarg);
+			params.duration_secs = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'e': {
-			params.expected_rssi_level = atoi(optarg);
+			params.expected_rssi_level = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'D': {
@@ -208,26 +211,26 @@ static int dect_phy_mac_beacon_scan_cmd(const struct shell *shell, size_t argc, 
 			break;
 		}
 		case DECT_PHY_MAC_SHELL_BEACON_SCAN_RSSI_SCAN_FREE_TH: {
-			params.free_rssi_limit = atoi(optarg);
+			params.free_rssi_limit = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case DECT_PHY_MAC_SHELL_BEACON_SCAN_RSSI_SCAN_BUSY_TH: {
-			params.busy_rssi_limit = atoi(optarg);
+			params.busy_rssi_limit = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'i': {
-			params.rssi_interval_secs = atoi(optarg);
+			params.rssi_interval_secs = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'h':
 			goto show_usage;
 		case '?':
 		default:
-			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
+			desh_error("Unknown option (%s). See usage:", argv[getopt_state_get()->optind - 1]);
 			goto show_usage;
 		}
 	}
-	if (optind < argc) {
+	if (getopt_state_get()->optind < argc) {
 		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
 	}
@@ -276,7 +279,7 @@ static int dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc,
 	int long_index = 0;
 	int opt;
 
-	optind = 1;
+	getopt_state_get()->optind = 1;
 	/* Schedula Mode valideation if */
 	int err = mac_shell_guard_role(shell, DECT_MAC_ROLE_FT);
 		if (err) {
@@ -301,22 +304,22 @@ static int dect_phy_mac_beacon_start_cmd(const struct shell *shell, size_t argc,
 				  &long_index)) != -1) {
 		switch (opt) {
 		case 'c': {
-			params.beacon_channel = atoi(optarg);
+			params.beacon_channel = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'p': {
-			params.tx_power_dbm = atoi(optarg);
+			params.tx_power_dbm = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'h':
 			goto show_usage;
 		case '?':
 		default:
-			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
+			desh_error("Unknown option (%s). See usage:", argv[getopt_state_get()->optind - 1]);
 			goto show_usage;
 		}
 	}
-	if (optind < argc) {
+	if (getopt_state_get()->optind < argc) {
 		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
 	}
@@ -387,7 +390,7 @@ static int dect_phy_mac_associate_cmd(const struct shell *shell, size_t argc, ch
 	int long_index = 0;
 	int opt;
 
-	optind = 1;
+	getopt_state_get()->optind = 1;
 
 	params.tx_power_dbm = 0;
 	params.mcs = 0;
@@ -409,7 +412,7 @@ static int dect_phy_mac_associate_cmd(const struct shell *shell, size_t argc, ch
 	while ((opt = getopt_long(argc, argv, "p:m:t:h", long_options_associate, &long_index)) != -1) {
 		switch (opt) {
 		case 't': {
-			params.target_long_rd_id = shell_strtoul(optarg, 10, &ret);
+			params.target_long_rd_id = shell_strtoul(getopt_state_get()->optarg, 10, &ret);
 			if (ret) {
 				shell_error(shell, "Invalid --long_rd_id");
 				return -EINVAL;
@@ -417,21 +420,21 @@ static int dect_phy_mac_associate_cmd(const struct shell *shell, size_t argc, ch
 			break;
 		}
 		case 'p':
-			params.tx_power_dbm = atoi(optarg);
+			params.tx_power_dbm = atoi(getopt_state_get()->optarg);
 			break;
 		case 'm':
-			params.mcs = atoi(optarg);
+			params.mcs = atoi(getopt_state_get()->optarg);
 			break;
 		case 'h':
 			goto show_usage;
 		case '?':
 		default:
-			shell_error(shell, "Unknown option (%s). See usage:", argv[optind - 1]);
+			shell_error(shell, "Unknown option (%s). See usage:", argv[getopt_state_get()->optind - 1]);
 			goto show_usage;
 		}
 	}
 
-	if (optind < argc) {
+	if (getopt_state_get()->optind < argc) {
 		shell_error(shell, "Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
 	}
@@ -501,7 +504,7 @@ static int dect_phy_mac_dissociate_cmd(const struct shell *shell, size_t argc, c
 	int long_index = 0;
 	int opt;
 
-	optind = 1;
+	getopt_state_get()->optind = 1;
 
 	params.tx_power_dbm = 0;
 	params.mcs = 0;
@@ -511,7 +514,7 @@ static int dect_phy_mac_dissociate_cmd(const struct shell *shell, size_t argc, c
 				  &long_index)) != -1) {
 		switch (opt) {
 		case 't': {
-			params.target_long_rd_id = shell_strtoul(optarg, 10, &ret);
+			params.target_long_rd_id = shell_strtoul(getopt_state_get()->optarg, 10, &ret);
 			if (ret) {
 				desh_error("Give decent tx id (> 0)");
 				return -EINVAL;
@@ -519,22 +522,22 @@ static int dect_phy_mac_dissociate_cmd(const struct shell *shell, size_t argc, c
 			break;
 		}
 		case 'p': {
-			params.tx_power_dbm = atoi(optarg);
+			params.tx_power_dbm = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'm': {
-			params.mcs = atoi(optarg);
+			params.mcs = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'h':
 			goto show_usage;
 		case '?':
 		default:
-			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
+			desh_error("Unknown option (%s). See usage:", argv[getopt_state_get()->optind - 1]);
 			goto show_usage;
 		}
 	}
-	if (optind < argc) {
+	if (getopt_state_get()->optind < argc) {
 		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
 	}
@@ -632,7 +635,7 @@ static int dect_phy_mac_rach_tx_cmd(const struct shell *shell, size_t argc, char
 		return 0;
 	}
 
-	optind = 1;
+	getopt_state_get()->optind = 1;
 
 	params.tx_power_dbm = 0;
 	params.mcs = 0;
@@ -644,7 +647,7 @@ static int dect_phy_mac_rach_tx_cmd(const struct shell *shell, size_t argc, char
 				  &long_index)) != -1) {
 		switch (opt) {
 		case 't': {
-			params.target_long_rd_id = shell_strtoul(optarg, 10, &ret);
+			params.target_long_rd_id = shell_strtoul(getopt_state_get()->optarg, 10, &ret);
 			if (ret) {
 				desh_error("Give decent tx id (> 0)");
 				return -EINVAL;
@@ -652,23 +655,23 @@ static int dect_phy_mac_rach_tx_cmd(const struct shell *shell, size_t argc, char
 			break;
 		}
 		case 'd': {
-			if (strlen(optarg) >= (DECT_DATA_MAX_LEN - 1)) {
-				desh_error("RACH TX data (%s) too long.", optarg);
+			if (strlen(getopt_state_get()->optarg) >= (DECT_DATA_MAX_LEN - 1)) {
+				desh_error("RACH TX data (%s) too long.", getopt_state_get()->optarg);
 				return -EINVAL;
 			}
-			strcpy(params.tx_data_str, optarg);
+			strcpy(params.tx_data_str, getopt_state_get()->optarg);
 			break;
 		}
 		case 'p': {
-			params.tx_power_dbm = atoi(optarg);
+			params.tx_power_dbm = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'm': {
-			params.mcs = atoi(optarg);
+			params.mcs = atoi(getopt_state_get()->optarg);
 			break;
 		}
 		case 'i': {
-			params.interval_secs = atoi(optarg);
+			params.interval_secs = atoi(getopt_state_get()->optarg);
 			if (params.interval_secs < 0) {
 				desh_error("The interval must be positive.");
 				return -EINVAL;
@@ -684,11 +687,11 @@ static int dect_phy_mac_rach_tx_cmd(const struct shell *shell, size_t argc, char
 			goto show_usage;
 		case '?':
 		default:
-			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
+			desh_error("Unknown option (%s). See usage:", argv[getopt_state_get()->optind - 1]);
 			goto show_usage;
 		}
 	}
-	if (optind < argc) {
+	if (getopt_state_get()->optind < argc) {
 		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
 	}
@@ -783,7 +786,7 @@ static int dect_phy_mac_reach_tx_cmd(const struct shell *shell, size_t argc, cha
 		return 0;
 	}
 
-	optind = 1;
+	getopt_state_get()->optind = 1;
 
 	memset(&params, 0, sizeof(params));
 	params.tx_power_dbm = 0;
@@ -796,27 +799,27 @@ static int dect_phy_mac_reach_tx_cmd(const struct shell *shell, size_t argc, cha
 				  &long_index)) != -1) {
 		switch (opt) {
 		case 't':
-			params.target_long_rd_id = shell_strtoul(optarg, 10, &ret);
+			params.target_long_rd_id = shell_strtoul(getopt_state_get()->optarg, 10, &ret);
 			if (ret) {
 				desh_error("Give decent tx id (> 0)");
 				return -EINVAL;
 			}
 			break;
 		case 'd':
-			if (strlen(optarg) >= (DECT_DATA_MAX_LEN - 1)) {
-				desh_error("RALLOC TX data (%s) too long.", optarg);
+			if (strlen(getopt_state_get()->optarg) >= (DECT_DATA_MAX_LEN - 1)) {
+				desh_error("RALLOC TX data (%s) too long.", getopt_state_get()->optarg);
 				return -EINVAL;
 			}
-			strcpy(params.tx_data_str, optarg);
+			strcpy(params.tx_data_str, getopt_state_get()->optarg);
 			break;
 		case 'p':
-			params.tx_power_dbm = atoi(optarg);
+			params.tx_power_dbm = atoi(getopt_state_get()->optarg);
 			break;
 		case 'm':
-			params.mcs = atoi(optarg);
+			params.mcs = atoi(getopt_state_get()->optarg);
 			break;
 		case 'i':
-			params.interval_secs = atoi(optarg);
+			params.interval_secs = atoi(getopt_state_get()->optarg);
 			if (params.interval_secs < 0) {
 				desh_error("The interval must be positive.");
 				return -EINVAL;
@@ -829,12 +832,12 @@ static int dect_phy_mac_reach_tx_cmd(const struct shell *shell, size_t argc, cha
 			goto show_usage;
 		case '?':
 		default:
-			desh_error("Unknown option (%s). See usage:", argv[optind - 1]);
+			desh_error("Unknown option (%s). See usage:", argv[getopt_state_get()->optind - 1]);
 			goto show_usage;
 		}
 	}
 
-	if (optind < argc) {
+	if (getopt_state_get()->optind < argc) {
 		desh_error("Arguments without '-' not supported: %s", argv[argc - 1]);
 		goto show_usage;
 	}

@@ -16,13 +16,12 @@ extern "C" {
 #endif
 
 /**
- * \brief                               Check the contents of OTP memory for the
- *                                      presence of keys provisioned by
- *                                      TFM_DUMMY_PROVISIONING
+ * \brief           Check the contents of OTP memory for the presence of
+ *                  keys provisioned by TFM_DUMMY_PROVISIONING
  *
- * \note                                This function should print a warning to
- *                                      the UART, or otherwise notify the device
- *                                      user, if dummy keys are detected.
+ * \note            This function should print a warning to the UART, or
+ *                  otherwise notify the device user, if dummy keys are
+ *                  detected.
  */
 void tfm_plat_provisioning_check_for_dummy_keys(void);
 
@@ -36,13 +35,9 @@ void tfm_plat_provisioning_check_for_dummy_keys(void);
 enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_required);
 
 /**
- * \brief                               Performs a provisioning operation.
+ * \brief           Performs a provisioning operation.
  *
- * \retval TFM_PLAT_ERR_SUCCESS         The provisioning operation completed
- *                                      successfully.
- * \retval TFM_PLAT_ERR_INVALID_INPUT   The provisioning data that was input to
- *                                      the device is invalid
- * \retval TFM_PLAT_ERR_SYSTEM_ERR      An unspecified error occurred.
+ * \return          TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
  */
 enum tfm_plat_err_t tfm_plat_provisioning_perform(void);
 

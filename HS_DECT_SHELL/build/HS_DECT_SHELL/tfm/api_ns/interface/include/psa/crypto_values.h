@@ -744,7 +744,7 @@
  * 1536, 2048, 3072, 4096, 6144, 8192. A given implementation may support
  * all of these sizes or only a subset.
  */
-#define PSA_DH_FAMILY_RFC3526            ((psa_dh_family_t) 0x05)  /*!!OM*/
+#define PSA_DH_FAMILY_RFC3526            ((psa_dh_family_t) 0x05)
 
 #define PSA_GET_KEY_TYPE_BLOCK_SIZE_EXPONENT(type)      \
     (((type) >> 8) & 7)
@@ -1388,6 +1388,7 @@
         PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, PSA_ALG_GCM) \
         PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, PSA_ALG_CHACHA20_POLY1305) \
         PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, PSA_ALG_XCHACHA20_POLY1305) \
+        PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, PSA_ALG_ASCON_AEAD128) \
         0)
 #define PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG_CASE(aead_alg, ref)         \
     PSA_ALG_AEAD_WITH_SHORTENED_TAG(aead_alg, 0) ==                      \
@@ -1697,46 +1698,6 @@
  * file. */
 #define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg) 0
 
-/** Whether the specified algorithm is a signature algorithm that can be used
- * with psa_sign_hash() and psa_verify_hash().
- *
- * This encompasses all strict hash-and-sign algorithms categorized by
- * PSA_ALG_IS_HASH_AND_SIGN(), as well as algorithms that follow the
- * paradigm more loosely:
- * - #PSA_ALG_RSA_PKCS1V15_SIGN_RAW (expects its input to be an encoded hash)
- * - #PSA_ALG_ECDSA_ANY (doesn't specify what kind of hash the input is)
- *
- * \param alg An algorithm identifier (value of type psa_algorithm_t).
- *
- * \return 1 if alg is a signature algorithm that can be used to sign a
- *         hash. 0 if alg is a signature algorithm that can only be used
- *         to sign a message. 0 if alg is not a signature algorithm.
- *         This macro can return either 0 or 1 if alg is not a
- *         supported algorithm identifier.
- */
-#define PSA_ALG_IS_SIGN_HASH(alg)                                       \
-    (PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||    \
-     PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||             \
-     PSA_ALG_IS_HASH_ML_DSA(alg) ||                                     \
-     PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg))
-
-/** Whether the specified algorithm is a signature algorithm that can be used
- * with psa_sign_message() and psa_verify_message().
- *
- * \param alg An algorithm identifier (value of type #psa_algorithm_t).
- *
- * \return 1 if alg is a signature algorithm that can be used to sign a
- *         message. 0 if \p alg is a signature algorithm that can only be used
- *         to sign an already-calculated hash. 0 if \p alg is not a signature
- *         algorithm. This macro can return either 0 or 1 if \p alg is not a
- *         supported algorithm identifier.
- */
-#define PSA_ALG_IS_SIGN_MESSAGE(alg)                                    \
-    (PSA_ALG_IS_SIGN_HASH(alg) || (alg) == PSA_ALG_PURE_EDDSA ||        \
-     PSA_ALG_IS_ML_DSA(alg) ||                                          \
-     (alg == PSA_ALG_LMS) || (alg == PSA_ALG_HSS) ||                    \
-     (alg == PSA_ALG_XMSS) || (alg == PSA_ALG_XMSS_MT))
-
 /** Whether the specified algorithm is a hash-and-sign algorithm.
  *
  * Hash-and-sign algorithms are asymmetric (public-key) signature algorithms
@@ -1763,9 +1724,65 @@
  *         This macro may return either 0 or 1 if \p alg is not a supported
  *         algorithm identifier.
  */
-#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                   \
-    (PSA_ALG_IS_SIGN_HASH(alg) &&                                       \
+#define PSA_ALG_IS_HASH_AND_SIGN(alg)                                  \
+    ((PSA_ALG_IS_RSA_PSS(alg) || PSA_ALG_IS_RSA_PKCS1V15_SIGN(alg) ||  \
+      PSA_ALG_IS_ECDSA(alg) || PSA_ALG_IS_HASH_EDDSA(alg) ||           \
+      PSA_ALG_IS_HASH_ML_DSA(alg) ||                                   \
+      PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg)) &&                         \
      ((alg) & PSA_ALG_HASH_MASK) != 0)
+
+/** Whether the specified algorithm is a signature algorithm that can be used
+ * with psa_sign_hash() and psa_verify_hash().
+ *
+ * This encompasses all strict hash-and-sign algorithms categorized by
+ * PSA_ALG_IS_HASH_AND_SIGN(), as well as algorithms that follow the
+ * paradigm more loosely:
+ * - #PSA_ALG_RSA_PKCS1V15_SIGN_RAW (expects its input to be an encoded hash)
+ * - #PSA_ALG_ECDSA_ANY (doesn't specify what kind of hash the input is)
+ *
+ * \param alg An algorithm identifier (value of type psa_algorithm_t).
+ *
+ * \return 1 if alg is a signature algorithm that can be used to sign a
+ *         hash. 0 if alg is a signature algorithm that can only be used
+ *         to sign a message. 0 if alg is not a signature algorithm.
+ *         This macro can return either 0 or 1 if alg is not a
+ *         supported algorithm identifier.
+ */
+#define PSA_ALG_IS_SIGN_HASH(alg)               \
+    (PSA_ALG_IS_HASH_AND_SIGN(alg) ||           \
+     (alg) == PSA_ALG_RSA_PKCS1V15_SIGN_RAW ||  \
+     (alg) == PSA_ALG_ECDSA_ANY)
+
+/** Whether the specified algorithm is a signature algorithm that can be used
+ * with psa_sign_message() and psa_verify_message().
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if alg is a signature algorithm that can be used to sign a
+ *         message. 0 if \p alg is a signature algorithm that can only be used
+ *         to sign an already-calculated hash. 0 if \p alg is not a signature
+ *         algorithm. This macro can return either 0 or 1 if \p alg is not a
+ *         supported algorithm identifier.
+ */
+#define PSA_ALG_IS_SIGN_MESSAGE(alg)   \
+    (PSA_ALG_IS_SIGN(alg) &&           \
+     (alg) != PSA_ALG_ECDSA_ANY && (alg) != PSA_ALG_RSA_PKCS1V15_SIGN_RAW)
+
+/** Whether the specified signature algorithm can be used with a
+ * non-zero-length context.
+ * 
+ * \param alg A signature algorithm identifier: a value of type
+ *            #psa_algorithm_t such that PSA_ALG_IS_SIGN(alg) is true.
+ * 
+ * \return 1 if \p alg is a signature algorithm that can be used with a
+ *         non-zero-length context. 0 if \p alg is a signature algorithm
+ *         that cannot be used with a non-zero-length context. This macro
+ *         can return either 0 or 1 if \p alg is not a supported signature
+ *         algorithm identifier.
+ */
+#define PSA_ALG_SIGN_SUPPORTS_CONTEXT(alg)  \
+    (PSA_ALG_IS_HASH_EDDSA(alg) ||          \
+    ((alg) & ~0x7FF) == 0x06004000)
 
 /** Get the hash used by a hash-and-sign signature algorithm.
  *
@@ -2575,6 +2592,24 @@
 #define PSA_KEY_LOCATION_LOCAL_STORAGE          ((psa_key_location_t) 0x000000)
 
 #define PSA_KEY_LOCATION_VENDOR_FLAG            ((psa_key_location_t) 0x800000)
+
+/** Whether a key lifetime indicates that the key is defined by a vendor.
+ *
+ * A key with vendor location tag may be stored in a secure element or be
+ * part of the hardware of the device. It may be used transparently or
+ * be fully opaque.
+ *
+ * Some platforms may offer ways of doing key management in vendor scope
+ * or support promoting keys from volatile lifetime to persistent storage
+ * as part of a key establishment.
+ *
+ * \param lifetime      The lifetime value to query (value of type
+ *                      ::psa_key_lifetime_t).
+ *
+ * \return \c 1 if the key is a vendor key, otherwise \c 0.
+ */
+#define PSA_KEY_LOCATION_IS_VENDOR(lifetime)  \
+    ((PSA_KEY_LIFETIME_GET_LOCATION(lifetime) & PSA_KEY_LOCATION_VENDOR_FLAG) != 0)
 
 /* Note that key identifier values are embedded in the
  * persistent key store, as part of key metadata. As a consequence, they

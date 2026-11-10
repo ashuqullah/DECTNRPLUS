@@ -62,8 +62,6 @@ events:
         - "/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk/riscv64-zephyr-elf/bin"
         - "/home/ashuqullah-alizai/.local/bin"
         - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -78,9 +76,6 @@ events:
         - "/home/ashuqullah-alizai/.local/bin"
         - "/home/ashuqullah-alizai/.local/bin"
         - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -91,8 +86,6 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
         - "/home/ashuqullah-alizai/.local/bin"
   -
     kind: "message-v1"
@@ -100,7 +93,7 @@ events:
       - "/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/share/cmake-4.2/Modules/CMakeDetermineSystem.cmake:212 (message)"
       - "CMakeLists.txt:22 (project)"
     message: |
-      The system is: Linux - 6.17.0-29-generic - x86_64
+      The system is: Linux - 7.0.0-38-generic - x86_64
   -
     kind: "find-v1"
     backtrace:
@@ -157,8 +150,6 @@ events:
         - "/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk/riscv64-zephyr-elf/bin"
         - "/home/ashuqullah-alizai/.local/bin"
         - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -173,9 +164,6 @@ events:
         - "/home/ashuqullah-alizai/.local/bin"
         - "/home/ashuqullah-alizai/.local/bin"
         - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
         - "/usr/local/sbin"
         - "/usr/local/bin"
         - "/usr/sbin"
@@ -186,7 +174,5 @@ events:
         - "/usr/local/games"
         - "/snap/bin"
         - "/snap/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
-        - "/home/ashuqullah-alizai/.local/bin"
         - "/home/ashuqullah-alizai/.local/bin"
 ...

@@ -1,0 +1,29 @@
+2026-11-05T13:50:00.351Z west build --build-dir /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_Performance/build /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_Performance --pristine --board nrf9151_connectkit/nrf9151/ns -- -DCONFIG_DEBUG_THREAD_INFO=y -DBOARD_ROOT="/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell"
+2026-11-05T13:50:00.571Z -- west build: generating a build system
+2026-11-05T13:50:00.732Z -- Found Python3: /home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/bin/python3.12 (found suitable version "3.12.4", minimum required is "3.10") found components: Interpreter
+2026-11-05T13:50:00.750Z -- Cache files will be written to: /home/ashuqullah-alizai/.cache/zephyr
+2026-11-05T13:50:00.819Z -- Found west (found suitable version "1.5.0", minimum required is "0.14.0")
+2026-11-05T13:50:01.980Z -- Board: nrf9151_connectkit, qualifiers: nrf9151/ns
+2026-11-05T13:50:03.283Z Parsing /home/ashuqullah-alizai/ncs/v3.3.0/zephyr/share/sysbuild/Kconfig
+2026-11-05T13:50:03.283Z Loaded configuration '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_Performance/build/_sysbuild/empty.conf'
+2026-11-05T13:50:03.283Z Merged configuration '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_Performance/build/_sysbuild/empty.conf'
+2026-11-05T13:50:03.283Z Configuration saved to '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_Performance/build/zephyr/.config'
+2026-11-05T13:50:03.283Z Kconfig header saved to '/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_Performance/build/_sysbuild/autoconf.h'
+2026-11-05T13:50:03.354Z -- 
+2026-11-05T13:50:03.354Z    **************************************
+2026-11-05T13:50:03.354Z    * Running CMake for dect_Performance *
+2026-11-05T13:50:03.354Z    **************************************
+2026-11-05T13:50:03.354Z 
+2026-11-05T13:50:03.370Z -- Application: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_Performance
+2026-11-05T13:50:03.370Z -- CMake version: 4.2.1
+2026-11-05T13:50:03.513Z -- Found Python3: /home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/local/bin/python3.12 (found suitable version "3.12.4", minimum required is "3.10") found components: Interpreter
+2026-11-05T13:50:03.529Z -- Cache files will be written to: /home/ashuqullah-alizai/.cache/zephyr
+2026-11-05T13:50:03.538Z -- Zephyr version: 4.3.99 (/home/ashuqullah-alizai/ncs/v3.3.0/zephyr)
+2026-11-05T13:50:03.609Z -- Found west (found suitable version "1.5.0", minimum required is "0.14.0")
+2026-11-05T13:50:04.698Z -- Board: nrf9151_connectkit, qualifiers: nrf9151/ns
+2026-11-05T13:50:05.804Z -- Found host-tools: zephyr 0.17.0 (/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk)
+2026-11-05T13:50:05.804Z -- Found toolchain: zephyr 0.17.0 (/home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk)
+2026-11-05T13:50:05.813Z -- Found Dtc: /home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/usr/bin/dtc (found suitable version "1.5.0", minimum required is "1.4.6")
+2026-11-05T13:50:05.814Z -- Found BOARD.dts: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/nrf9151_connectkit_nrf9151_ns.dts
+2026-11-05T13:50:05.824Z -- Configuring incomplete, errors occurred!
+2026-11-05T13:50:05.830Z -- Configuring incomplete, errors occurred!

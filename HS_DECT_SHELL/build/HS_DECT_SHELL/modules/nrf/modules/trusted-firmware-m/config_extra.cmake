@@ -11,11 +11,12 @@ set(PSA_CRYPTO_EXTERNAL_CORE                  ON    CACHE BOOL      "Enable buil
 # This file is populated with paths needed building nrf_security with and without TF-M
 # It is added to circumvent issues with install-targets inside TF-M and to unify the
 # CMake code with Zephyr builds
-set(NRFXLIB_DIR          /home/ashuqullah-alizai/ncs/v3.1.1/nrfxlib            CACHE STRING "nrfxlib folder")
-set(NRF_SECURITY_ROOT    /home/ashuqullah-alizai/ncs/v3.1.1/nrf/subsys/nrf_security          CACHE STRING "nrf_security root folder")
-set(OBERON_PSA_CORE_PATH /home/ashuqullah-alizai/ncs/v3.1.1/modules/crypto/oberon-psa-crypto  CACHE STRING "oberon-psa-core folder")
-set(ARM_MBEDTLS_PATH     /home/ashuqullah-alizai/ncs/v3.1.1/modules/crypto/mbedtls            CACHE STRING "Mbed TLS folder")
-set(NRF_DIR              /home/ashuqullah-alizai/ncs/v3.1.1/nrf                              CACHE STRING "NRF folder")
+set(NRFXLIB_DIR          /home/ashuqullah-alizai/ncs/v3.3.0/nrfxlib            CACHE STRING "nrfxlib folder")
+set(NRF_SECURITY_ROOT    /home/ashuqullah-alizai/ncs/v3.3.0/nrf/subsys/nrf_security          CACHE STRING "nrf_security root folder")
+set(OBERON_PSA_CORE_PATH /home/ashuqullah-alizai/ncs/v3.3.0/modules/crypto/oberon-psa-crypto  CACHE STRING "oberon-psa-core folder")
+set(ARM_MBEDTLS_PATH     /home/ashuqullah-alizai/ncs/v3.3.0/modules/crypto/mbedtls            CACHE STRING "Mbed TLS folder")
+set(NRF_DIR              /home/ashuqullah-alizai/ncs/v3.3.0/nrf                              CACHE STRING "NRF folder")
+set(TFM_BOARDS_NRF_DIR   /home/ashuqullah-alizai/ncs/v3.3.0/nrf/modules/trusted-firmware-m/tfm_boards CACHE STRING "tfm_boards folder")
 
 # This file is populated with the Mbed TLS config file names
 set(MBEDTLS_CONFIG_FILE                 nrf-config.h                      CACHE STRING "Mbed TLS Config file")

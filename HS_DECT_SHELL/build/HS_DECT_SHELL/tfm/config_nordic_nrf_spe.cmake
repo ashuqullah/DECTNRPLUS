@@ -4,4 +4,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
-set(HAL_NORDIC_PATH /home/ashuqullah-alizai/ncs/v3.1.1/modules/hal/nordic CACHE STRING "Path to nordic HAL" FORCE)
+set(HAL_NORDIC_PATH /home/ashuqullah-alizai/ncs/v3.3.0/modules/hal/nordic CACHE STRING "Path to nordic HAL" FORCE)
+set(HAS_RRAMC  CACHE BOOL "Device uses RRAMC instead of NVMC" FORCE)

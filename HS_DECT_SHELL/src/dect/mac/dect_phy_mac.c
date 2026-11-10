@@ -24,6 +24,7 @@
 #include "dect_phy_mac_client.h"
 #include "dect_phy_mac.h"
 #include "dect_phy_mac_ft_assoc.h"
+#include "dect_phy_mac_sched_fixed.h"
 /**************************************************************************************************/
 
 
@@ -556,7 +557,9 @@ bool dect_phy_mac_handle(struct dect_phy_commmon_op_pdc_rcv_params *rcv_params)
 			}else if (sdu_list_item->message_type ==
 					DECT_PHY_MAC_MESSAGE_FIXED_SCHED_RESOURCE_IE) {
 				/* Handle FT Fixed scheduling resource IE for FT sched role decision */
-				dect_phy_mac_fixed_sched_resource_ie_handle(&sdu_list_item->message.fixed_sched_ie);
+				dect_phy_mac_fixed_sched_resource_ie_handle(
+                                        &common_header,
+                                        &sdu_list_item->message.fixed_sched_ie);
 			}
 		}
 		/* Store as neighbor if we got a cluster beacon (RA IE may be absent in FIXED mode) */

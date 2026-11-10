@@ -1,0 +1,13 @@
+# Target labels
+ HS_DECT_Mesh
+# Source files and their labels
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_Mesh
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_Mesh.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_Mesh-complete.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-build.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-configure.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-download.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-install.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-mkdir.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-patch.rule
+/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-update.rule

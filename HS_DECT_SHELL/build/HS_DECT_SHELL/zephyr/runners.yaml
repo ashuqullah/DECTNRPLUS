@@ -11,13 +11,13 @@ debug-runner: pyocd
 
 # Common runner configuration values.
 config:
-  board_dir: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit
+  board_dir: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/boards_ncs_3_3/boards/nrf9151_connectkit
   # Build outputs:
   elf_file: zephyr.elf
   hex_file: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_SHELL/build/merged.hex
   bin_file: zephyr.bin
   # Host tools:
-  gdb: /home/ashuqullah-alizai/ncs/toolchains/b2ecd2435d/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb
+  gdb: /home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb
 
 # Runner specific arguments
 args:

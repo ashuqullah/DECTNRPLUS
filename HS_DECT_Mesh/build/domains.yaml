@@ -1,0 +1,7 @@
+default: HS_DECT_Mesh
+build_dir: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build
+domains:
+  - name: HS_DECT_Mesh
+    build_dir: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/HS_DECT_Mesh
+flash_order:
+  - HS_DECT_Mesh

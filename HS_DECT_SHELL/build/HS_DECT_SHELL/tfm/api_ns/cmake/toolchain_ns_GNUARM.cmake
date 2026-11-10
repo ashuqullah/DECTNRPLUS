@@ -55,7 +55,7 @@ if (DEFINED TFM_SYSTEM_PROCESSOR)
             endif()
         endif()
         # GCC specifies that '+nofp' is available on following M-profile cpus: 'cortex-m4',
-        # 'cortex-m7', 'cortex-m33', 'cortex-m35p' and 'cortex-m55'.
+        # 'cortex-m7', 'cortex-m33', 'cortex-m35p', 'cortex-m55' and 'cortex-m85'.
         # Build fails if other M-profile cpu, such as 'cortex-m23', is added with '+nofp'.
         # Explicitly list those cpu to align with GCC description.
         if(GCC_VERSION VERSION_GREATER_EQUAL "8.0.0")
@@ -64,7 +64,8 @@ if (DEFINED TFM_SYSTEM_PROCESSOR)
                 OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m7"
                 OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m33"
                 OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m35p"
-                OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m55"))
+                OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m55"
+                OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m85"))
                     string(APPEND CMAKE_SYSTEM_PROCESSOR "+nofp")
             endif()
         endif()
@@ -126,8 +127,13 @@ endif()
 # has a linker issue that required system calls are missing,
 # such as _read and _write. Add stub functions of required
 # system calls to solve this issue.
+#
+# READONLY linker script attribute is not supported in older
+# GNU Arm compilers. For these version the preprocessor will
+# remove the READONLY string from the linker scripts.
 if (GCC_VERSION VERSION_GREATER_EQUAL 11.3.1)
     set(CONFIG_GNU_SYSCALL_STUB_ENABLED TRUE)
+    set(CONFIG_GNU_LINKER_READONLY_ATTRIBUTE TRUE)
 endif()
 
 if (CMAKE_SYSTEM_PROCESSOR)
@@ -161,32 +167,44 @@ if(CONFIG_TFM_FLOAT_ABI STREQUAL "hard")
 endif()
 
 string(APPEND CMAKE_C_FLAGS " " ${COMPILER_CP_FLAG})
+string(APPEND CMAKE_CXX_FLAGS " " ${COMPILER_CP_FLAG})
 string(APPEND CMAKE_ASM_FLAGS " " ${COMPILER_CP_FLAG})
 string(APPEND CMAKE_C_LINK_FLAGS " " ${LINKER_CP_OPTION})
+string(APPEND CMAKE_CXX_LINK_FLAGS " " ${LINKER_CP_OPTION})
 string(APPEND CMAKE_ASM_LINK_FLAGS " " ${LINKER_CP_OPTION})
 
 # For GNU Arm Embedded Toolchain doesn't emit __ARM_ARCH_8_1M_MAIN__, adding this macro manually.
 add_compile_definitions($<$<STREQUAL:${TFM_SYSTEM_ARCHITECTURE},armv8.1-m.main>:__ARM_ARCH_8_1M_MAIN__=1>)
 
-# GNU Arm compiler version greater equal than *11.3.Rel1*
-# has a linker issue that required system calls are missing,
-# such as _read and _write. Add stub functions of required
-# system calls to solve this issue.
-#
-# READONLY linker script attribute is not supported in older
-# GNU Arm compilers. For these version the preprocessor will
-# remove the READONLY string from the linker scripts.
-if (GCC_VERSION VERSION_GREATER_EQUAL 11.3.1)
-    set(CONFIG_GNU_SYSCALL_STUB_ENABLED TRUE)
-    set(CONFIG_GNU_LINKER_READONLY_ATTRIBUTE TRUE)
+if(NOT DEFINED CONFIG_PICOLIBC)
+    set(CONFIG_PICOLIBC TRUE)
+endif()
+
+if (CONFIG_PICOLIBC)
+    set(LIBC_COMPILE_OPTIONS
+        -specs=picolibc.specs
+        )
+    set(LIBC_LINK_OPTIONS
+        -specs=picolibc.specs
+        -nostartfiles
+        -u main
+        )
+else()
+    set(LIBC_COMPILE_OPTIONS
+        -specs=nano.specs
+        -specs=nosys.specs
+        )
+    set(LIBC_LINK_OPTIONS
+        -specs=nano.specs
+        -specs=nosys.specs
+        )
 endif()
 
 add_compile_options(
-    -specs=nano.specs
-    -specs=nosys.specs
+    ${LIBC_COMPILE_OPTIONS}
     -Wall
     -Wno-format
-    -Wno-return-type
+    -Warray-parameter
     -Wno-unused-but-set-variable
     -c
     -fdata-sections
@@ -199,18 +217,19 @@ add_compile_options(
     $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
     $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${TFM_DEBUG_SYMBOLS}>>:-g>
     $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${TFM_DEBUG_SYMBOLS}>>:-g>
+    $<$<AND:$<COMPILE_LANGUAGE:C,CXX>,$<BOOL:${TFM_DEBUG_OPTIMISATION}>,$<CONFIG:Debug>>:-Og>
+    $<$<AND:$<COMPILE_LANGUAGE:C,CXX>,$<BOOL:${CONFIG_TFM_WARNINGS_ARE_ERRORS}>>:-Werror>
 )
 
 add_link_options(
     --entry=Reset_Handler
-    -specs=nano.specs
-    -specs=nosys.specs
+    ${LIBC_LINK_OPTIONS}
+    -mthumb
     LINKER:-check-sections
     LINKER:-fatal-warnings
     LINKER:--gc-sections
     LINKER:--no-wchar-size-warning
     LINKER:--print-memory-usage
-    LINKER:-Map=tfm_ns.map
 )
 
 # Specify the linker script used to link `target`.
@@ -324,8 +343,4 @@ macro(add_convert_to_bin_target target)
         DEPENDS ${target}_elf
         DEPENDS ${target}_hex
     )
-endmacro()
-
-# A dummy macro to align with Armclang workaround
-macro(tfm_toolchain_reload_compiler)
 endmacro()

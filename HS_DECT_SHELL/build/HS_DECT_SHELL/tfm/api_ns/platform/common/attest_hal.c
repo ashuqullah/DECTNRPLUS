@@ -24,12 +24,12 @@
 #include <nrf_cc3xx_platform.h>
 #endif
 
-#if defined(CONFIG_CRACEN_HW_PRESENT)
+#if defined(CONFIG_HAS_HW_NRF_CRACEN)
 static bool boot_seed_set;
 static uint8_t boot_seed[BOOT_SEED_SIZE];
 #endif
 
-static enum tfm_security_lifecycle_t map_bl_storage_lcs_to_tfm_slc(enum lcs lcs)
+static enum tfm_security_lifecycle_t map_bl_storage_lcs_to_tfm_slc(enum bl_storage_lcs lcs)
 {
 	switch (lcs) {
 	case BL_STORAGE_LCS_ASSEMBLY:
@@ -45,7 +45,7 @@ static enum tfm_security_lifecycle_t map_bl_storage_lcs_to_tfm_slc(enum lcs lcs)
 	}
 }
 
-static enum lcs map_tfm_slc_to_bl_storage_lcs(enum tfm_security_lifecycle_t lcs)
+static enum bl_storage_lcs map_tfm_slc_to_bl_storage_lcs(enum tfm_security_lifecycle_t lcs)
 {
 	switch (lcs) {
 	case TFM_SLC_ASSEMBLY_AND_TEST:
@@ -64,7 +64,7 @@ static enum lcs map_tfm_slc_to_bl_storage_lcs(enum tfm_security_lifecycle_t lcs)
 enum tfm_security_lifecycle_t tfm_attest_hal_get_security_lifecycle(void)
 {
 	int err;
-	enum lcs otp_lcs;
+	enum bl_storage_lcs otp_lcs;
 
 	err = read_life_cycle_state(&otp_lcs);
 	if (err != 0) {
@@ -76,7 +76,7 @@ enum tfm_security_lifecycle_t tfm_attest_hal_get_security_lifecycle(void)
 
 int tfm_attest_update_security_lifecycle_otp(enum tfm_security_lifecycle_t slc)
 {
-	enum lcs next_lcs;
+	enum bl_storage_lcs next_lcs;
 
 	next_lcs = map_tfm_slc_to_bl_storage_lcs(slc);
 
@@ -126,7 +126,7 @@ enum tfm_plat_err_t tfm_plat_get_boot_seed(uint32_t size, uint8_t *buf)
 	if (nrf_err != NRF_CC3XX_PLATFORM_SUCCESS) {
 		return TFM_PLAT_ERR_SYSTEM_ERR;
 	}
-#elif defined(CONFIG_CRACEN_HW_PRESENT)
+#elif defined(CONFIG_HAS_HW_NRF_CRACEN)
 	if (!boot_seed_set) {
 		psa_status_t psa_err = psa_generate_random(boot_seed, sizeof(boot_seed));
 

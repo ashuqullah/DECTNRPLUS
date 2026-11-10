@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_Mesh"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_Mesh.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/CMakeFiles/HS_DECT_Mesh-complete.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-build.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-configure.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-download.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-install.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-mkdir.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-patch.rule"
+		},
+		{
+			"file" : "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/_sysbuild/sysbuild/images/HS_DECT_Mesh-prefix/src/HS_DECT_Mesh-stamp/HS_DECT_Mesh-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"HS_DECT_Mesh"
+		],
+		"name" : "HS_DECT_Mesh"
+	}
+}

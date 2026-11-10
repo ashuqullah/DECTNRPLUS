@@ -20,6 +20,7 @@
 #include "load/partition_defs.h"
 #include "load/service_defs.h"
 #include "load/asset_defs.h"
+#include "ns_mailbox_client_id.h"
 #include "tfm_peripherals_def.h"
 #include "psa_manifest/pid.h"
 #include "psa_manifest/sid.h"
@@ -40,6 +41,7 @@ REGION_DECLARE(Image$$, PT_TFM_SP_CRYPTO_PRIVATE, _DATA_START$$Base);
 REGION_DECLARE(Image$$, PT_TFM_SP_CRYPTO_PRIVATE, _DATA_END$$Base);
 #endif
 
+extern uint8_t tfm_sp_crypto_stack[];
 
 extern psa_status_t tfm_crypto_init(void);
 
@@ -74,22 +76,25 @@ const struct partition_tfm_sp_crypto_load_info_t tfm_sp_crypto_load
                                     | PARTITION_MODEL_PSA_ROT
                                     | PARTITION_PRI_NORMAL,
         .entry                      = ENTRY_TO_POSITION(tfm_crypto_init),
-        .stack_size                 = 0,
+        .stack_size                 = CRYPTO_STACK_SIZE,
         .heap_size                  = 0,
         .ndeps                      = TFM_SP_CRYPTO_NDEPS,
         .nservices                  = TFM_SP_CRYPTO_NSERVS,
         .nassets                    = TFM_SP_CRYPTO_NASSETS,
         .nirqs                      = TFM_SP_CRYPTO_NIRQS,
     },
-    .stack_addr                     = 0,
+    .stack_addr                     = (uintptr_t)tfm_sp_crypto_stack,
     .heap_addr                      = 0,
     .deps = {
+#ifdef TFM_INTERNAL_TRUSTED_STORAGE_SERVICE_SID
         TFM_INTERNAL_TRUSTED_STORAGE_SERVICE_SID,
+#endif
     },
     .services = {
         {
             .name_strid             = STRING_PTR_TO_STRID("TFM_CRYPTO"),
             .sfn                    = ENTRY_TO_POSITION(tfm_crypto_sfn),
+            .signal                 = 1,
 
             .sid                    = 0x00000080,
             .flags                  = 0

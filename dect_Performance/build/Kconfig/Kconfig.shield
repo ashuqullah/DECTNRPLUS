@@ -1,1 +1,2 @@
+osource "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/shields/*/Kconfig.shield"
 osource "/home/ashuqullah-alizai/ncs/v3.3.0/nrf/boards/shields/*/Kconfig.shield"

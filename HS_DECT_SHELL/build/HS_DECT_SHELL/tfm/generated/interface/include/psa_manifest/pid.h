@@ -15,10 +15,12 @@
 extern "C" {
 #endif
 
+#define TFM_SP_PS                                                      (256)
+#define TFM_SP_ITS                                                     (257)
 #define TFM_SP_CRYPTO                                                  (259)
 #define TFM_SP_PLATFORM                                                (260)
 
-#define TFM_MAX_USER_PARTITIONS                                        (2)
+#define TFM_MAX_USER_PARTITIONS                                        (4)
 
 #ifdef __cplusplus
 }

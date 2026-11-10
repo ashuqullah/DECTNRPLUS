@@ -1,2 +1,2 @@
 # Load Zephyr board Kconfig descriptions.
-osource "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/dect_shell/boards/nrf9151_connectkit/Kconfig"
+osource "/home/ashuqullah-alizai/Documents/DECT_2020_GIT/boards_ncs_3_3/boards/nrf9151_connectkit/Kconfig"

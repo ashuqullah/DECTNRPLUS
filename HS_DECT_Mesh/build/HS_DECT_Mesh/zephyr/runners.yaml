@@ -1,0 +1,31 @@
+# Available runners configured by board.cmake.
+runners:
+- pyocd
+- jlink
+
+# Default flash runner if --runner is not given.
+flash-runner: pyocd
+
+# Default debug runner if --runner is not given.
+debug-runner: pyocd
+
+# Common runner configuration values.
+config:
+  board_dir: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/boards_ncs_3_3/boards/nrf9151_connectkit
+  # Build outputs:
+  elf_file: zephyr.elf
+  hex_file: /home/ashuqullah-alizai/Documents/DECT_2020_GIT/HS_DECT_Mesh/build/merged.hex
+  bin_file: zephyr.bin
+  # Host tools:
+  gdb: /home/ashuqullah-alizai/ncs/toolchains/911f4c5c26/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb
+
+# Runner specific arguments
+args:
+  pyocd:
+    - --dt-flash=y
+    - --target=nrf91
+    - --frequency=4000000
+  jlink:
+    - --dt-flash=y
+    - --device=nRF9151_xxCA
+    - --speed=4000
